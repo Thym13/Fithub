@@ -1,0 +1,150 @@
+@startuml FitHub Use Case Diagram - Version 1
+
+left to right direction
+
+' Styling
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+    ArrowColor Black
+}
+
+' Actors - Left Side
+actor "Member\n(Μέλος)" as member
+actor "Trainer\n(Γυμναστής)" as trainer
+actor "Receptionist\n(Γραμματέας)" as receptionist
+
+' System Boundary
+rectangle "FitHub Gym CRM System" {
+    
+    package "Member Use Cases" {
+        usecase "UC-1: Registration and\nActivation Guide\n(Εγγραφή και Οδηγός Ενεργοποίησης)" as UC1 #LightGreen
+        usecase "Member Registration" as UC1a
+        usecase "Trainer Registration" as UC1b
+        usecase "Receptionist Registration" as UC1c
+        
+        usecase "UC-2: Book Group Class\n(Κράτηση Μαθήματος)" as UC2 #LightGreen
+        usecase "Join Waitlist" as UC2a
+        usecase "Pay for Session" as UC2b
+        
+        usecase "UC-7: Apply Discount Code\n(Εφαρμογή Κωδικού Έκπτωσης)" as UC7 #LightGreen
+        usecase "Invalid Code Error" as UC7a
+        usecase "Expired Code Error" as UC7b
+        
+        usecase "UC-9: Submit Gym\nEvaluation\n(Αξιολόγηση Γυμναστηρίου)" as UC9 #LightGreen
+        usecase "Review Rejected" as UC9a
+        
+        usecase "UC-10: Customer Support\nSystem\n(Σύστημα Υποστήριξης\nΠελατών)" as UC10 #LightGreen
+        usecase "Escalate to Human" as UC10a
+        usecase "AI System Error" as UC10b
+    }
+    
+    package "Trainer Use Cases" {
+        usecase "UC-3: Create Personal\nTraining Program\n(Δημιουργία Προσωπικού\nΣχεδίου Γυμναστικής)" as UC3 #LightGreen
+        usecase "Group Program" as UC3a
+        usecase "Personal Program" as UC3b
+        
+        usecase "UC-8: Track Client\nProgress\n(Παρακολούθηση Προόδου\nΠελάτη)" as UC8 #LightGreen
+        usecase "Add Measurements" as UC8a
+        usecase "System Error" as UC8b
+    }
+    
+    package "Manager Use Cases" {
+        usecase "UC-4: Assign Tasks\nto Employees\n(Ανάθεση Εργασιών\nστους Υπαλλήλους)" as UC4 #LightGreen
+        usecase "Reassign Task" as UC4a
+        
+        usecase "UC-5: Manage Discounts\nand Offers\n(Διαχείριση Εκπτώσεων\nκαι Προσφορών)" as UC5 #LightGreen
+        usecase "New Member Offer" as UC5a
+        usecase "Group Registration Offer" as UC5b
+        
+        usecase "UC-6: Track Campaign\nStatistics\n(Παρακολούθηση Στατιστικών\nΚαμπάνιας)" as UC6 #LightGreen
+        usecase "Real-time Tracking" as UC6a
+        usecase "Compare Campaigns" as UC6b
+    }
+}
+
+' Actors - Right Side
+actor "Manager\n(Διαχειριστής)" as manager
+actor "Gym Owner\n(Ιδιοκτήτης)" as owner
+
+' UC-1 Connections
+member --> UC1
+trainer --> UC1
+receptionist --> UC1
+owner --> UC1
+
+UC1 .> UC1a : <<include>>
+UC1 .> UC1b : <<include>>
+UC1 .> UC1c : <<include>>
+
+' UC-2 Connections
+member --> UC2
+receptionist --> UC2
+trainer --> UC2
+owner --> UC2
+
+UC2a .> UC2 : <<extend>>
+UC2b .> UC2 : <<extend>>
+
+' UC-3 Connections
+trainer --> UC3
+owner --> UC3
+
+UC3a .> UC3 : <<extend>>
+UC3b .> UC3 : <<extend>>
+
+' UC-4 Connections
+manager --> UC4
+owner --> UC4
+
+UC4a .> UC4 : <<extend>>
+
+' UC-5 Connections
+manager --> UC5
+owner --> UC5
+
+UC5a .> UC5 : <<extend>>
+UC5b .> UC5 : <<extend>>
+
+' UC-6 Connections
+manager --> UC6
+owner --> UC6
+
+UC6a .> UC6 : <<extend>>
+UC6b .> UC6 : <<extend>>
+
+' UC-7 Connections
+member --> UC7
+owner --> UC7
+
+UC7a .> UC7 : <<extend>>
+UC7b .> UC7 : <<extend>>
+
+' UC-8 Connections
+trainer --> UC8
+owner --> UC8
+
+UC8 .> UC8a : <<include>>
+UC8b .> UC8 : <<extend>>
+
+' UC-9 Connections
+member --> UC9
+trainer --> UC9
+manager --> UC9
+owner --> UC9
+
+UC9a .> UC9 : <<extend>>
+
+' UC-10 Connections
+member --> UC10
+receptionist --> UC10
+manager --> UC10
+owner --> UC10
+
+UC10 .> UC10a : <<include>>
+UC10a .> UC10 : <<extend>>
+UC10b .> UC10 : <<extend>>
+
+@enduml

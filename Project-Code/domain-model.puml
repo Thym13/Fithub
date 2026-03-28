@@ -1,0 +1,362 @@
+@startuml FitHub Domain Model
+
+' Styling
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor<<Abstract>> LightYellow
+    BackgroundColor<<Entity>> LightBlue
+    BackgroundColor<<ValueObject>> LightGreen
+    BorderColor Black
+    ArrowColor Black
+}
+
+' Abstract User Class
+abstract class User <<Abstract>> {
+    - userId: String
+    - name: String
+    - email: String
+    - password: String
+    - role: Role
+    - accountStatus: Status
+    + login()
+    + logout()
+    + updateProfile()
+}
+
+' Specialized User Roles
+class GymOwner {
+    - ownedGyms: List<Gym>
+    + viewFinancialAnalytics()
+    + managePricingPlans()
+    + createDiscountCodes()
+    + manageManagers()
+}
+
+class Manager {
+    - managedSections: List<String>
+    + manageStaff()
+    + configureSystemSettings()
+    + viewOperationalAnalytics()
+    + handleMemberMessages()
+}
+
+class Receptionist {
+    - shift: String
+    + memberCheckIn()
+    + manageMemberProfiles()
+    + processBookings()
+    + handleSupportTickets()
+}
+
+class Trainer {
+    - specialty: String
+    - certifications: List<String>
+    - rating: Float
+    + createTrainingProgram()
+    + trackClientProgress()
+    + scheduleSession()
+    + teachClass()
+}
+
+class Member {
+    - membershipType: String
+    - memberSince: Date
+    - expiryDate: Date
+    - fitnessGoals: List<String>
+    + bookClass()
+    + viewProgress()
+    + submitEvaluation()
+    + contactSupport()
+}
+
+' Core Entities
+class Membership <<Entity>> {
+    - membershipId: String
+    - type: String
+    - monthlyFee: Float
+    - duration: Integer
+    - benefits: List<String>
+    - classLimit: Integer
+    - ptSessionsIncluded: Integer
+    - status: Status
+    + isActive(): Boolean
+    + renew()
+    + cancel()
+}
+
+class Class <<Entity>> {
+    - classId: String
+    - name: String
+    - category: String
+    - dayOfWeek: String
+    - time: String
+    - duration: Integer
+    - capacity: Integer
+    - enrolled: Integer
+    + isFull(): Boolean
+    + addParticipant()
+    + removeParticipant()
+}
+
+class Booking <<Entity>> {
+    - bookingId: String
+    - bookingDate: Date
+    - status: Status
+    - createdAt: DateTime
+    + confirm()
+    + cancel()
+    + notifyStaff()
+}
+
+class Waitlist <<Entity>> {
+    - waitlistId: String
+    - position: Integer
+    - joinedAt: DateTime
+    - status: Status
+    + notifyMember()
+    + convertToBooking()
+}
+
+class TrainingSession <<Entity>> {
+    - sessionId: String
+    - date: Date
+    - time: String
+    - duration: Integer
+    - type: String
+    - status: Status
+    - notes: String
+    + schedule()
+    + complete()
+    + reschedule()
+}
+
+class TrainingProgram <<Entity>> {
+    - programId: String
+    - name: String
+    - goal: String
+    - durationWeeks: Integer
+    - difficulty: String
+    - weeklyFrequency: Integer
+    - startDate: Date
+    - status: Status
+    + activate()
+    + pause()
+    + complete()
+}
+
+class Exercise <<Entity>> {
+    - exerciseId: String
+    - name: String
+    - category: String
+    - description: String
+    - muscleGroups: List<String>
+    - sets: Integer
+    - reps: Integer
+    - weightKg: Float
+    - distanceKm: Float
+    - instructions: String
+}
+
+class ClientProgress <<Entity>> {
+    - progressId: String
+    - weightKg: Float
+    - bodyFatPercentage: Float
+    - muscleMassKg: Float
+    - measurements: Map
+    - progressPhotos: List<String>
+    - recordedDate: Date
+    - trainerNotes: String
+    + recordMeasurement()
+    + updatePhotos()
+}
+
+class WorkoutLog <<Entity>> {
+    - logId: String
+    - date: Date
+    - workoutType: String
+    - duration: Integer
+    - caloriesBurned: Integer
+    - intensityLevel: Integer
+    - feelingAfter: String
+    + logWorkout()
+    + getStats()
+}
+
+class Review <<Entity>> {
+    - reviewId: String
+    - ratings: Map
+    - comments: String
+    - suggestions: String
+    - submittedDate: Date
+    - status: Status
+    + submit()
+    + approve()
+    + reject()
+}
+
+class SupportTicket <<Entity>> {
+    - ticketId: String
+    - category: String
+    - initialMessage: String
+    - status: Status
+    - handlerType: String
+    - createdAt: DateTime
+    - resolvedAt: DateTime
+    + create()
+    + escalate()
+    + resolve()
+    + close()
+}
+
+class Message <<Entity>> {
+    - messageId: String
+    - sender: String
+    - text: String
+    - timestamp: DateTime
+    + send()
+    + read()
+}
+
+class Payment <<Entity>> {
+    - transactionId: String
+    - amount: Float
+    - type: String
+    - paymentMethod: String
+    - date: Date
+    - status: Status
+    - receipt: String
+    + process()
+    + refund()
+}
+
+class DiscountCode <<Entity>> {
+    - code: String
+    - discountPercentage: Integer
+    - expiryDate: Date
+    - maxUses: Integer
+    - currentUses: Integer
+    - minSubscriptionValue: Float
+    - applicablePlans: List<String>
+    - status: Status
+    + validate()
+    + apply()
+    + isExpired(): Boolean
+}
+
+class Notification <<Entity>> {
+    - notificationId: String
+    - type: String
+    - title: String
+    - content: String
+    - priority: String
+    - readStatus: Boolean
+    - channel: String
+    - timestamp: DateTime
+    + send()
+    + markAsRead()
+}
+
+class CheckInRecord <<Entity>> {
+    - checkInId: String
+    - checkInTime: DateTime
+    - checkOutTime: DateTime
+    - purpose: String
+    - validatedMembership: Boolean
+    + recordEntry()
+    + recordExit()
+}
+
+class Schedule <<Entity>> {
+    - scheduleId: String
+    - weeklyClasses: List<Class>
+    - operatingHours: Map
+    + addClass()
+    + removeClass()
+    + checkConflict(): Boolean
+}
+
+' Inheritance Relationships
+User <|-- GymOwner
+User <|-- Manager
+User <|-- Receptionist
+User <|-- Trainer
+User <|-- Member
+
+' Composition & Aggregation
+Member *-- "1" Membership : has
+Member "1" o-- "0..*" Booking : makes
+Member "1" o-- "0..*" ClientProgress : tracks
+Member "1" o-- "0..*" WorkoutLog : logs
+Member "1" o-- "0..*" Review : submits
+Member "1" o-- "0..*" SupportTicket : creates
+Member "1" o-- "0..*" Payment : makes
+Member "1" -- "0..*" CheckInRecord : has
+
+Class "1" o-- "0..*" Booking : has
+Class "1" -- "0..1" Waitlist : has
+Class "0..*" -- "1" Trainer : taught by
+
+Trainer "1" o-- "0..*" TrainingProgram : creates
+Trainer "1" o-- "0..*" TrainingSession : conducts
+Trainer "1" -- "0..*" Member : trains
+
+TrainingProgram "1" *-- "1..*" Exercise : contains
+TrainingProgram "1" -- "1" Member : assigned to
+
+SupportTicket "1" *-- "1..*" Message : contains
+
+Booking "1" -- "1" Member : booked by
+Booking "1" -- "1" Class : for
+
+Waitlist "1" -- "1" Member : includes
+Waitlist "1" -- "1" Class : for
+
+Review "1" -- "1" Member : written by
+Review "0..1" -- "0..1" Class : about
+Review "0..1" -- "0..1" TrainingSession : about
+
+Payment "1" -- "1" Member : from
+Payment "0..1" -- "0..1" Membership : for
+
+DiscountCode "0..*" -- "0..*" Membership : applies to
+
+Notification "1" -- "1" User : sent to
+
+Schedule "1" o-- "0..*" Class : organizes
+Schedule "1" o-- "0..*" TrainingSession : organizes
+
+ClientProgress "1" -- "1" Member : tracks
+ClientProgress "1" -- "1" Trainer : recorded by
+
+TrainingSession "1" -- "1" Member : for
+TrainingSession "1" -- "1" Trainer : with
+
+Receptionist "1" -- "0..*" CheckInRecord : records
+
+note right of Member
+  Main user who uses
+  gym services and 
+  all member features:
+  - Book Classes (UC1)
+  - Apply Discounts (UC7)
+  - Track Progress (UC8)
+  - Submit Reviews (UC9)
+  - Contact Support (UC10)
+end note
+
+note left of Trainer
+  Creates custom training
+  programs with exercises
+  measured in metric units:
+  - kg (weight)
+  - km (distance)
+  - cm (measurements)
+end note
+
+note bottom of SupportTicket
+  AI-powered support system
+  with automatic escalation
+  after 5 messages
+end note
+
+@enduml
