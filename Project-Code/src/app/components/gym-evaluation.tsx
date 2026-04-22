@@ -100,14 +100,6 @@ export function GymEvaluation({ onClose }: GymEvaluationProps) {
       setShowRejection(true);
     } else {
       // Basic Flow: Success
-      console.log('Review submitted:', {
-        activity: selectedActivity,
-        ratings,
-        comments,
-        suggestions
-      });
-      console.log('Notifying trainer and administrator...');
-      
       setShowReviewForm(false);
       setShowConfirmation(true);
     }

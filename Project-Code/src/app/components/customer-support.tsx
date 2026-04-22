@@ -118,8 +118,6 @@ export function CustomerSupport() {
     
     if (hasError) {
       setShowError(true);
-      console.log('Error notification sent to secretary');
-      console.log('Email notification sent to user');
       return;
     }
 
@@ -143,7 +141,6 @@ export function CustomerSupport() {
     setCurrentTicket(newTicket);
     setShowConfirmation(true);
     
-    console.log('Ticket created:', ticketId);
 
     // Auto-proceed to chat after confirmation
     setTimeout(() => {
@@ -219,8 +216,6 @@ export function CustomerSupport() {
     setShowEscalation(false);
     setIsEscalated(true);
     
-    console.log('Ticket escalated to gym secretary');
-    console.log('Secretary notification sent');
 
     if (currentTicket) {
       const escalationMessage: Message = {
@@ -251,7 +246,6 @@ export function CustomerSupport() {
       status: 'closed'
     });
 
-    console.log('Ticket closed:', currentTicket.id);
 
     // Reset
     setTimeout(() => {

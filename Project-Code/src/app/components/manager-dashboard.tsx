@@ -217,7 +217,6 @@ export function ManagerDashboard() {
     setShowCreateTask(false);
     setSuccessMessage(`Task "${taskData.title}" has been assigned to ${employee?.name}. They will receive a notification about this assignment.`);
     setShowSuccessModal(true);
-    console.log('Task created and notification sent to:', employee?.name);
 
     // Reset form
     setTaskData({
@@ -240,7 +239,6 @@ export function ManagerDashboard() {
     setShowReassignModal(false);
     setSuccessMessage(`Task "${selectedTask.title}" has been reassigned to ${employee?.name}. They will receive a notification.`);
     setShowSuccessModal(true);
-    console.log('Task reassigned to:', employee?.name);
   };
 
   const handleCompleteTask = (taskId: string) => {
@@ -629,7 +627,6 @@ export function ManagerDashboard() {
               <Button 
                 variant="ghost" 
                 size="sm"
-                onClick={() => console.log('Refreshing tasks...')}
                 className="text-gray-600"
               >
                 <RefreshCw className="size-4 mr-1" />

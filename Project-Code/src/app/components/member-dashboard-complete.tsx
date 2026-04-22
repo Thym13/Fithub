@@ -126,7 +126,6 @@ export function MemberDashboard() {
     setShowBookingConfirmation(true);
     
     // Simulate notification to secretary and instructor
-    console.log('Notification sent to Secretary and Instructor:', selectedClass);
   };
 
   const handleJoinWaitlist = () => {
@@ -135,7 +134,6 @@ export function MemberDashboard() {
     setShowBookingConfirmation(true);
     
     // Simulate notification
-    console.log('Waitlist notification sent to Secretary and Instructor:', selectedClass);
   };
 
   const handlePayment = (paymentType: string) => {

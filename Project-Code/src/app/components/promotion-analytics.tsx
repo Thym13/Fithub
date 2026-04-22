@@ -114,18 +114,15 @@ export function PromotionAnalytics() {
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 
   const handleDownloadReport = () => {
-    console.log('Downloading PDF report for campaign:', selectedCampaign.name);
     alert('Report download started! (Mock functionality)');
   };
 
   const handleEmailReport = () => {
-    console.log('Emailing report for campaign:', selectedCampaign.name);
     alert('Report sent via email! (Mock functionality)');
   };
 
   const handleRefreshStats = () => {
     setShowError(false);
-    console.log('Refreshing statistics...');
     alert('Statistics refreshed successfully!');
   };
 

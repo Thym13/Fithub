@@ -149,9 +149,6 @@ export function ClientProgressTracking() {
     }
 
     // Success
-    console.log('Saving measurement:', newMeasurement);
-    console.log('Sending notification to client:', selectedClient?.name);
-    console.log('Sending email confirmation...');
     
     setShowAddMeasurement(false);
     setShowSuccessModal(true);
@@ -167,8 +164,6 @@ export function ClientProgressTracking() {
   };
 
   const handleSaveGoal = () => {
-    console.log('Saving goal:', newGoal);
-    console.log('Notifying client about new goal...');
     
     setShowAddGoal(false);
     setShowSuccessModal(true);
@@ -176,7 +171,6 @@ export function ClientProgressTracking() {
   };
 
   const handleSaveExercise = () => {
-    console.log('Updating exercise:', editingExercise, exerciseData);
     setEditingExercise(null);
     setShowSuccessModal(true);
   };

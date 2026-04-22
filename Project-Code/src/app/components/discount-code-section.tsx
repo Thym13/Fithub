@@ -64,8 +64,6 @@ export function DiscountCodeSection() {
     setShowSuccessModal(true);
     
     // Simulate notification
-    console.log('Discount code applied successfully:', validCode);
-    console.log('Sending confirmation email to member...');
   };
 
   const removeDiscount = () => {
@@ -201,7 +199,6 @@ export function DiscountCodeSection() {
               </div>
 
               <Button className="w-full" onClick={() => {
-                console.log('Processing payment with discount...');
                 alert(`Payment of $${finalPrice.toFixed(2)} processed successfully!`);
               }}>
                 <CreditCard className="size-4 mr-2" />

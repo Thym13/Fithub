@@ -223,8 +223,6 @@ export function TrainerDashboard() {
     }
     
     setShowSuccessModal(true);
-    console.log('Program created:', planData);
-    console.log('Notifications sent to:', targetType === 'group' ? 'All members' : `Client ${planData.clientId}`);
   };
 
   return (
