@@ -9,6 +9,8 @@ import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Textarea } from './ui/textarea';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Calendar as CalendarComponent } from './ui/calendar';
 import { PromotionAnalytics } from './promotion-analytics';
 import {
   Users,
@@ -31,6 +33,8 @@ import {
 } from 'lucide-react';
 import { mockMembers, mockStaff, mockClasses } from '../utils/mockData';
 import { useEffect, useState } from 'react';
+import { format } from 'date-fns';
+import { cn } from './ui/utils';
 
 const managerTabs = [
   { id: 'members', label: 'Member Profiles', path: '#members' },
@@ -52,9 +56,13 @@ export function ManagerDashboard() {
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [taskDeadlineDate, setTaskDeadlineDate] = useState<Date | undefined>(undefined);
+  const [taskDeadlineCalendarOpen, setTaskDeadlineCalendarOpen] = useState(false);
 
   // Contract Creation States
   const [showContractPreview, setShowContractPreview] = useState(false);
+  const [contractStartDate, setContractStartDate] = useState<Date | undefined>(undefined);
+  const [contractCalendarOpen, setContractCalendarOpen] = useState(false);
   const [contractData, setContractData] = useState({
     trainerEmail: '',
     trainerName: '',
@@ -227,6 +235,7 @@ export function ManagerDashboard() {
       deadline: '',
       frequency: ''
     });
+    setTaskDeadlineDate(undefined);
   };
 
   const handleReassignTask = (newEmployeeId: string) => {
@@ -273,7 +282,10 @@ export function ManagerDashboard() {
           <Card className="w-full max-w-2xl">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Create New Task</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setShowCreateTask(false)}>
+              <Button variant="ghost" size="sm" onClick={() => {
+                setShowCreateTask(false);
+                setTaskDeadlineDate(undefined);
+              }}>
                 <X className="size-5" />
               </Button>
             </CardHeader>
@@ -344,12 +356,34 @@ export function ManagerDashboard() {
                 </div>
                 <div>
                   <Label>Deadline *</Label>
-                  <Input 
-                    type="date"
-                    className="mt-2"
-                    value={taskData.deadline} 
-                    onChange={(e) => setTaskData({ ...taskData, deadline: e.target.value })}
-                  />
+                  <Popover open={taskDeadlineCalendarOpen} onOpenChange={setTaskDeadlineCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal mt-2",
+                          !taskDeadlineDate && "text-muted-foreground"
+                        )}
+                      >
+                        <Calendar className="mr-2 size-4" />
+                        {taskDeadlineDate ? format(taskDeadlineDate, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={taskDeadlineDate}
+                        onSelect={(date) => {
+                          setTaskDeadlineDate(date);
+                          if (date) {
+                            setTaskData({ ...taskData, deadline: format(date, 'yyyy-MM-dd') });
+                          }
+                          setTaskDeadlineCalendarOpen(false);
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
               <div className="bg-blue-50 p-4 rounded-lg">
@@ -358,7 +392,10 @@ export function ManagerDashboard() {
                 </p>
               </div>
               <div className="flex gap-3 justify-end">
-                <Button variant="outline" onClick={() => setShowCreateTask(false)}>
+                <Button variant="outline" onClick={() => {
+                  setShowCreateTask(false);
+                  setTaskDeadlineDate(undefined);
+                }}>
                   Cancel
                 </Button>
                 <Button 
@@ -1068,13 +1105,34 @@ export function ManagerDashboard() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="startDate">Start Date *</Label>
-                        <Input
-                          id="startDate"
-                          type="date"
-                          value={contractData.startDate}
-                          onChange={(e) => setContractData({ ...contractData, startDate: e.target.value })}
-                          required
-                        />
+                        <Popover open={contractCalendarOpen} onOpenChange={setContractCalendarOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !contractStartDate && "text-muted-foreground"
+                              )}
+                            >
+                              <Calendar className="mr-2 size-4" />
+                              {contractStartDate ? format(contractStartDate, "PPP") : <span>Pick a date</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarComponent
+                              mode="single"
+                              selected={contractStartDate}
+                              onSelect={(date) => {
+                                setContractStartDate(date);
+                                if (date) {
+                                  setContractData({ ...contractData, startDate: format(date, 'yyyy-MM-dd') });
+                                }
+                                setContractCalendarOpen(false);
+                              }}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     </div>
                   </div>

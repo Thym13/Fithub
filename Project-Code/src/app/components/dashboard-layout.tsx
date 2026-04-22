@@ -1,7 +1,8 @@
 import { ReactNode, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router';
 import { Button } from './ui/button';
-import { LogOut, Home, Menu, X } from 'lucide-react';
+import { Badge } from './ui/badge';
+import { LogOut, Home, Menu, X, Bell } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from './ui/sheet';
 
 interface DashboardLayoutProps {
@@ -9,15 +10,21 @@ interface DashboardLayoutProps {
   title: string;
   role: string;
   tabs?: Array<{ id: string; label: string; path: string }>;
+  newTaskCount?: number;
 }
 
-export function DashboardLayout({ children, title, role, tabs }: DashboardLayoutProps) {
+export function DashboardLayout({ children, title, role, tabs, newTaskCount = 0 }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     navigate('/');
+  };
+
+  const handleTasksClick = () => {
+    window.location.hash = '#tasks';
+    setMobileMenuOpen(false);
   };
 
   return (
@@ -36,6 +43,15 @@ export function DashboardLayout({ children, title, role, tabs }: DashboardLayout
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-2">
+              {newTaskCount > 0 && (
+                <Button variant="ghost" size="sm" onClick={handleTasksClick} className="relative">
+                  <Bell className="size-4" />
+                  <span className="ml-2">Tasks</span>
+                  <Badge className="ml-2 bg-red-600 hover:bg-red-600 text-white">
+                    {newTaskCount}
+                  </Badge>
+                </Button>
+              )}
               <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
                 <Home className="size-4" />
                 <span className="ml-2">Home</span>
@@ -46,13 +62,22 @@ export function DashboardLayout({ children, title, role, tabs }: DashboardLayout
               </Button>
             </div>
 
-            {/* Mobile Hamburger Menu */}
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="sm">
-                  <Menu className="size-5" />
+            {/* Mobile Navigation */}
+            <div className="flex items-center gap-2 md:hidden">
+              {newTaskCount > 0 && (
+                <Button variant="ghost" size="sm" onClick={handleTasksClick} className="relative">
+                  <Bell className="size-5" />
+                  <Badge className="absolute -top-1 -right-1 size-5 flex items-center justify-center p-0 bg-red-600 text-white text-xs">
+                    {newTaskCount}
+                  </Badge>
                 </Button>
-              </SheetTrigger>
+              )}
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <Menu className="size-5" />
+                  </Button>
+                </SheetTrigger>
               <SheetContent>
                 <SheetHeader>
                   <SheetTitle>
@@ -120,7 +145,8 @@ export function DashboardLayout({ children, title, role, tabs }: DashboardLayout
                   </div>
                 </div>
               </SheetContent>
-            </Sheet>
+              </Sheet>
+            </div>
           </div>
         </div>
       </header>

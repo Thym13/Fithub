@@ -20,7 +20,10 @@ import {
   Download,
   Eye,
   X,
-  UserPlus
+  UserPlus,
+  Bell,
+  ClipboardList,
+  Activity
 } from 'lucide-react';
 import { mockMembers, mockCheckIns, mockClasses, mockPayments } from '../utils/mockData';
 import { useEffect, useState } from 'react';
@@ -31,6 +34,7 @@ const receptionistTabs = [
   { id: 'payments', label: 'Payments', path: '#payments' },
   { id: 'applications', label: 'Trainer Applications', path: '#applications' },
   { id: 'communication', label: 'Member Communication', path: '#communication' },
+  { id: 'tasks', label: 'My Tasks', path: '#tasks' },
 ];
 
 export function ReceptionistDashboard() {
@@ -77,6 +81,40 @@ export function ReceptionistDashboard() {
     }
   ]);
 
+  // Task States
+  const [showTaskAlert, setShowTaskAlert] = useState(true);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [showTaskDetails, setShowTaskDetails] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [myTasks, setMyTasks] = useState([
+    {
+      id: '1',
+      title: 'Greet Members at Entrance',
+      description: 'Welcome members as they arrive and assist with check-ins',
+      type: 'Member Service',
+      assignedBy: 'Manager - John Smith',
+      deadline: '2026-04-23',
+      frequency: 'Daily',
+      status: 'Pending',
+      assignedAt: '2026-04-22 08:00 AM',
+      isNew: true
+    },
+    {
+      id: '2',
+      title: 'Clean Locker Rooms',
+      description: 'Deep clean and sanitize all locker room facilities',
+      type: 'Cleaning',
+      assignedBy: 'Manager - John Smith',
+      deadline: '2026-04-22',
+      frequency: 'Daily',
+      status: 'Completed',
+      assignedAt: '2026-04-22 07:00 AM',
+      completedAt: '2026-04-22 09:30 AM',
+      isNew: false
+    }
+  ]);
+
   useEffect(() => {
     const hash = window.location.hash.slice(1) || 'checkin';
     setActiveTab(hash);
@@ -91,7 +129,12 @@ export function ReceptionistDashboard() {
   }, []);
 
   return (
-    <DashboardLayout title="Front Desk Operations" role="Receptionist" tabs={receptionistTabs}>
+    <DashboardLayout
+      title="Front Desk Operations"
+      role="Receptionist"
+      tabs={receptionistTabs}
+      newTaskCount={myTasks.filter(t => t.isNew).length}
+    >
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsContent value="checkin" className="space-y-6">
           {/* Quick Check-In */}
@@ -668,6 +711,271 @@ export function ReceptionistDashboard() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="tasks" className="space-y-6">
+          {/* Task Notification Alert */}
+          {showTaskAlert && myTasks.filter(t => t.isNew).length > 0 && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-100 rounded-full flex-shrink-0">
+                    <Bell className="size-5 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-blue-900">New Task Assigned!</h3>
+                    <p className="text-sm text-blue-800 mt-1">
+                      You have {myTasks.filter(t => t.isNew).length} new task{myTasks.filter(t => t.isNew).length > 1 ? 's' : ''} from your manager
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowTaskAlert(false)}
+                  >
+                    <X className="size-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <ClipboardList className="size-5" />
+                  Assigned Tasks
+                </CardTitle>
+                <Badge variant="secondary">
+                  {myTasks.filter(t => t.status === 'Pending').length} Pending
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {myTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className={`p-4 border rounded-lg transition-colors ${
+                      task.isNew ? 'border-blue-300 bg-blue-50' : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center gap-2">
+                          {task.isNew && (
+                            <Badge className="bg-blue-600">New</Badge>
+                          )}
+                          <h3 className="font-medium">{task.title}</h3>
+                          <Badge
+                            variant="outline"
+                            className={
+                              task.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                              task.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                              'bg-yellow-100 text-yellow-800'
+                            }
+                          >
+                            {task.status}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-600">{task.description}</p>
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Clock className="size-4" />
+                            <span>Due: {new Date(task.deadline).toLocaleDateString('en-GB')}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Badge variant="outline">{task.type}</Badge>
+                          </div>
+                          <div>Frequency: {task.frequency}</div>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          Assigned by {task.assignedBy} on {task.assignedAt}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedTask(task);
+                            setShowTaskDetails(true);
+                          }}
+                        >
+                          <Eye className="size-4 sm:mr-2" />
+                          <span className="hidden sm:inline">View</span>
+                        </Button>
+                        {task.status === 'Pending' && (
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              const updatedTasks = myTasks.map(t =>
+                                t.id === task.id ? { ...t, status: 'In Progress', isNew: false } : t
+                              );
+                              setMyTasks(updatedTasks);
+                            }}
+                          >
+                            <Activity className="size-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Start</span>
+                          </Button>
+                        )}
+                        {task.status === 'In Progress' && (
+                          <Button
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700"
+                            onClick={() => {
+                              const updatedTasks = myTasks.map(t =>
+                                t.id === task.id ? { ...t, status: 'Completed', completedAt: new Date().toLocaleString(), isNew: false } : t
+                              );
+                              setMyTasks(updatedTasks);
+                              setSuccessMessage('Task marked as completed!');
+                              setShowSuccessModal(true);
+                            }}
+                          >
+                            <CheckCircle className="size-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Complete</span>
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {myTasks.length === 0 && (
+                  <div className="text-center py-12 text-gray-500">
+                    <ClipboardList className="size-12 mx-auto mb-4 opacity-50" />
+                    <p>No tasks assigned yet</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Task Details Modal */}
+          {showTaskDetails && selectedTask && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <Card className="max-w-lg w-full">
+                <CardHeader>
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-lg">Task Details</CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setShowTaskDetails(false);
+                        setSelectedTask(null);
+                      }}
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-gray-500">Task Title</Label>
+                      <p className="font-medium">{selectedTask.title}</p>
+                    </div>
+                    <div>
+                      <Label className="text-gray-500">Description</Label>
+                      <p className="text-sm text-gray-700">{selectedTask.description}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-gray-500">Type</Label>
+                        <Badge variant="outline" className="mt-1">{selectedTask.type}</Badge>
+                      </div>
+                      <div>
+                        <Label className="text-gray-500">Status</Label>
+                        <Badge
+                          className={`mt-1 ${
+                            selectedTask.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                            selectedTask.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}
+                        >
+                          {selectedTask.status}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-gray-500">Deadline</Label>
+                        <p className="font-medium">{new Date(selectedTask.deadline).toLocaleDateString('en-GB')}</p>
+                      </div>
+                      <div>
+                        <Label className="text-gray-500">Frequency</Label>
+                        <p className="font-medium">{selectedTask.frequency}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-gray-500">Assigned By</Label>
+                      <p className="font-medium">{selectedTask.assignedBy}</p>
+                      <p className="text-xs text-gray-500 mt-1">on {selectedTask.assignedAt}</p>
+                    </div>
+                    {selectedTask.completedAt && (
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-sm text-green-800">
+                          ✓ Completed on {selectedTask.completedAt}
+                        </p>
+                      </div>
+                    )}
+                    <div className="flex gap-3 pt-4">
+                      <Button
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => {
+                          setShowTaskDetails(false);
+                          setSelectedTask(null);
+                        }}
+                      >
+                        Close
+                      </Button>
+                      {selectedTask.status !== 'Completed' && (
+                        <Button
+                          className="flex-1 bg-green-600 hover:bg-green-700"
+                          onClick={() => {
+                            const updatedTasks = myTasks.map(t =>
+                              t.id === selectedTask.id ? { ...t, status: 'Completed', completedAt: new Date().toLocaleString(), isNew: false } : t
+                            );
+                            setMyTasks(updatedTasks);
+                            setShowTaskDetails(false);
+                            setSelectedTask(null);
+                            setSuccessMessage('Task marked as completed!');
+                            setShowSuccessModal(true);
+                          }}
+                        >
+                          <CheckCircle className="size-4 mr-2" />
+                          Mark Complete
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Success Modal */}
+          {showSuccessModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <Card className="w-full max-w-md">
+                <CardContent className="pt-6 text-center">
+                  <div className="mb-4 flex justify-center">
+                    <div className="p-4 bg-green-100 rounded-full">
+                      <CheckCircle className="size-12 text-green-600" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-medium mb-2">Success!</h3>
+                  <p className="text-gray-600 mb-6">{successMessage}</p>
+                  <Button onClick={() => setShowSuccessModal(false)} className="w-full">
+                    Close
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </DashboardLayout>
