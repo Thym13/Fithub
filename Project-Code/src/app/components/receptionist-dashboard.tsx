@@ -7,15 +7,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { 
-  UserCheck, 
-  Calendar, 
-  CreditCard, 
+import {
+  UserCheck,
+  Calendar,
+  CreditCard,
   MessageSquare,
   Search,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  FileText,
+  Download,
+  Eye,
+  X,
+  UserPlus
 } from 'lucide-react';
 import { mockMembers, mockCheckIns, mockClasses, mockPayments } from '../utils/mockData';
 import { useEffect, useState } from 'react';
@@ -24,11 +29,53 @@ const receptionistTabs = [
   { id: 'checkin', label: 'Check-Ins', path: '#checkin' },
   { id: 'booking', label: 'Class Bookings', path: '#booking' },
   { id: 'payments', label: 'Payments', path: '#payments' },
+  { id: 'applications', label: 'Trainer Applications', path: '#applications' },
   { id: 'communication', label: 'Member Communication', path: '#communication' },
 ];
 
 export function ReceptionistDashboard() {
   const [activeTab, setActiveTab] = useState('checkin');
+  const [selectedApplication, setSelectedApplication] = useState<any>(null);
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
+
+  const [trainerApplications, setTrainerApplications] = useState([
+    {
+      id: '1',
+      name: 'Maria Papadopoulos',
+      email: 'maria.p@example.com',
+      phone: '+30 698 123 4567',
+      dateOfBirth: '1995-06-15',
+      specialty: 'Yoga, Pilates, Personal Training',
+      appliedDate: '2026-04-10',
+      resumeUrl: '#',
+      certificationsUrl: '#',
+      status: 'Pending'
+    },
+    {
+      id: '2',
+      name: 'Nikos Dimitriou',
+      email: 'nikos.d@example.com',
+      phone: '+30 697 987 6543',
+      dateOfBirth: '1992-03-22',
+      specialty: 'HIIT, Strength Training, Boxing',
+      appliedDate: '2026-04-12',
+      resumeUrl: '#',
+      certificationsUrl: '#',
+      status: 'Pending'
+    },
+    {
+      id: '3',
+      name: 'Elena Georgiou',
+      email: 'elena.g@example.com',
+      phone: '+30 699 456 7890',
+      dateOfBirth: '1998-11-08',
+      specialty: 'Nutrition Consultation, Weight Loss Programs',
+      appliedDate: '2026-04-08',
+      resumeUrl: '#',
+      certificationsUrl: '#',
+      status: 'Under Review'
+    }
+  ]);
 
   useEffect(() => {
     const hash = window.location.hash.slice(1) || 'checkin';
@@ -322,6 +369,241 @@ export function ReceptionistDashboard() {
               </Table>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="applications" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <UserPlus className="size-5" />
+                  Trainer Applications
+                </CardTitle>
+                <Badge variant="secondary">{trainerApplications.filter(app => app.status === 'Pending').length} Pending</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Specialty</TableHead>
+                    <TableHead>Applied Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {trainerApplications.map((application) => (
+                    <TableRow key={application.id}>
+                      <TableCell>
+                        <div className="font-medium">{application.name}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          <div>{application.email}</div>
+                          <div className="text-gray-500">{application.phone}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm max-w-xs">{application.specialty}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">{new Date(application.appliedDate).toLocaleDateString('en-GB')}</div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            application.status === 'Pending' ? 'secondary' :
+                            application.status === 'Under Review' ? 'default' :
+                            'secondary'
+                          }
+                          className={
+                            application.status === 'Under Review' ? 'bg-blue-100 text-blue-800' : ''
+                          }
+                        >
+                          {application.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedApplication(application);
+                              setShowApplicationModal(true);
+                            }}
+                          >
+                            <Eye className="size-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* Application Details Modal */}
+          {showApplicationModal && selectedApplication && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <CardHeader>
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-lg sm:text-xl">Trainer Application Details</CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setShowApplicationModal(false);
+                        setSelectedApplication(null);
+                      }}
+                      className="flex-shrink-0"
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* Personal Information */}
+                    <div className="space-y-4">
+                      <h3 className="font-medium text-lg border-b pb-2">Personal Information</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-gray-500">Full Name</Label>
+                          <p className="font-medium break-words">{selectedApplication.name}</p>
+                        </div>
+                        <div>
+                          <Label className="text-gray-500">Email</Label>
+                          <p className="font-medium break-all text-sm">{selectedApplication.email}</p>
+                        </div>
+                        <div>
+                          <Label className="text-gray-500">Phone</Label>
+                          <p className="font-medium">{selectedApplication.phone}</p>
+                        </div>
+                        <div>
+                          <Label className="text-gray-500">Date of Birth</Label>
+                          <p className="font-medium">{new Date(selectedApplication.dateOfBirth).toLocaleDateString('en-GB')}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Professional Information */}
+                    <div className="space-y-4">
+                      <h3 className="font-medium text-lg border-b pb-2">Professional Information</h3>
+                      <div>
+                        <Label className="text-gray-500">Specialty</Label>
+                        <p className="font-medium">{selectedApplication.specialty}</p>
+                      </div>
+                      <div>
+                        <Label className="text-gray-500">Application Date</Label>
+                        <p className="font-medium">{new Date(selectedApplication.appliedDate).toLocaleDateString('en-GB')}</p>
+                      </div>
+                    </div>
+
+                    {/* Documents */}
+                    <div className="space-y-4">
+                      <h3 className="font-medium text-lg border-b pb-2">Submitted Documents</h3>
+                      <div className="space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border rounded-lg hover:bg-gray-50">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="p-2 bg-blue-100 rounded flex-shrink-0">
+                              <FileText className="size-5 text-blue-600" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium">Resume / CV</div>
+                              <div className="text-sm text-gray-500 truncate">{selectedApplication.name}_Resume.pdf</div>
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm" className="w-full sm:w-auto flex-shrink-0">
+                            <Download className="size-4 sm:mr-2" />
+                            <span className="sm:inline">Download</span>
+                          </Button>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border rounded-lg hover:bg-gray-50">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="p-2 bg-green-100 rounded flex-shrink-0">
+                              <FileText className="size-5 text-green-600" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium">Certifications</div>
+                              <div className="text-sm text-gray-500 truncate">{selectedApplication.name}_Certifications.pdf</div>
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm" className="w-full sm:w-auto flex-shrink-0">
+                            <Download className="size-4 sm:mr-2" />
+                            <span className="sm:inline">Download</span>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Status Update */}
+                    <div className="space-y-4">
+                      <h3 className="font-medium text-lg border-b pb-2">Update Status</h3>
+                      <div className="space-y-3">
+                        <div>
+                          <Label>Current Status</Label>
+                          <Badge className="ml-2">{selectedApplication.status}</Badge>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Change Status</Label>
+                          <Select
+                            defaultValue={selectedApplication.status}
+                            onValueChange={(value) => {
+                              const updatedApplications = trainerApplications.map(app =>
+                                app.id === selectedApplication.id ? { ...app, status: value } : app
+                              );
+                              setTrainerApplications(updatedApplications);
+                              setSelectedApplication({ ...selectedApplication, status: value });
+                            }}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Pending">Pending</SelectItem>
+                              <SelectItem value="Under Review">Under Review</SelectItem>
+                              <SelectItem value="Approved">Approved</SelectItem>
+                              <SelectItem value="Rejected">Rejected</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowApplicationModal(false);
+                          setSelectedApplication(null);
+                        }}
+                        className="flex-1 w-full"
+                      >
+                        Close
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setShowApplicationModal(false);
+                          setSelectedApplication(null);
+                        }}
+                        className="flex-1 w-full"
+                      >
+                        <CheckCircle className="size-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="communication" className="space-y-6">

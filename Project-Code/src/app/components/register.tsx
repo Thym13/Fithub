@@ -41,7 +41,11 @@ export function Register() {
     dateOfBirth: '',
     specialty: '',
     subscriptionPlan: '',
-    fitnessGoals: '',
+    fitnessGoals: [] as string[],
+    currentWeight: '',
+    targetWeight: '',
+    fitnessLevel: '',
+    weeklyWorkouts: '',
     paymentMethod: ''
   });
   const [uploadedFiles, setUploadedFiles] = useState<{ resume?: File; certifications?: File }>({});
@@ -67,7 +71,7 @@ export function Register() {
     if (selectedRole === 'member') {
       setCurrentStep('subscription');
     } else if (selectedRole === 'trainer') {
-      setCurrentStep('documents');
+      setCurrentStep('pending-approval');
     } else if (selectedRole === 'secretary') {
       setCurrentStep('contract');
     }
@@ -257,8 +261,62 @@ export function Register() {
           </div>
         )}
 
-        <Button onClick={handlePersonalInfoSubmit} className="w-full">
-          Continue
+        {selectedRole === 'trainer' && (
+          <>
+            <div className="border-t pt-6 mt-6">
+              <h3 className="text-lg mb-4">Upload Required Documents</h3>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="resume">Resume / CV *</Label>
+                  <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                    <input
+                      type="file"
+                      id="resume"
+                      className="hidden"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) => handleFileUpload('resume', e)}
+                    />
+                    <label htmlFor="resume" className="cursor-pointer">
+                      <Upload className="size-8 mx-auto mb-2 text-gray-400" />
+                      <p className="text-sm text-gray-600">
+                        {uploadedFiles.resume ? uploadedFiles.resume.name : 'Click to upload your resume'}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">PDF, DOC, or DOCX (Max 5MB)</p>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="certifications">Certifications (Optional)</Label>
+                  <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                    <input
+                      type="file"
+                      id="certifications"
+                      className="hidden"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) => handleFileUpload('certifications', e)}
+                    />
+                    <label htmlFor="certifications" className="cursor-pointer">
+                      <Upload className="size-8 mx-auto mb-2 text-gray-400" />
+                      <p className="text-sm text-gray-600">
+                        {uploadedFiles.certifications ? uploadedFiles.certifications.name : 'Click to upload certifications'}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">PDF, JPG, or PNG (Max 5MB)</p>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        <Button
+          onClick={handlePersonalInfoSubmit}
+          className="w-full"
+          disabled={selectedRole === 'trainer' && !uploadedFiles.resume}
+        >
+          {selectedRole === 'trainer' ? 'Submit Application' : 'Continue'}
         </Button>
       </div>
     </div>
@@ -370,35 +428,147 @@ export function Register() {
     </div>
   );
 
-  const renderPreferences = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Badge>Step 4 of 6</Badge>
-      </div>
+  const renderPreferences = () => {
+    const fitnessGoalOptions = [
+      { id: 'weight-loss', label: 'Weight Loss' },
+      { id: 'muscle-gain', label: 'Muscle Gain' },
+      { id: 'endurance', label: 'Improve Endurance' },
+      { id: 'flexibility', label: 'Increase Flexibility' },
+      { id: 'strength', label: 'Build Strength' },
+      { id: 'general-fitness', label: 'General Fitness' }
+    ];
 
-      <div>
-        <h2 className="text-2xl mb-2">Set Your Preferences</h2>
-        <p className="text-gray-600">Tell us about your fitness goals</p>
-      </div>
+    const toggleGoal = (goalId: string) => {
+      const currentGoals = Array.isArray(formData.fitnessGoals) ? formData.fitnessGoals : [];
+      const updatedGoals = currentGoals.includes(goalId)
+        ? currentGoals.filter(g => g !== goalId)
+        : [...currentGoals, goalId];
+      setFormData({ ...formData, fitnessGoals: updatedGoals });
+    };
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="goals">Fitness Goals</Label>
-          <Textarea
-            id="goals"
-            placeholder="E.g., Lose weight, build muscle, improve endurance..."
-            value={formData.fitnessGoals}
-            onChange={(e) => handleInputChange('fitnessGoals', e.target.value)}
-            rows={4}
-          />
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Badge>Step 4 of 6</Badge>
         </div>
 
-        <Button onClick={handlePreferencesSubmit} className="w-full">
-          Continue to Payment
-        </Button>
+        <div>
+          <h2 className="text-2xl mb-2">Set Your Fitness Goals</h2>
+          <p className="text-gray-600">Help us personalize your fitness journey</p>
+        </div>
+
+        <div className="space-y-6">
+          {/* Primary Goals */}
+          <div className="space-y-3">
+            <Label>Primary Fitness Goals *</Label>
+            <p className="text-sm text-gray-500">Select all that apply</p>
+            <div className="grid grid-cols-2 gap-3">
+              {fitnessGoalOptions.map(goal => (
+                <div
+                  key={goal.id}
+                  onClick={() => toggleGoal(goal.id)}
+                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    (formData.fitnessGoals as string[]).includes(goal.id)
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={(formData.fitnessGoals as string[]).includes(goal.id)}
+                      onChange={() => {}}
+                      className="size-4"
+                    />
+                    <span className="text-sm font-medium">{goal.label}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Current Fitness Level */}
+          <div className="space-y-2">
+            <Label htmlFor="fitnessLevel">Current Fitness Level *</Label>
+            <select
+              id="fitnessLevel"
+              value={formData.fitnessLevel}
+              onChange={(e) => handleInputChange('fitnessLevel', e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="">Select your level</option>
+              <option value="beginner">Beginner - New to fitness</option>
+              <option value="intermediate">Intermediate - Regular exercise (1-3 years)</option>
+              <option value="advanced">Advanced - Consistent training (3+ years)</option>
+            </select>
+          </div>
+
+          {/* Weight Goals */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="currentWeight">Current Weight (kg) *</Label>
+              <Input
+                id="currentWeight"
+                type="number"
+                placeholder="75"
+                min="30"
+                max="300"
+                step="0.1"
+                value={formData.currentWeight}
+                onChange={(e) => handleInputChange('currentWeight', e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="targetWeight">Target Weight (kg)</Label>
+              <Input
+                id="targetWeight"
+                type="number"
+                placeholder="70"
+                min="30"
+                max="300"
+                step="0.1"
+                value={formData.targetWeight}
+                onChange={(e) => handleInputChange('targetWeight', e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Weekly Workout Frequency */}
+          <div className="space-y-2">
+            <Label htmlFor="weeklyWorkouts">Preferred Weekly Workouts *</Label>
+            <select
+              id="weeklyWorkouts"
+              value={formData.weeklyWorkouts}
+              onChange={(e) => handleInputChange('weeklyWorkouts', e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="">Select frequency</option>
+              <option value="1-2">1-2 times per week</option>
+              <option value="3-4">3-4 times per week</option>
+              <option value="5-6">5-6 times per week</option>
+              <option value="daily">Daily workouts</option>
+            </select>
+          </div>
+
+          <Button
+            onClick={handlePreferencesSubmit}
+            className="w-full"
+            disabled={
+              (formData.fitnessGoals as string[]).length === 0 ||
+              !formData.fitnessLevel ||
+              !formData.currentWeight ||
+              !formData.weeklyWorkouts
+            }
+          >
+            Continue to Payment
+          </Button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderPayment = () => (
     <div className="space-y-6">

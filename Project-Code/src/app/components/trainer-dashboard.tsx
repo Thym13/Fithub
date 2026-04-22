@@ -8,10 +8,10 @@ import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { 
-  Users, 
-  Calendar, 
-  TrendingUp, 
+import {
+  Users,
+  Calendar,
+  TrendingUp,
   Target,
   Plus,
   MessageSquare,
@@ -21,7 +21,11 @@ import {
   CheckCircle,
   Clock,
   Edit,
-  Trash2
+  Trash2,
+  FileText,
+  Eye,
+  ThumbsUp,
+  ThumbsDown
 } from 'lucide-react';
 import { mockTrainerClients, mockClasses } from '../utils/mockData';
 import { ClientProgressTracking } from './client-progress-tracking';
@@ -32,6 +36,7 @@ const trainerTabs = [
   { id: 'programs', label: 'Workout Plans', path: '#programs' },
   { id: 'schedule', label: 'Schedule', path: '#schedule' },
   { id: 'progress', label: 'Progress Tracking', path: '#progress' },
+  { id: 'contracts', label: 'Contracts', path: '#contracts' },
 ];
 
 export function TrainerDashboard() {
@@ -90,6 +95,41 @@ export function TrainerDashboard() {
       clients: 2,
       duration: '8 weeks',
       difficulty: 'Beginner'
+    }
+  ]);
+
+  // Contract States
+  const [selectedContract, setSelectedContract] = useState<any>(null);
+  const [showContractModal, setShowContractModal] = useState(false);
+  const [contracts, setContracts] = useState([
+    {
+      id: '1',
+      trainerName: 'Sarah Johnson',
+      trainerEmail: 'sarah.johnson@example.com',
+      position: 'Personal Trainer',
+      salary: '2500',
+      workingHours: '40',
+      workDays: '5',
+      services: ['Personal Training', 'Group Classes', 'Nutrition Consultation'],
+      startDate: '2026-05-01',
+      status: 'Pending',
+      createdAt: '2026-04-14',
+      sentBy: 'Manager - John Smith'
+    },
+    {
+      id: '2',
+      trainerName: 'Sarah Johnson',
+      trainerEmail: 'sarah.johnson@example.com',
+      position: 'Group Fitness Instructor',
+      salary: '2200',
+      workingHours: '35',
+      workDays: '5',
+      services: ['Group Classes', 'Fitness Assessment'],
+      startDate: '2026-04-20',
+      status: 'Accepted',
+      createdAt: '2026-04-05',
+      sentBy: 'Owner - Maria Papadopoulos',
+      acceptedAt: '2026-04-06'
     }
   ]);
 
@@ -195,7 +235,7 @@ export function TrainerDashboard() {
           <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>
-                Create Workout Plan - Step {creationStep} of {planType === 'class' ? (targetType === 'group' ? 4 : 5) : (targetType === 'personal' ? 5 : 4)}
+                Create Workout Plan - Step {creationStep} of 5
               </CardTitle>
               <Button variant="ghost" size="sm" onClick={() => setShowCreatePlan(false)}>
                 <X className="size-5" />
@@ -894,6 +934,262 @@ export function TrainerDashboard() {
 
         <TabsContent value="progress" className="space-y-6">
           <ClientProgressTracking />
+        </TabsContent>
+
+        <TabsContent value="contracts" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="size-5" />
+                  Employment Contracts
+                </CardTitle>
+                <Badge variant="secondary">
+                  {contracts.filter(c => c.status === 'Pending').length} Pending
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {contracts.map((contract) => (
+                  <div
+                    key={contract.id}
+                    className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium">{contract.position}</h3>
+                          <Badge
+                            variant={
+                              contract.status === 'Pending' ? 'secondary' :
+                              contract.status === 'Accepted' ? 'default' :
+                              'destructive'
+                            }
+                            className={
+                              contract.status === 'Accepted' ? 'bg-green-100 text-green-800' :
+                              contract.status === 'Rejected' ? 'bg-red-100 text-red-800' : ''
+                            }
+                          >
+                            {contract.status}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <p>Monthly Salary: <strong>€{contract.salary}</strong></p>
+                          <p>Working Hours: <strong>{contract.workingHours} hours/week</strong></p>
+                          <p>Start Date: <strong>{new Date(contract.startDate).toLocaleDateString('en-GB')}</strong></p>
+                          <p className="text-xs text-gray-500">Sent by: {contract.sentBy} on {new Date(contract.createdAt).toLocaleDateString('en-GB')}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedContract(contract);
+                            setShowContractModal(true);
+                          }}
+                        >
+                          <Eye className="size-4 sm:mr-2" />
+                          <span className="hidden sm:inline">View Details</span>
+                        </Button>
+                        {contract.status === 'Pending' && (
+                          <>
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700"
+                              onClick={() => {
+                                const updatedContracts = contracts.map(c =>
+                                  c.id === contract.id ? { ...c, status: 'Accepted', acceptedAt: new Date().toISOString().split('T')[0] } : c
+                                );
+                                setContracts(updatedContracts);
+                                setSuccessMessage('Contract accepted successfully!');
+                                setShowSuccessModal(true);
+                              }}
+                            >
+                              <ThumbsUp className="size-4 sm:mr-2" />
+                              <span className="hidden sm:inline">Accept</span>
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                const updatedContracts = contracts.map(c =>
+                                  c.id === contract.id ? { ...c, status: 'Rejected', rejectedAt: new Date().toISOString().split('T')[0] } : c
+                                );
+                                setContracts(updatedContracts);
+                              }}
+                            >
+                              <ThumbsDown className="size-4 sm:mr-2" />
+                              <span className="hidden sm:inline">Reject</span>
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {contracts.length === 0 && (
+                  <div className="text-center py-12 text-gray-500">
+                    <FileText className="size-12 mx-auto mb-4 opacity-50" />
+                    <p>No contracts yet</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Contract Details Modal */}
+          {showContractModal && selectedContract && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <CardHeader>
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-lg sm:text-xl">Contract Details</CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setShowContractModal(false);
+                        setSelectedContract(null);
+                      }}
+                      className="flex-shrink-0"
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* Contract Document Preview */}
+                    <div className="border rounded-lg p-6 bg-gray-50 space-y-6">
+                      <div className="text-center border-b pb-4">
+                        <h2 className="text-2xl">EMPLOYMENT CONTRACT</h2>
+                        <p className="text-sm text-gray-600 mt-2">FitHub Gym & Fitness Center</p>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="font-medium mb-2">PARTIES</h3>
+                          <p className="text-sm text-gray-700">
+                            This Employment Contract is entered into between <strong>FitHub Gym & Fitness Center</strong> (hereinafter "Employer")
+                            and <strong>{selectedContract.trainerName}</strong> (hereinafter "Employee"), email: {selectedContract.trainerEmail}.
+                          </p>
+                        </div>
+
+                        <div>
+                          <h3 className="font-medium mb-2">POSITION AND DUTIES</h3>
+                          <p className="text-sm text-gray-700 mb-2">
+                            The Employee is hired as <strong>{selectedContract.position}</strong> and shall provide the following services:
+                          </p>
+                          <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                            {selectedContract.services.map((service: string, index: number) => (
+                              <li key={index}>{service}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <h3 className="font-medium mb-2">COMPENSATION</h3>
+                            <p className="text-sm text-gray-700">Monthly Salary: <strong>€{selectedContract.salary}</strong></p>
+                            <p className="text-sm text-gray-500 mt-1">Payment made monthly on the last business day</p>
+                          </div>
+                          <div>
+                            <h3 className="font-medium mb-2">WORKING HOURS</h3>
+                            <p className="text-sm text-gray-700">Hours per Week: <strong>{selectedContract.workingHours} hours</strong></p>
+                            <p className="text-sm text-gray-700">Work Days: <strong>{selectedContract.workDays} days per week</strong></p>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h3 className="font-medium mb-2">EMPLOYMENT PERIOD</h3>
+                          <p className="text-sm text-gray-700">
+                            Start Date: <strong>{new Date(selectedContract.startDate).toLocaleDateString('en-GB')}</strong>
+                          </p>
+                          <p className="text-sm text-gray-500 mt-1">This is a permanent employment contract subject to a 3-month probationary period.</p>
+                        </div>
+
+                        <div>
+                          <h3 className="font-medium mb-2">BENEFITS</h3>
+                          <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                            <li>Free gym membership</li>
+                            <li>Health insurance coverage</li>
+                            <li>20 days paid annual leave</li>
+                            <li>Professional development opportunities</li>
+                          </ul>
+                        </div>
+
+                        {selectedContract.status === 'Accepted' && selectedContract.acceptedAt && (
+                          <div className="border-t pt-4">
+                            <div className="flex items-center gap-2 text-green-700">
+                              <CheckCircle className="size-5" />
+                              <p className="text-sm font-medium">
+                                Contract Accepted on {new Date(selectedContract.acceptedAt).toLocaleDateString('en-GB')}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="border-t pt-4 text-xs text-gray-500">
+                        <p>This contract is governed by the laws of Greece and European Union employment regulations.</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowContractModal(false);
+                          setSelectedContract(null);
+                        }}
+                        className="flex-1 w-full"
+                      >
+                        Close
+                      </Button>
+                      {selectedContract.status === 'Pending' && (
+                        <>
+                          <Button
+                            onClick={() => {
+                              const updatedContracts = contracts.map(c =>
+                                c.id === selectedContract.id ? { ...c, status: 'Accepted', acceptedAt: new Date().toISOString().split('T')[0] } : c
+                              );
+                              setContracts(updatedContracts);
+                              setShowContractModal(false);
+                              setSelectedContract(null);
+                              setSuccessMessage('Contract accepted successfully!');
+                              setShowSuccessModal(true);
+                            }}
+                            className="flex-1 w-full bg-green-600 hover:bg-green-700"
+                          >
+                            <ThumbsUp className="size-4 mr-2" />
+                            Accept Contract
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            onClick={() => {
+                              const updatedContracts = contracts.map(c =>
+                                c.id === selectedContract.id ? { ...c, status: 'Rejected', rejectedAt: new Date().toISOString().split('T')[0] } : c
+                              );
+                              setContracts(updatedContracts);
+                              setShowContractModal(false);
+                              setSelectedContract(null);
+                            }}
+                            className="flex-1 w-full"
+                          >
+                            <ThumbsDown className="size-4 mr-2" />
+                            Reject Contract
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </DashboardLayout>

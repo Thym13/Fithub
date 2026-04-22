@@ -10,10 +10,10 @@ import { Switch } from './ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Textarea } from './ui/textarea';
 import { PromotionAnalytics } from './promotion-analytics';
-import { 
-  Users, 
-  Calendar, 
-  Settings, 
+import {
+  Users,
+  Calendar,
+  Settings,
   Clock,
   Search,
   Edit,
@@ -23,7 +23,11 @@ import {
   X,
   AlertCircle,
   ClipboardList,
-  RefreshCw
+  RefreshCw,
+  FileText,
+  Send,
+  UserPlus,
+  Download
 } from 'lucide-react';
 import { mockMembers, mockStaff, mockClasses } from '../utils/mockData';
 import { useEffect, useState } from 'react';
@@ -33,6 +37,8 @@ const managerTabs = [
   { id: 'schedules', label: 'Employee Schedules', path: '#schedules' },
   { id: 'classes', label: 'Class Management', path: '#classes' },
   { id: 'tasks', label: 'Task Assignment', path: '#tasks' },
+  { id: 'applications', label: 'Trainer Applications', path: '#applications' },
+  { id: 'contracts', label: 'Contract Creation', path: '#contracts' },
   { id: 'promotions', label: 'Promotions & Campaigns', path: '#promotions' },
   { id: 'settings', label: 'System Settings', path: '#settings' },
 ];
@@ -46,6 +52,78 @@ export function ManagerDashboard() {
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Contract Creation States
+  const [showContractPreview, setShowContractPreview] = useState(false);
+  const [contractData, setContractData] = useState({
+    trainerEmail: '',
+    trainerName: '',
+    position: 'Personal Trainer',
+    salary: '',
+    workingHours: '',
+    workDays: '',
+    services: [] as string[],
+    startDate: '',
+  });
+
+  const [contracts, setContracts] = useState([
+    {
+      id: '1',
+      trainerName: 'Maria Papadopoulos',
+      trainerEmail: 'maria.p@example.com',
+      position: 'Personal Trainer',
+      salary: '2500',
+      workingHours: '40',
+      workDays: 'Mon-Fri',
+      services: ['Personal Training', 'Group Classes', 'Nutrition Consultation'],
+      startDate: '2026-04-01',
+      status: 'Pending',
+      createdAt: '2026-03-15'
+    }
+  ]);
+
+  // Trainer Applications States
+  const [selectedApplication, setSelectedApplication] = useState<any>(null);
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
+
+  const [trainerApplications, setTrainerApplications] = useState([
+    {
+      id: '1',
+      name: 'Maria Papadopoulos',
+      email: 'maria.p@example.com',
+      phone: '+30 698 123 4567',
+      dateOfBirth: '1995-06-15',
+      specialty: 'Yoga, Pilates, Personal Training',
+      appliedDate: '2026-04-10',
+      resumeUrl: '#',
+      certificationsUrl: '#',
+      status: 'Pending'
+    },
+    {
+      id: '2',
+      name: 'Nikos Dimitriou',
+      email: 'nikos.d@example.com',
+      phone: '+30 697 987 6543',
+      dateOfBirth: '1992-03-22',
+      specialty: 'HIIT, Strength Training, Boxing',
+      appliedDate: '2026-04-12',
+      resumeUrl: '#',
+      certificationsUrl: '#',
+      status: 'Pending'
+    },
+    {
+      id: '3',
+      name: 'Elena Georgiou',
+      email: 'elena.g@example.com',
+      phone: '+30 699 456 7890',
+      dateOfBirth: '1998-11-08',
+      specialty: 'Nutrition Consultation, Weight Loss Programs',
+      appliedDate: '2026-04-08',
+      resumeUrl: '#',
+      certificationsUrl: '#',
+      status: 'Under Review'
+    }
+  ]);
   
   const [taskData, setTaskData] = useState({
     title: '',
@@ -655,6 +733,584 @@ export function ManagerDashboard() {
               ))}
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="applications" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <UserPlus className="size-5" />
+                  Trainer Applications
+                </CardTitle>
+                <Badge variant="secondary">{trainerApplications.filter(app => app.status === 'Pending').length} Pending</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Specialty</TableHead>
+                    <TableHead>Applied Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {trainerApplications.map((application) => (
+                    <TableRow key={application.id}>
+                      <TableCell>
+                        <div className="font-medium">{application.name}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          <div>{application.email}</div>
+                          <div className="text-gray-500">{application.phone}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm max-w-xs">{application.specialty}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">{new Date(application.appliedDate).toLocaleDateString('en-GB')}</div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            application.status === 'Pending' ? 'secondary' :
+                            application.status === 'Under Review' ? 'default' :
+                            'secondary'
+                          }
+                          className={
+                            application.status === 'Under Review' ? 'bg-blue-100 text-blue-800' : ''
+                          }
+                        >
+                          {application.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedApplication(application);
+                              setShowApplicationModal(true);
+                            }}
+                          >
+                            <Eye className="size-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* Application Details Modal */}
+          {showApplicationModal && selectedApplication && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <CardHeader>
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-lg sm:text-xl">Trainer Application Details</CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setShowApplicationModal(false);
+                        setSelectedApplication(null);
+                      }}
+                      className="flex-shrink-0"
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* Personal Information */}
+                    <div className="space-y-4">
+                      <h3 className="font-medium text-lg border-b pb-2">Personal Information</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-gray-500">Full Name</Label>
+                          <p className="font-medium break-words">{selectedApplication.name}</p>
+                        </div>
+                        <div>
+                          <Label className="text-gray-500">Email</Label>
+                          <p className="font-medium break-all text-sm">{selectedApplication.email}</p>
+                        </div>
+                        <div>
+                          <Label className="text-gray-500">Phone</Label>
+                          <p className="font-medium">{selectedApplication.phone}</p>
+                        </div>
+                        <div>
+                          <Label className="text-gray-500">Date of Birth</Label>
+                          <p className="font-medium">{new Date(selectedApplication.dateOfBirth).toLocaleDateString('en-GB')}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Professional Information */}
+                    <div className="space-y-4">
+                      <h3 className="font-medium text-lg border-b pb-2">Professional Information</h3>
+                      <div>
+                        <Label className="text-gray-500">Specialty</Label>
+                        <p className="font-medium">{selectedApplication.specialty}</p>
+                      </div>
+                      <div>
+                        <Label className="text-gray-500">Application Date</Label>
+                        <p className="font-medium">{new Date(selectedApplication.appliedDate).toLocaleDateString('en-GB')}</p>
+                      </div>
+                    </div>
+
+                    {/* Documents */}
+                    <div className="space-y-4">
+                      <h3 className="font-medium text-lg border-b pb-2">Submitted Documents</h3>
+                      <div className="space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border rounded-lg hover:bg-gray-50">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="p-2 bg-blue-100 rounded flex-shrink-0">
+                              <FileText className="size-5 text-blue-600" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium">Resume / CV</div>
+                              <div className="text-sm text-gray-500 truncate">{selectedApplication.name}_Resume.pdf</div>
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm" className="w-full sm:w-auto flex-shrink-0">
+                            <Download className="size-4 sm:mr-2" />
+                            <span className="sm:inline">Download</span>
+                          </Button>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border rounded-lg hover:bg-gray-50">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="p-2 bg-green-100 rounded flex-shrink-0">
+                              <FileText className="size-5 text-green-600" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium">Certifications</div>
+                              <div className="text-sm text-gray-500 truncate">{selectedApplication.name}_Certifications.pdf</div>
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm" className="w-full sm:w-auto flex-shrink-0">
+                            <Download className="size-4 sm:mr-2" />
+                            <span className="sm:inline">Download</span>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Status Update */}
+                    <div className="space-y-4">
+                      <h3 className="font-medium text-lg border-b pb-2">Application Review</h3>
+                      <div className="space-y-3">
+                        <div>
+                          <Label>Current Status</Label>
+                          <Badge className="ml-2">{selectedApplication.status}</Badge>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Change Status</Label>
+                          <Select
+                            defaultValue={selectedApplication.status}
+                            onValueChange={(value) => {
+                              const updatedApplications = trainerApplications.map(app =>
+                                app.id === selectedApplication.id ? { ...app, status: value } : app
+                              );
+                              setTrainerApplications(updatedApplications);
+                              setSelectedApplication({ ...selectedApplication, status: value });
+                            }}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Pending">Pending</SelectItem>
+                              <SelectItem value="Under Review">Under Review</SelectItem>
+                              <SelectItem value="Approved">Approved</SelectItem>
+                              <SelectItem value="Rejected">Rejected</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowApplicationModal(false);
+                          setSelectedApplication(null);
+                        }}
+                        className="flex-1 w-full"
+                      >
+                        Close
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setShowApplicationModal(false);
+                          setSelectedApplication(null);
+                        }}
+                        className="flex-1 w-full"
+                      >
+                        <CheckCircle className="size-4 mr-2" />
+                        Save Changes
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="contracts" className="space-y-6">
+          {/* Contract Creation Form */}
+          {!showContractPreview ? (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="size-5" />
+                    Create Trainer Contract
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Trainer Information */}
+                  <div className="space-y-4">
+                    <h3 className="font-medium">Trainer Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="trainerEmail">Trainer Email *</Label>
+                        <Input
+                          id="trainerEmail"
+                          type="email"
+                          placeholder="trainer@example.com"
+                          value={contractData.trainerEmail}
+                          onChange={(e) => setContractData({ ...contractData, trainerEmail: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="trainerName">Trainer Name *</Label>
+                        <Input
+                          id="trainerName"
+                          placeholder="Full Name"
+                          value={contractData.trainerName}
+                          onChange={(e) => setContractData({ ...contractData, trainerName: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Employment Details */}
+                  <div className="space-y-4">
+                    <h3 className="font-medium">Employment Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="position">Position</Label>
+                        <Select
+                          value={contractData.position}
+                          onValueChange={(value) => setContractData({ ...contractData, position: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Personal Trainer">Personal Trainer</SelectItem>
+                            <SelectItem value="Group Fitness Instructor">Group Fitness Instructor</SelectItem>
+                            <SelectItem value="Yoga Instructor">Yoga Instructor</SelectItem>
+                            <SelectItem value="Pilates Instructor">Pilates Instructor</SelectItem>
+                            <SelectItem value="Nutritionist">Nutritionist</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="salary">Monthly Salary (€) *</Label>
+                        <Input
+                          id="salary"
+                          type="number"
+                          placeholder="2500"
+                          value={contractData.salary}
+                          onChange={(e) => setContractData({ ...contractData, salary: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="workingHours">Working Hours/Week *</Label>
+                        <Input
+                          id="workingHours"
+                          type="number"
+                          placeholder="40"
+                          value={contractData.workingHours}
+                          onChange={(e) => setContractData({ ...contractData, workingHours: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="workDays">Work Days *</Label>
+                        <Input
+                          id="workDays"
+                          placeholder="Mon-Fri"
+                          value={contractData.workDays}
+                          onChange={(e) => setContractData({ ...contractData, workDays: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="startDate">Start Date *</Label>
+                        <Input
+                          id="startDate"
+                          type="date"
+                          value={contractData.startDate}
+                          onChange={(e) => setContractData({ ...contractData, startDate: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Services */}
+                  <div className="space-y-4">
+                    <h3 className="font-medium">Services to Provide *</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {[
+                        'Personal Training',
+                        'Group Classes',
+                        'Nutrition Consultation',
+                        'Fitness Assessment',
+                        'Program Design',
+                        'Online Coaching'
+                      ].map((service) => (
+                        <div
+                          key={service}
+                          onClick={() => {
+                            const updatedServices = contractData.services.includes(service)
+                              ? contractData.services.filter(s => s !== service)
+                              : [...contractData.services, service];
+                            setContractData({ ...contractData, services: updatedServices });
+                          }}
+                          className={`p-3 border-2 rounded-lg cursor-pointer transition-all text-sm ${
+                            contractData.services.includes(service)
+                              ? 'border-blue-500 bg-blue-50'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={contractData.services.includes(service)}
+                              onChange={() => {}}
+                              className="size-4"
+                            />
+                            <span>{service}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <Button
+                      onClick={() => setShowContractPreview(true)}
+                      className="flex-1"
+                      disabled={
+                        !contractData.trainerEmail ||
+                        !contractData.trainerName ||
+                        !contractData.salary ||
+                        !contractData.workingHours ||
+                        !contractData.workDays ||
+                        !contractData.startDate ||
+                        contractData.services.length === 0
+                      }
+                    >
+                      <Eye className="size-4 mr-2" />
+                      Preview Contract
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            /* Contract Preview */
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between gap-2">
+                  <CardTitle className="text-lg sm:text-xl">Contract Preview</CardTitle>
+                  <Button variant="outline" onClick={() => setShowContractPreview(false)} className="flex-shrink-0">
+                    <Edit className="size-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Edit</span>
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Contract Document Preview */}
+                  <div className="border rounded-lg p-6 bg-gray-50 space-y-6">
+                    <div className="text-center border-b pb-4">
+                      <h2 className="text-2xl">EMPLOYMENT CONTRACT</h2>
+                      <p className="text-sm text-gray-600 mt-2">FitHub Gym & Fitness Center</p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="font-medium mb-2">PARTIES</h3>
+                        <p className="text-sm text-gray-700">
+                          This Employment Contract is entered into between <strong>FitHub Gym & Fitness Center</strong> (hereinafter "Employer")
+                          and <strong>{contractData.trainerName}</strong> (hereinafter "Employee"), email: {contractData.trainerEmail}.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h3 className="font-medium mb-2">POSITION AND DUTIES</h3>
+                        <p className="text-sm text-gray-700 mb-2">
+                          The Employee is hired as <strong>{contractData.position}</strong> and shall provide the following services:
+                        </p>
+                        <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                          {contractData.services.map((service, index) => (
+                            <li key={index}>{service}</li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <h3 className="font-medium mb-2">COMPENSATION</h3>
+                          <p className="text-sm text-gray-700">Monthly Salary: <strong>€{contractData.salary}</strong></p>
+                          <p className="text-sm text-gray-500 mt-1">Payment made monthly on the last business day</p>
+                        </div>
+                        <div>
+                          <h3 className="font-medium mb-2">WORKING HOURS</h3>
+                          <p className="text-sm text-gray-700">Hours per Week: <strong>{contractData.workingHours} hours</strong></p>
+                          <p className="text-sm text-gray-700">Work Days: <strong>{contractData.workDays} days per week</strong></p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="font-medium mb-2">EMPLOYMENT PERIOD</h3>
+                        <p className="text-sm text-gray-700">
+                          Start Date: <strong>{new Date(contractData.startDate).toLocaleDateString('en-GB')}</strong>
+                        </p>
+                        <p className="text-sm text-gray-500 mt-1">This is a permanent employment contract subject to a 3-month probationary period.</p>
+                      </div>
+
+                      <div>
+                        <h3 className="font-medium mb-2">BENEFITS</h3>
+                        <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                          <li>Free gym membership</li>
+                          <li>Health insurance coverage</li>
+                          <li>20 days paid annual leave</li>
+                          <li>Professional development opportunities</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="border-t pt-4 text-xs text-gray-500">
+                      <p>This contract is governed by the laws of Greece and European Union employment regulations.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowContractPreview(false)}
+                      className="flex-1 w-full"
+                    >
+                      <X className="size-4 mr-2" />
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        const newContract = {
+                          id: String(contracts.length + 1),
+                          ...contractData,
+                          status: 'Pending',
+                          createdAt: new Date().toISOString().split('T')[0]
+                        };
+                        setContracts([...contracts, newContract]);
+                        setShowContractPreview(false);
+                        setContractStartDate(undefined);
+                        setContractData({
+                          trainerEmail: '',
+                          trainerName: '',
+                          position: 'Personal Trainer',
+                          salary: '',
+                          workingHours: '',
+                          workDays: '',
+                          services: [],
+                          startDate: '',
+                        });
+                        setSuccessMessage('Contract created and sent to trainer for review!');
+                        setShowSuccessModal(true);
+                      }}
+                      className="flex-1 w-full"
+                    >
+                      <Send className="size-4 mr-2" />
+                      Send Contract to Trainer
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Existing Contracts List */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Pending & Active Contracts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Trainer</TableHead>
+                    <TableHead>Position</TableHead>
+                    <TableHead>Salary</TableHead>
+                    <TableHead>Start Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {contracts.map((contract) => (
+                    <TableRow key={contract.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{contract.trainerName}</div>
+                          <div className="text-sm text-gray-500">{contract.trainerEmail}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{contract.position}</TableCell>
+                      <TableCell>€{contract.salary}/mo</TableCell>
+                      <TableCell>{new Date(contract.startDate).toLocaleDateString('en-GB')}</TableCell>
+                      <TableCell>
+                        <Badge variant={contract.status === 'Pending' ? 'secondary' : 'default'}>
+                          {contract.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="sm">
+                          <Eye className="size-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="promotions" className="space-y-6">
