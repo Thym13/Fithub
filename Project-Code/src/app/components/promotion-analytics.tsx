@@ -1,9 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { 
-  TrendingUp, 
+import {
+  TrendingUp,
   TrendingDown,
   Eye,
   MousePointerClick,
@@ -14,69 +17,15 @@ import {
   Mail,
   Play,
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  Plus,
+  X,
+  CheckCircle,
+  Edit
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useState } from 'react';
-
-// Mock campaign data
-const campaigns = [
-  {
-    id: '1',
-    name: 'Spring Fitness Challenge 2026',
-    status: 'Active',
-    startDate: '2026-03-01',
-    endDate: '2026-03-31',
-    budget: 5000,
-    spent: 3200,
-    impressions: 128500,
-    clicks: 4250,
-    signups: 185,
-    revenue: 27750,
-    roi: 768,
-    channels: {
-      'Facebook Ads': 35,
-      'Instagram': 28,
-      'Email': 22,
-      'Google Ads': 15
-    }
-  },
-  {
-    id: '2',
-    name: 'New Year Resolution 2026',
-    status: 'Completed',
-    startDate: '2026-01-01',
-    endDate: '2026-02-28',
-    budget: 8000,
-    spent: 7850,
-    impressions: 215000,
-    clicks: 6800,
-    signups: 312,
-    revenue: 46800,
-    roi: 496,
-    channels: {
-      'Facebook Ads': 40,
-      'Instagram': 25,
-      'Email': 20,
-      'Google Ads': 15
-    }
-  },
-  {
-    id: '3',
-    name: 'Summer Body Bootcamp',
-    status: 'Scheduled',
-    startDate: '2026-06-01',
-    endDate: '2026-08-31',
-    budget: 10000,
-    spent: 0,
-    impressions: 0,
-    clicks: 0,
-    signups: 0,
-    revenue: 0,
-    roi: 0,
-    channels: {}
-  }
-];
+import { campaigns as initialCampaigns } from '../utils/campaignsData';
 
 // Time series data for performance graph
 const performanceData = [
@@ -101,17 +50,38 @@ const realTimeData = {
 };
 
 export function PromotionAnalytics() {
-  const [selectedCampaign, setSelectedCampaign] = useState(campaigns[0]);
+  const [campaignsList, setCampaignsList] = useState(initialCampaigns);
+  const [selectedCampaign, setSelectedCampaign] = useState(initialCampaigns[0]);
   const [timePeriod, setTimePeriod] = useState('7days');
   const [showRealTime, setShowRealTime] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   const [comparisonCampaign, setComparisonCampaign] = useState<typeof campaigns[1] | null>(null);
   const [showError, setShowError] = useState(false);
+  const [showCreateCampaign, setShowCreateCampaign] = useState(false);
+  const [showCampaignPreview, setShowCampaignPreview] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const [newCampaign, setNewCampaign] = useState({
+    name: '',
+    promoCode: '',
+    discountPercentage: '',
+    startDate: '',
+    endDate: '',
+    budget: '',
+    description: '',
+    channels: {
+      'In-App': false,
+      'Facebook Ads': false,
+      'Instagram': false,
+      'Email': false,
+      'Google Ads': false
+    }
+  });
 
   const ctr = ((selectedCampaign.clicks / selectedCampaign.impressions) * 100).toFixed(2);
   const conversionRate = ((selectedCampaign.signups / selectedCampaign.clicks) * 100).toFixed(2);
 
-  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+  const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 
   const handleDownloadReport = () => {
     alert('Report download started! (Mock functionality)');
@@ -128,38 +98,94 @@ export function PromotionAnalytics() {
 
   const calculateComparison = () => {
     if (!comparisonCampaign) return null;
-    
+
     const clicksDiff = ((selectedCampaign.clicks - comparisonCampaign.clicks) / comparisonCampaign.clicks * 100).toFixed(1);
     const signupsDiff = ((selectedCampaign.signups - comparisonCampaign.signups) / comparisonCampaign.signups * 100).toFixed(1);
     const roiDiff = ((selectedCampaign.roi - comparisonCampaign.roi) / comparisonCampaign.roi * 100).toFixed(1);
-    
+
     return { clicksDiff, signupsDiff, roiDiff };
+  };
+
+  const handlePreviewCampaign = () => {
+    setShowCreateCampaign(false);
+    setShowCampaignPreview(true);
+  };
+
+  const handleConfirmCreate = () => {
+    const selectedChannels = Object.entries(newCampaign.channels)
+      .filter(([_, selected]) => selected)
+      .reduce((acc, [channel, _]) => ({ ...acc, [channel]: 0 }), {});
+
+    const campaign = {
+      id: String(campaignsList.length + 1),
+      name: newCampaign.name,
+      promoCode: newCampaign.promoCode,
+      discountPercentage: parseInt(newCampaign.discountPercentage),
+      status: 'Scheduled' as const,
+      startDate: newCampaign.startDate,
+      endDate: newCampaign.endDate,
+      budget: parseInt(newCampaign.budget),
+      spent: 0,
+      impressions: 0,
+      clicks: 0,
+      signups: 0,
+      revenue: 0,
+      roi: 0,
+      channels: selectedChannels,
+      description: newCampaign.description
+    };
+
+    setCampaignsList([...campaignsList, campaign]);
+    setShowCampaignPreview(false);
+    setShowSuccessModal(true);
+
+    // Reset form
+    setNewCampaign({
+      name: '',
+      promoCode: '',
+      discountPercentage: '',
+      startDate: '',
+      endDate: '',
+      budget: '',
+      description: '',
+      channels: {
+        'In-App': false,
+        'Facebook Ads': false,
+        'Instagram': false,
+        'Email': false,
+        'Google Ads': false
+      }
+    });
   };
 
   return (
     <div className="space-y-6">
       {/* Header Section - YouTube Analytics Style */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-2xl font-medium">Campaign Analytics</h2>
           <p className="text-gray-500 mt-1">Track and optimize your promotion performance</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowRealTime(!showRealTime)}>
-            <Play className="size-4 mr-2" />
-            {showRealTime ? 'Hide' : 'Show'} Real-time
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" onClick={() => setShowCreateCampaign(true)}>
+            <Plus className="size-4 md:mr-2" />
+            <span className="hidden md:inline">Create Campaign</span>
           </Button>
-          <Button variant="outline" onClick={() => setShowComparison(!showComparison)}>
-            <BarChart3 className="size-4 mr-2" />
-            Compare
+          <Button variant="outline" size="sm" onClick={() => setShowRealTime(!showRealTime)}>
+            <Play className="size-4 md:mr-2" />
+            <span className="hidden md:inline">{showRealTime ? 'Hide' : 'Show'} Real-time</span>
           </Button>
-          <Button variant="outline" onClick={handleDownloadReport}>
-            <Download className="size-4 mr-2" />
-            Download Report
+          <Button variant="outline" size="sm" onClick={() => setShowComparison(!showComparison)}>
+            <BarChart3 className="size-4 md:mr-2" />
+            <span className="hidden md:inline">Compare</span>
           </Button>
-          <Button variant="outline" onClick={handleEmailReport}>
-            <Mail className="size-4 mr-2" />
-            Email Report
+          <Button variant="outline" size="sm" onClick={handleDownloadReport}>
+            <Download className="size-4 md:mr-2" />
+            <span className="hidden md:inline">Download</span>
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleEmailReport}>
+            <Mail className="size-4 md:mr-2" />
+            <span className="hidden md:inline">Email</span>
           </Button>
         </div>
       </div>
@@ -191,10 +217,10 @@ export function PromotionAnalytics() {
           <CardContent className="pt-6">
             <div className="space-y-2">
               <label className="text-sm font-medium">Select Campaign</label>
-              <Select 
-                value={selectedCampaign.id} 
+              <Select
+                value={selectedCampaign.id}
                 onValueChange={(val) => {
-                  const campaign = campaigns.find(c => c.id === val);
+                  const campaign = campaignsList.find(c => c.id === val);
                   if (campaign) setSelectedCampaign(campaign);
                 }}
               >
@@ -202,7 +228,7 @@ export function PromotionAnalytics() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {campaigns.map((campaign) => (
+                  {campaignsList.map((campaign) => (
                     <SelectItem key={campaign.id} value={campaign.id}>
                       {campaign.name} ({campaign.status})
                     </SelectItem>
@@ -242,8 +268,18 @@ export function PromotionAnalytics() {
             <p className="text-gray-600 mt-1">
               {selectedCampaign.startDate} → {selectedCampaign.endDate}
             </p>
+            {selectedCampaign.promoCode && (
+              <div className="mt-2 flex items-center gap-2">
+                <Badge variant="outline" className="bg-white">
+                  Promo Code: <span className="font-bold ml-1">{selectedCampaign.promoCode}</span>
+                </Badge>
+                <Badge variant="outline" className="bg-white">
+                  {selectedCampaign.discountPercentage}% OFF
+                </Badge>
+              </div>
+            )}
           </div>
-          <Badge 
+          <Badge
             className={
               selectedCampaign.status === 'Active' ? 'bg-green-100 text-green-800' :
               selectedCampaign.status === 'Scheduled' ? 'bg-blue-100 text-blue-800' :
@@ -255,7 +291,7 @@ export function PromotionAnalytics() {
         </div>
         
         {/* Key Metrics Grid - YouTube Style */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white p-4 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <Eye className="size-4 text-blue-600" />
@@ -314,7 +350,7 @@ export function PromotionAnalytics() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-white p-4 rounded-lg">
                 <div className="text-sm text-gray-600 mb-1">Clicks/Hour</div>
                 <div className="text-2xl font-medium text-blue-600">{realTimeData.clicksPerHour}</div>
@@ -343,10 +379,10 @@ export function PromotionAnalytics() {
             <CardTitle>Compare with Previous Campaign</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Select 
-              value={comparisonCampaign?.id || ''} 
+            <Select
+              value={comparisonCampaign?.id || ''}
               onValueChange={(val) => {
-                const campaign = campaigns.find(c => c.id === val);
+                const campaign = campaignsList.find(c => c.id === val);
                 if (campaign) setComparisonCampaign(campaign);
               }}
             >
@@ -354,7 +390,7 @@ export function PromotionAnalytics() {
                 <SelectValue placeholder="Select campaign to compare..." />
               </SelectTrigger>
               <SelectContent>
-                {campaigns.filter(c => c.id !== selectedCampaign.id && c.status === 'Completed').map((campaign) => (
+                {campaignsList.filter(c => c.id !== selectedCampaign.id && c.status === 'Completed').map((campaign) => (
                   <SelectItem key={campaign.id} value={campaign.id}>
                     {campaign.name}
                   </SelectItem>
@@ -365,7 +401,7 @@ export function PromotionAnalytics() {
             {comparisonCampaign && (() => {
               const comparison = calculateComparison();
               return comparison && (
-                <div className="grid grid-cols-3 gap-4 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                   <div className="p-4 border rounded-lg">
                     <div className="text-sm text-gray-600 mb-2">Clicks</div>
                     <div className="flex items-center gap-2">
@@ -437,36 +473,36 @@ export function PromotionAnalytics() {
               <XAxis dataKey="date" tick={{ fontSize: 12 }} />
               <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
               <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'white', 
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'white',
                   border: '1px solid #e5e7eb',
                   borderRadius: '8px'
                 }}
               />
-              <Line 
+              <Line
                 yAxisId="left"
-                type="monotone" 
-                dataKey="clicks" 
-                stroke="#3b82f6" 
+                type="monotone"
+                dataKey="clicks"
+                stroke="#3b82f6"
                 strokeWidth={3}
                 dot={{ fill: '#3b82f6', r: 4 }}
                 name="Clicks"
               />
-              <Line 
+              <Line
                 yAxisId="left"
-                type="monotone" 
-                dataKey="signups" 
-                stroke="#10b981" 
+                type="monotone"
+                dataKey="signups"
+                stroke="#10b981"
                 strokeWidth={3}
                 dot={{ fill: '#10b981', r: 4 }}
                 name="Sign-ups"
               />
-              <Line 
+              <Line
                 yAxisId="right"
-                type="monotone" 
-                dataKey="revenue" 
-                stroke="#f59e0b" 
+                type="monotone"
+                dataKey="revenue"
+                stroke="#f59e0b"
                 strokeWidth={3}
                 dot={{ fill: '#f59e0b', r: 4 }}
                 name="Revenue ($)"
@@ -594,7 +630,7 @@ export function PromotionAnalytics() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {campaigns.map((campaign) => (
+            {campaignsList.map((campaign) => (
               <div 
                 key={campaign.id} 
                 className={`p-4 border rounded-lg cursor-pointer transition-all ${
@@ -608,8 +644,18 @@ export function PromotionAnalytics() {
                     <p className="text-sm text-gray-500 mt-1">
                       {campaign.startDate} → {campaign.endDate}
                     </p>
+                    {campaign.promoCode && (
+                      <div className="flex gap-2 mt-2">
+                        <Badge variant="outline" className="text-xs">
+                          {campaign.promoCode}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {campaign.discountPercentage}% OFF
+                        </Badge>
+                      </div>
+                    )}
                   </div>
-                  <Badge 
+                  <Badge
                     className={
                       campaign.status === 'Active' ? 'bg-green-100 text-green-800' :
                       campaign.status === 'Scheduled' ? 'bg-blue-100 text-blue-800' :
@@ -620,7 +666,7 @@ export function PromotionAnalytics() {
                   </Badge>
                 </div>
                 
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 text-sm">
                   <div>
                     <div className="text-gray-500">Impressions</div>
                     <div className="font-medium mt-1">{campaign.impressions.toLocaleString()}</div>
@@ -647,6 +693,319 @@ export function PromotionAnalytics() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Create Campaign Modal */}
+      {showCreateCampaign && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Create New Campaign</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setShowCreateCampaign(false)}>
+                <X className="size-5" />
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Campaign Details */}
+              <div className="space-y-4">
+                <h3 className="font-medium">Campaign Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="campaignName">Campaign Name *</Label>
+                    <Input
+                      id="campaignName"
+                      placeholder="e.g., Summer Fitness Challenge"
+                      value={newCampaign.name}
+                      onChange={(e) => setNewCampaign({ ...newCampaign, name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="budget">Budget (€) *</Label>
+                    <Input
+                      id="budget"
+                      type="number"
+                      placeholder="5000"
+                      value={newCampaign.budget}
+                      onChange={(e) => setNewCampaign({ ...newCampaign, budget: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="startDate">Start Date *</Label>
+                    <Input
+                      id="startDate"
+                      type="date"
+                      value={newCampaign.startDate}
+                      onChange={(e) => setNewCampaign({ ...newCampaign, startDate: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="endDate">End Date *</Label>
+                    <Input
+                      id="endDate"
+                      type="date"
+                      value={newCampaign.endDate}
+                      onChange={(e) => setNewCampaign({ ...newCampaign, endDate: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    placeholder="Describe your campaign..."
+                    rows={3}
+                    value={newCampaign.description}
+                    onChange={(e) => setNewCampaign({ ...newCampaign, description: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              {/* Promo Code Section */}
+              <div className="space-y-4 pt-4 border-t">
+                <h3 className="font-medium">Promo Code Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="promoCode">Promo Code *</Label>
+                    <Input
+                      id="promoCode"
+                      placeholder="e.g., SUMMER2026"
+                      value={newCampaign.promoCode}
+                      onChange={(e) => setNewCampaign({ ...newCampaign, promoCode: e.target.value.toUpperCase() })}
+                      required
+                    />
+                    <p className="text-xs text-gray-500">Members will use this code at checkout</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="discount">Discount Percentage *</Label>
+                    <Input
+                      id="discount"
+                      type="number"
+                      placeholder="20"
+                      min="1"
+                      max="100"
+                      value={newCampaign.discountPercentage}
+                      onChange={(e) => setNewCampaign({ ...newCampaign, discountPercentage: e.target.value })}
+                      required
+                    />
+                    <p className="text-xs text-gray-500">Discount % off membership price</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Marketing Channels */}
+              <div className="space-y-4 pt-4 border-t">
+                <h3 className="font-medium">Marketing Channels *</h3>
+                <p className="text-sm text-gray-500">Select channels where this campaign will run</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {Object.keys(newCampaign.channels).map((channel) => (
+                    <div
+                      key={channel}
+                      onClick={() => setNewCampaign({
+                        ...newCampaign,
+                        channels: {
+                          ...newCampaign.channels,
+                          [channel]: !newCampaign.channels[channel as keyof typeof newCampaign.channels]
+                        }
+                      })}
+                      className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                        newCampaign.channels[channel as keyof typeof newCampaign.channels]
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={newCampaign.channels[channel as keyof typeof newCampaign.channels]}
+                          onChange={() => {}}
+                          className="size-4"
+                        />
+                        <span className="text-sm">{channel}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCreateCampaign(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handlePreviewCampaign}
+                  className="flex-1"
+                  disabled={
+                    !newCampaign.name ||
+                    !newCampaign.promoCode ||
+                    !newCampaign.discountPercentage ||
+                    !newCampaign.startDate ||
+                    !newCampaign.endDate ||
+                    !newCampaign.budget ||
+                    !Object.values(newCampaign.channels).some(v => v)
+                  }
+                >
+                  <Eye className="size-4 mr-2" />
+                  Preview Campaign
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Campaign Preview Modal */}
+      {showCampaignPreview && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Campaign Preview</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => {
+                setShowCampaignPreview(false);
+                setShowCreateCampaign(true);
+              }}>
+                <X className="size-5" />
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Preview how it will look in the app */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border-2 border-blue-200">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="text-2xl font-medium">{newCampaign.name}</h3>
+                    <p className="text-gray-600 mt-1">
+                      {new Date(newCampaign.startDate).toLocaleDateString('en-GB')} → {new Date(newCampaign.endDate).toLocaleDateString('en-GB')}
+                    </p>
+                    <div className="mt-3 flex items-center gap-2">
+                      <Badge className="bg-white text-blue-700 border-2 border-blue-300 text-lg px-4 py-1">
+                        Promo Code: <span className="font-bold ml-1">{newCampaign.promoCode}</span>
+                      </Badge>
+                      <Badge className="bg-green-600 text-white text-lg px-4 py-1">
+                        {newCampaign.discountPercentage}% OFF
+                      </Badge>
+                    </div>
+                  </div>
+                  <Badge className="bg-blue-100 text-blue-800 text-base px-3 py-1">
+                    Scheduled
+                  </Badge>
+                </div>
+
+                {newCampaign.description && (
+                  <div className="bg-white/80 p-4 rounded-lg mt-4">
+                    <p className="text-gray-700 text-sm">{newCampaign.description}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Campaign Details */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-lg border-b pb-2">Campaign Details</h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="text-sm text-gray-600 mb-1">Campaign Name</div>
+                    <div className="font-medium">{newCampaign.name}</div>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="text-sm text-gray-600 mb-1">Budget</div>
+                    <div className="font-medium">€{parseInt(newCampaign.budget).toLocaleString()}</div>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="text-sm text-gray-600 mb-1">Start Date</div>
+                    <div className="font-medium">{new Date(newCampaign.startDate).toLocaleDateString('en-GB')}</div>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="text-sm text-gray-600 mb-1">End Date</div>
+                    <div className="font-medium">{new Date(newCampaign.endDate).toLocaleDateString('en-GB')}</div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="text-sm text-gray-600 mb-2">Promo Code Details</div>
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <span className="text-gray-600">Code:</span>{' '}
+                      <span className="font-bold text-lg">{newCampaign.promoCode}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Discount:</span>{' '}
+                      <span className="font-bold text-lg text-green-600">{newCampaign.discountPercentage}%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                  <div className="text-sm text-gray-600 mb-2">Marketing Channels</div>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(newCampaign.channels)
+                      .filter(([_, selected]) => selected)
+                      .map(([channel]) => (
+                        <Badge key={channel} variant="outline" className="bg-white">
+                          {channel}
+                        </Badge>
+                      ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowCampaignPreview(false);
+                    setShowCreateCampaign(true);
+                  }}
+                  className="flex-1"
+                >
+                  <Edit className="size-4 mr-2" />
+                  Edit Campaign
+                </Button>
+                <Button
+                  onClick={handleConfirmCreate}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircle className="size-4 mr-2" />
+                  Confirm & Create
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md">
+            <CardContent className="pt-6 text-center">
+              <div className="mb-4 flex justify-center">
+                <div className="p-4 bg-green-100 rounded-full">
+                  <CheckCircle className="size-12 text-green-600" />
+                </div>
+              </div>
+              <h3 className="text-xl font-medium mb-2">Campaign Created Successfully!</h3>
+              <p className="text-gray-600 mb-6">
+                Your campaign has been created and is scheduled to start on the specified date.
+                The promo code is now available for members to use.
+              </p>
+              <Button onClick={() => setShowSuccessModal(false)} className="w-full">
+                Close
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

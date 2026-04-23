@@ -4,16 +4,8 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Badge } from './ui/badge';
-import { Tag, CheckCircle, X, AlertCircle, Percent, Mail } from 'lucide-react';
-
-// Mock discount codes database
-const validDiscountCodes = [
-  { code: 'WELCOME20', discount: 20, type: 'percentage', status: 'active', expiryDate: '2026-12-31', description: '20% off first month' },
-  { code: 'SPRING2026', discount: 15, type: 'percentage', status: 'active', expiryDate: '2026-06-30', description: '15% spring discount' },
-  { code: 'FITNESS50', discount: 50, type: 'fixed', status: 'active', expiryDate: '2026-12-31', description: '$50 off subscription' },
-  { code: 'OLDCODE', discount: 30, type: 'percentage', status: 'expired', expiryDate: '2026-01-15', description: 'Expired code' },
-  { code: 'CANCELED10', discount: 10, type: 'percentage', status: 'canceled', expiryDate: '2026-12-31', description: 'Canceled by admin' },
-];
+import { Tag, CheckCircle, X, AlertCircle, Percent, Mail, CreditCard, Copy } from 'lucide-react';
+import { campaigns } from '../utils/campaignsData';
 
 export function DiscountCodeSection() {
   const [discountCode, setDiscountCode] = useState('');
@@ -26,44 +18,66 @@ export function DiscountCodeSection() {
 
   const applyDiscountCode = () => {
     const code = discountCode.toUpperCase().trim();
-    
+
     if (!code) {
       setDiscountError('Please enter a discount code.');
       return;
     }
 
-    const validCode = validDiscountCodes.find(c => c.code === code);
+    // Find campaign with matching promo code
+    const campaign = campaigns.find(c => c.promoCode?.toUpperCase() === code);
 
     // Alternative Flow 1: Invalid Discount Code
-    if (!validCode) {
+    if (!campaign) {
       setDiscountError('The discount code is invalid. Please re-enter the correct code or contact the administrator if assistance is needed.');
       setDiscountApplied(false);
       setAppliedCode(null);
       return;
     }
 
-    // Alternative Flow 2: Code Expired or Canceled
-    if (validCode.status === 'expired' || new Date(validCode.expiryDate) < new Date()) {
+    // Alternative Flow 2: Check if campaign is active and within date range
+    const today = new Date();
+    const startDate = new Date(campaign.startDate);
+    const endDate = new Date(campaign.endDate);
+
+    // Check if campaign has ended
+    if (today > endDate) {
       setDiscountError('This code has expired. Please try another code or contact support for information regarding new available promo codes.');
       setDiscountApplied(false);
       setAppliedCode(null);
       return;
     }
 
-    if (validCode.status === 'canceled') {
-      setDiscountError('This code has been canceled. Please contact support for information regarding new available promo codes.');
+    // Check if campaign hasn't started yet
+    if (today < startDate && campaign.status === 'Scheduled') {
+      setDiscountError(`This code is not yet active. It will be available starting ${startDate.toLocaleDateString('en-GB')}.`);
       setDiscountApplied(false);
       setAppliedCode(null);
       return;
     }
 
-    // Basic Flow: Valid code
+    // Check if campaign is completed but still within date range
+    if (campaign.status === 'Completed') {
+      setDiscountError('This campaign has been completed. Please contact support for information regarding new available promo codes.');
+      setDiscountApplied(false);
+      setAppliedCode(null);
+      return;
+    }
+
+    // Basic Flow: Valid code - convert campaign to discount code format
+    const validCode = {
+      code: campaign.promoCode,
+      discount: campaign.discountPercentage,
+      type: 'percentage',
+      status: 'active',
+      expiryDate: campaign.endDate,
+      description: campaign.description || `${campaign.discountPercentage}% off subscription`
+    };
+
     setAppliedCode(validCode);
     setDiscountApplied(true);
     setDiscountError('');
     setShowSuccessModal(true);
-    
-    // Simulate notification
   };
 
   const removeDiscount = () => {
@@ -146,12 +160,45 @@ export function DiscountCodeSection() {
               )}
 
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-2 mb-3">
                   <AlertCircle className="size-4 text-blue-600 mt-0.5" />
                   <div className="text-sm text-blue-800">
-                    <strong>Need a code?</strong> Contact our support team or check your email for available promotions.
+                    <strong>Available Promo Codes:</strong> Try one of these active discount codes
                   </div>
                 </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                  {campaigns
+                    .filter(c => {
+                      const today = new Date();
+                      const startDate = new Date(c.startDate);
+                      const endDate = new Date(c.endDate);
+                      return c.status === 'Active' && today >= startDate && today <= endDate;
+                    })
+                    .map((campaign) => (
+                      <div
+                        key={campaign.id}
+                        onClick={() => {
+                          setDiscountCode(campaign.promoCode || '');
+                          setDiscountError('');
+                        }}
+                        className="flex items-center gap-2 p-3 bg-white border-2 border-blue-200 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all group"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="outline" className="font-mono font-bold text-sm">
+                              {campaign.promoCode}
+                            </Badge>
+                            <Copy className="size-3 text-gray-400 group-hover:text-blue-600" />
+                          </div>
+                          <div className="text-xs text-gray-600 truncate">{campaign.description}</div>
+                        </div>
+                        <Badge className="ml-2 bg-green-600 text-white flex-shrink-0 px-2 py-1">
+                          {campaign.discountPercentage}% OFF
+                        </Badge>
+                      </div>
+                    ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-2 text-center">💡 Click on any code to auto-fill it in the field above</p>
               </div>
             </div>
           ) : (

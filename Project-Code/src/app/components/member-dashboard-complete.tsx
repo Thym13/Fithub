@@ -1,6 +1,6 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { mockClasses } from '../utils/mockData';
-import { DiscountCodeSection } from './discount-code-section';
+import { DiscountCodeSectionImproved } from './discount-code-section-improved';
 import { GymEvaluation } from './gym-evaluation';
 import { CustomerSupport } from './customer-support';
 import { useEffect, useState } from 'react';
@@ -810,7 +810,7 @@ export function MemberDashboard() {
           </Card>
 
           {/* Discount Code Section - Use Case 7 */}
-          <DiscountCodeSection />
+          <DiscountCodeSectionImproved />
 
           <Card>
             <CardHeader>
