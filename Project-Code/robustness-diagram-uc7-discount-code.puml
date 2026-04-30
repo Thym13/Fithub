@@ -1,0 +1,78 @@
+@startuml Διάγραμμα Ευρωστίας ΠΧ-7: Εφαρμογή Κωδικού Έκπτωσης
+
+left to right direction
+
+' Actors
+actor "Μέλος" as member
+actor "Πύλη\nΠληρωμών" as payment
+actor "Σύστημα\nEmail" as email
+
+' Boundary Objects
+boundary "Καρτέλα\nΣυνδρομής" as membershipTab
+boundary "Λίστα\nΕνεργών\nΚωδικών" as activeCodesList
+boundary "Κάρτα\nΚωδικού\nΠροσφοράς" as promoCodeCard
+boundary "Πεδίο\nΕισαγωγής\nΚωδικού" as codeInputField
+boundary "Κουμπί\nΕφαρμογής" as applyButton
+boundary "Ανάλυση\nΈκπτωσης" as discountBreakdown
+boundary "Παράθυρο\nΕπιτυχίας" as successModal
+boundary "Οθόνη\nΠληρωμής" as paymentScreen
+boundary "Μήνυμα\nΣφάλματος" as errorMsg #red
+
+' Control Objects
+control "Διαχειριστής\nΚωδικών" as codeManager
+control "Επικυρωτής\nΚωδικών" as codeValidator
+control "Υπολογιστής\nΈκπτωσης" as discountCalculator
+control "Έλεγχος\nΗμερομηνίας" as dateChecker
+control "Επεξεργαστής\nΠληρωμής" as paymentProcessor
+control "Διαχειριστής\nEmail" as emailManager
+
+' Entity Objects
+entity "Κωδικός\nΠροσφοράς" as promoCode
+entity "Καμπάνια" as campaign
+entity "Έκπτωση" as discount
+entity "Συνδρομή" as subscription
+entity "Τιμή" as price
+entity "Τελική\nΤιμή" as finalPrice
+entity "Συναλλαγή" as transaction
+entity "Email\nΕπιβεβαίωσης" as confirmEmail
+
+' Main Flow
+member --> membershipTab
+membershipTab --> codeManager
+codeManager --> campaign
+campaign --> promoCode
+promoCode --> activeCodesList
+activeCodesList --> promoCodeCard
+member --> promoCodeCard
+promoCodeCard --> codeInputField
+member --> codeInputField
+member --> applyButton
+applyButton --> codeValidator
+codeValidator --> promoCode
+codeValidator --> dateChecker
+dateChecker --> campaign
+codeValidator --> discountCalculator
+discountCalculator --> promoCode
+discountCalculator --> subscription
+subscription --> price
+discountCalculator --> discount
+discountCalculator --> finalPrice
+discountCalculator --> discountBreakdown
+discountBreakdown --> member
+member --> paymentScreen
+paymentScreen --> paymentProcessor
+paymentProcessor --> payment
+paymentProcessor --> transaction
+transaction --> discount
+paymentProcessor --> emailManager
+emailManager --> confirmEmail
+emailManager --> email
+paymentProcessor --> successModal
+successModal --> member
+
+' Alternative: Invalid/Expired Code (Red)
+codeValidator -[#red]-> errorMsg
+dateChecker -[#red]-> errorMsg
+errorMsg -[#red]-> member
+
+@enduml

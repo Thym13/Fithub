@@ -1,0 +1,74 @@
+@startuml Διάγραμμα Ευρωστίας ΠΧ-6: Παρακολούθηση Στατιστικών Καμπάνιας
+
+left to right direction
+
+' Actors
+actor "Διαχειριστής" as manager
+
+' Boundary Objects
+boundary "Λίστα\nΚαμπανιών" as campaignList
+boundary "Πίνακας\nΣτατιστικών" as statsDashboard
+boundary "Γραφήματα\nΠραγματικού\nΧρόνου" as realtimeCharts #red
+boundary "Φίλτρα\nΚαμπάνιας" as campaignFilters
+boundary "Προβολή\nΣύγκρισης" as comparisonView #red
+boundary "Κουμπί\nΛήψης" as downloadButton
+boundary "Προεπισκόπηση\nΑναφοράς" as reportPreview
+boundary "Μήνυμα\nΕπιτυχίας" as successMsg
+
+' Control Objects
+control "Διαχειριστής\nΣτατιστικών" as statsManager
+control "Υπολογιστής\nΜετρικών" as metricsCalculator
+control "Διαχειριστής\nΣύγκρισης" as comparisonManager #red
+control "Γεννήτρια\nΑναφορών" as reportGenerator
+control "Συλλέκτης\nΠραγματικού\nΧρόνου" as realtimeCollector #red
+
+' Entity Objects
+entity "Καμπάνια" as campaign
+entity "Στατιστικά" as statistics
+entity "Προβολές" as impressions
+entity "Κλικ" as clicks
+entity "Εγγραφές" as signups
+entity "Έσοδα" as revenue
+entity "ROI" as roi
+entity "Προϋπολογισμός" as budget
+entity "Αναφορά" as report
+entity "Δεδομένα\nΚαναλιού" as channelData
+
+' Main Flow
+manager --> campaignList
+campaignList --> statsManager
+statsManager --> campaign
+manager --> statsDashboard
+statsDashboard --> statsManager
+statsManager --> statistics
+statistics --> impressions
+statistics --> clicks
+statistics --> signups
+statistics --> revenue
+statistics --> budget
+statsManager --> metricsCalculator
+metricsCalculator --> roi
+statsDashboard --> channelData
+manager --> downloadButton
+downloadButton --> reportGenerator
+reportGenerator --> statistics
+reportGenerator --> report
+report --> reportPreview
+reportPreview --> manager
+reportGenerator --> successMsg
+successMsg --> manager
+
+' Alternative: Realtime Tracking (Red)
+manager -[#red]-> realtimeCharts
+realtimeCharts -[#red]-> realtimeCollector
+realtimeCollector -[#red]-> statistics
+
+' Alternative: Compare Campaigns (Red)
+manager -[#red]-> campaignFilters
+campaignFilters -[#red]-> comparisonManager
+comparisonManager -[#red]-> campaign
+comparisonManager -[#red]-> metricsCalculator
+comparisonManager -[#red]-> comparisonView
+comparisonView -[#red]-> manager
+
+@enduml

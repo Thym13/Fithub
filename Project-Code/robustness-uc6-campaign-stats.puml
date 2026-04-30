@@ -1,0 +1,104 @@
+@startuml Διάγραμμα Ευρωστίας ΠΧ-6: Παρακολούθηση Στατιστικών Καμπάνιας
+
+' Styling
+skinparam actorStyle awesome
+skinparam rectangle {
+    BackgroundColor<<boundary>> LightYellow
+    BackgroundColor<<control>> LightGreen
+    BackgroundColor<<entity>> LightBlue
+    BorderColor Black
+}
+
+' Actors
+actor "Διαχειριστής/Ιδιοκτήτης" as manager
+
+' Boundary Objects (UI)
+rectangle "Λίστα Καμπανιών" <<boundary>> as campaignList
+rectangle "Πίνακας Στατιστικών" <<boundary>> as statsDashboard
+rectangle "Γραφήματα Πραγματικού Χρόνου" <<boundary>> as realtimeCharts
+rectangle "Φίλτρα Καμπανιών" <<boundary>> as campaignFilters
+rectangle "Οθόνη Σύγκρισης" <<boundary>> as comparisonView
+rectangle "Κουμπί Λήψης Αναφοράς" <<boundary>> as downloadButton
+rectangle "Προεπισκόπηση Αναφοράς" <<boundary>> as reportPreview
+rectangle "Μήνυμα Επιτυχίας" <<boundary>> as successMsg
+
+' Control Objects (Logic)
+rectangle "Διαχειριστής Στατιστικών" <<control>> as statsManager
+rectangle "Υπολογιστής Μετρικών" <<control>> as metricsCalculator
+rectangle "Διαχειριστής Σύγκρισης" <<control>> as comparisonManager
+rectangle "Γεννήτρια Αναφορών" <<control>> as reportGenerator
+rectangle "Συλλέκτης Δεδομένων\nΠραγματικού Χρόνου" <<control>> as realtimeCollector
+
+' Entity Objects (Data)
+rectangle "Καμπάνια" <<entity>> as campaign
+rectangle "Στατιστικά" <<entity>> as statistics
+rectangle "Εμφανίσεις (Impressions)" <<entity>> as impressions
+rectangle "Κλικ" <<entity>> as clicks
+rectangle "Εγγραφές" <<entity>> as signups
+rectangle "Έσοδα" <<entity>> as revenue
+rectangle "ROI" <<entity>> as roi
+rectangle "Προϋπολογισμός" <<entity>> as budget
+rectangle "Αναφορά" <<entity>> as report
+rectangle "Δεδομένα Καναλιών" <<entity>> as channelData
+
+' Ροή 1: Επιλογή Καμπάνιας
+manager --> campaignList : "1. Ανοίγει\nστατιστικά"
+campaignList --> statsManager : "2. Φορτώνει\nκαμπάνιες"
+statsManager --> campaign : "3. Ανακτά λίστα"
+campaign --> campaignList : "4. Εμφανίζει"
+manager --> campaignList : "5. Επιλέγει\nκαμπάνια"
+
+' Ροή 2: Προβολή Στατιστικών
+campaignList --> statsDashboard : "6. Εμφανίζει\nπίνακα"
+statsDashboard --> statsManager : "7. Ζητά\nστατιστικά"
+statsManager --> statistics : "8. Ανακτά\nδεδομένα"
+statistics --> impressions : "9. Φορτώνει\nεμφανίσεις"
+statistics --> clicks : "10. Φορτώνει\nκλικ"
+statistics --> signups : "11. Φορτώνει\nεγγραφές"
+statistics --> revenue : "12. Φορτώνει\nέσοδα"
+statistics --> budget : "13. Φορτώνει\nπροϋπολογισμό"
+
+' Ροή 3: Υπολογισμός Μετρικών
+statsManager --> metricsCalculator : "14. Υπολογισμός\nμετρικών"
+metricsCalculator --> roi : "15. Υπολογίζει ROI\n(έσοδα/κόστος)"
+metricsCalculator --> clicks : "16. CTR\n(clicks/impressions)"
+metricsCalculator --> signups : "17. Conversion Rate\n(signups/clicks)"
+
+' Ροή 4: Εμφάνιση Αποτελεσμάτων
+metricsCalculator --> statsDashboard : "18. Επιστρέφει\nμετρικές"
+statsDashboard --> manager : "19. Εμφανίζει:\n- Εμφανίσεις\n- Κλικ\n- Εγγραφές\n- Έσοδα\n- ROI %\n- Budget"
+statsDashboard --> channelData : "20. Φορτώνει\nκανάλια"
+channelData --> statsDashboard : "21. Κατανομή\nπροϋπολογισμού\nανά κανάλι"
+
+' Ροή 5: Παρακολούθηση Πραγματικού Χρόνου (extend)
+manager --> realtimeCharts : "22. Ενεργοποιεί\nreal-time"
+realtimeCharts --> realtimeCollector : "23. Έναρξη\nσυλλογής"
+realtimeCollector --> statistics : "24. Polling\nκάθε X δευτερόλεπτα"
+statistics --> realtimeCollector : "25. Επιστρέφει\nνέα δεδομένα"
+realtimeCollector --> realtimeCharts : "26. Ενημερώνει\nγραφήματα"
+realtimeCharts --> manager : "27. Ζωντανή\nενημέρωση"
+
+' Ροή 6: Σύγκριση Καμπανιών (extend)
+manager --> campaignFilters : "28. Επιλέγει\nσύγκριση"
+campaignFilters --> comparisonManager : "29. Ζητά\nπολλαπλές\nκαμπάνιες"
+comparisonManager --> campaign : "30. Ανακτά 2+\nκαμπάνιες"
+campaign --> comparisonView : "31. Φορτώνει"
+comparisonManager --> metricsCalculator : "32. Υπολογίζει\nγια κάθε καμπάνια"
+metricsCalculator --> comparisonView : "33. Επιστρέφει\nσυγκριτικά"
+comparisonView --> manager : "34. Εμφανίζει:\n- Side-by-side\n- Γραφήματα\n- Διαφορές %"
+
+' Ροή 7: Λήψη Αναφοράς (include)
+manager --> downloadButton : "35. Κλικ 'Λήψη\nΑναφοράς'"
+downloadButton --> reportGenerator : "36. Δημιουργία\nαναφοράς"
+reportGenerator --> statistics : "37. Συλλέγει\nόλα τα δεδομένα"
+reportGenerator --> report : "38. Δημιουργεί\nPDF/Excel"
+report --> reportPreview : "39. Προεπισκόπηση"
+reportPreview --> manager : "40. Εμφανίζει\nπροεπισκόπηση"
+
+' Ροή 8: Επιβεβαίωση Λήψης
+manager --> reportPreview : "41. Επιβεβαιώνει\nλήψη"
+reportPreview --> reportGenerator : "42. Αποθηκεύει\nτοπικά"
+reportGenerator --> successMsg : "43. Επιτυχία"
+successMsg --> manager : "44. 'Η αναφορά\nλήφθηκε'"
+
+@enduml

@@ -1,0 +1,114 @@
+@startuml Διάγραμμα Ευρωστίας ΠΧ-8: Παρακολούθηση Προόδου Πελάτη
+
+' Styling
+skinparam actorStyle awesome
+skinparam rectangle {
+    BackgroundColor<<boundary>> LightYellow
+    BackgroundColor<<control>> LightGreen
+    BackgroundColor<<entity>> LightBlue
+    BorderColor Black
+}
+
+' Actors
+actor "Γυμναστής" as trainer
+
+' Boundary Objects (UI)
+rectangle "Λίστα Πελατών" <<boundary>> as clientList
+rectangle "Προφίλ Πελάτη" <<boundary>> as clientProfile
+rectangle "Ιστορικό Προόδου" <<boundary>> as progressHistory
+rectangle "Γράφημα Εξέλιξης" <<boundary>> as progressChart
+rectangle "Φόρμα Μετρήσεων" <<boundary>> as measurementForm
+rectangle "Φόρμα Στόχων" <<boundary>> as goalsForm
+rectangle "Σύγκριση Μετρήσεων" <<boundary>> as comparisonView
+rectangle "Μήνυμα Επιτυχίας" <<boundary>> as successMsg
+rectangle "Μήνυμα Σφάλματος" <<boundary>> as errorMsg
+
+' Control Objects (Logic)
+rectangle "Διαχειριστής Πελατών" <<control>> as clientManager
+rectangle "Διαχειριστής Προόδου" <<control>> as progressManager
+rectangle "Επικυρωτής Μετρήσεων" <<control>> as measurementValidator
+rectangle "Υπολογιστής Στατιστικών" <<control>> as statsCalculator
+rectangle "Διαχειριστής Στόχων" <<control>> as goalsManager
+rectangle "Διαχειριστής Ειδοποιήσεων" <<control>> as notificationManager
+
+' Entity Objects (Data)
+rectangle "Πελάτης" <<entity>> as client
+rectangle "Μέτρηση" <<entity>> as measurement
+rectangle "Βάρος (kg)" <<entity>> as weight
+rectangle "Ύψος (cm)" <<entity>> as height
+rectangle "Περιφέρεια Μέσης (cm)" <<entity>> as waist
+rectangle "Μυϊκή Μάζα" <<entity>> as muscleMass
+rectangle "Λίπος (%)" <<entity>> as bodyFat
+rectangle "Ιστορικό Μετρήσεων" <<entity>> as measurementHistory
+rectangle "Στόχοι" <<entity>> as goals
+rectangle "Ειδοποίηση" <<entity>> as notification
+
+' Ροή 1: Επιλογή Πελάτη
+trainer --> clientList : "1. Ανοίγει\nπελάτες"
+clientList --> clientManager : "2. Φορτώνει\nλίστα"
+clientManager --> client : "3. Ανακτά\nπελάτες γυμναστή"
+client --> clientList : "4. Εμφανίζει"
+trainer --> clientList : "5. Επιλέγει\nπελάτη"
+
+' Ροή 2: Προβολή Ιστορικού
+clientList --> clientProfile : "6. Ανοίγει\nπροφίλ"
+clientProfile --> progressManager : "7. Ζητά\nιστορικό"
+progressManager --> measurementHistory : "8. Ανακτά\nμετρήσεις"
+measurementHistory --> progressHistory : "9. Εμφανίζει\nχρονολογικά"
+
+' Ροή 3: Προβολή Γραφήματος
+progressManager --> statsCalculator : "10. Υπολογισμός\nτάσεων"
+statsCalculator --> weight : "11. Ανακτά\nβάρος"
+statsCalculator --> bodyFat : "12. Ανακτά\nλίπος"
+statsCalculator --> muscleMass : "13. Ανακτά\nμυϊκή μάζα"
+statsCalculator --> progressChart : "14. Δημιουργεί\nγραφήματα"
+progressChart --> trainer : "15. Εμφανίζει\nεξέλιξη"
+
+' Ροή 4: Προσθήκη Νέων Μετρήσεων (include)
+trainer --> clientProfile : "16. Κλικ 'Νέα\nΜέτρηση'"
+clientProfile --> measurementForm : "17. Εμφανίζει\nφόρμα"
+trainer --> measurementForm : "18. Εισάγει:\n- Βάρος (kg)\n- Ύψος (cm)\n- Περιφέρεια μέσης\n- Μυϊκή μάζα\n- Λίπος %"
+
+' Ροή 5: Επικύρωση Μετρήσεων
+measurementForm --> measurementValidator : "19. Επικύρωση"
+measurementValidator --> measurement : "20. Ελέγχει\nεύλογες τιμές"
+
+' Ροή 6a: Έγκυρες Μετρήσεις
+measurement --> measurementValidator : "21a. Έγκυρο"
+measurementValidator --> progressManager : "22a. Αποθηκεύει"
+progressManager --> weight : "23a. Αποθηκεύει\nβάρος"
+progressManager --> height : "24a. Αποθηκεύει\nύψος"
+progressManager --> waist : "25a. Αποθηκεύει\nπεριφέρεια"
+progressManager --> muscleMass : "26a. Αποθηκεύει\nμυϊκή μάζα"
+progressManager --> bodyFat : "27a. Αποθηκεύει\nλίπος"
+progressManager --> measurementHistory : "28a. Ενημερώνει\nιστορικό"
+
+' Ροή 6b: Σφάλμα Συστήματος (extend)
+measurement --> measurementValidator : "21b. Σφάλμα\nσυστήματος"
+measurementValidator --> errorMsg : "22b. Εμφανίζει\nσφάλμα"
+errorMsg --> trainer : "23b. 'Αποτυχία\nαποθήκευσης'"
+
+' Ροή 7: Ενημέρωση Προόδου
+progressManager --> statsCalculator : "29. Υπολογισμός\nαλλαγών"
+statsCalculator --> comparisonView : "30. Σύγκριση με\nπροηγούμενη"
+comparisonView --> trainer : "31. Εμφανίζει:\n- Διαφορά βάρους\n- Διαφορά λίπους\n- % αλλαγή"
+
+' Ροή 8: Ορισμός Νέων Στόχων
+trainer --> goalsForm : "32. Κλικ 'Στόχοι'"
+goalsForm --> goalsManager : "33. Φορτώνει\nτρέχοντες"
+goalsManager --> goals : "34. Ανακτά\nστόχους"
+goals --> goalsForm : "35. Εμφανίζει"
+trainer --> goalsForm : "36. Ενημερώνει:\n- Στόχος βάρους\n- Στόχος λίπους\n- Χρονικό πλαίσιο"
+goalsForm --> goalsManager : "37. Αποθηκεύει"
+goalsManager --> goals : "38. Ενημερώνει"
+
+' Ροή 9: Ειδοποίηση Πελάτη
+progressManager --> notificationManager : "39. Ειδοποίηση\nπελάτη"
+notificationManager --> notification : "40. Δημιουργεί"
+notification --> client : "41. Στέλνει\nενημέρωση"
+
+' Ροή 10: Επιτυχία
+progressManager --> successMsg : "42. Επιτυχία"
+successMsg --> trainer : "43. 'Οι μετρήσεις\nαποθηκεύτηκαν'"
+
+@enduml

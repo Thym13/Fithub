@@ -1,0 +1,80 @@
+@startuml Διάγραμμα Ευρωστίας ΠΧ-9: Αξιολόγηση Γυμναστηρίου
+
+left to right direction
+
+' Actors
+actor "Μέλος" as member
+actor "Γυμναστής" as trainer
+actor "Διαχειριστής" as manager
+
+' Boundary Objects
+boundary "Προτροπή\nΑξιολόγησης" as evaluationPrompt
+boundary "Επιλογέας\nΔραστηριότητας" as activitySelector
+boundary "Φόρμα\nΑξιολόγησης" as evaluationForm
+boundary "Σύστημα\nΑξιολόγησης\nΑστεριών" as starRating
+boundary "Πεδίο\nΣχολίων" as commentsField
+boundary "Προεπισκόπηση\nΑξιολόγησης" as reviewPreview
+boundary "Μήνυμα\nΕπιτυχίας" as successMsg
+boundary "Μήνυμα\nΑπόρριψης" as rejectionMsg #red
+boundary "Πίνακας\nΑξιολογήσεων" as reviewDashboard
+
+' Control Objects
+control "Διαχειριστής\nΑξιολογήσεων" as reviewManager
+control "Επικυρωτής\nΑξιολογήσεων" as reviewValidator
+control "Φίλτρο\nΠολιτικής" as policyFilter
+control "Υπολογιστής\nΒαθμολογίας" as ratingCalculator
+control "Διαχειριστής\nΕιδοποιήσεων" as notificationManager
+
+' Entity Objects
+entity "Αξιολόγηση" as evaluation
+entity "Βαθμολογία\n(1-5)" as rating
+entity "Σχόλια" as comments
+entity "Δραστηριότητα" as activity
+entity "Μάθημα" as class
+entity "Γυμναστής" as trainerEntity
+entity "Ειδοποίηση" as notification
+entity "Κατάσταση\nΑξιολόγησης" as reviewStatus
+
+' Main Flow
+member --> evaluationPrompt
+evaluationPrompt --> reviewManager
+reviewManager --> activitySelector
+activitySelector --> activity
+activity --> class
+member --> activitySelector
+activitySelector --> evaluationForm
+evaluationForm --> starRating
+member --> starRating
+starRating --> ratingCalculator
+ratingCalculator --> rating
+evaluationForm --> commentsField
+member --> commentsField
+commentsField --> reviewManager
+member --> reviewPreview
+reviewPreview --> reviewValidator
+reviewValidator --> policyFilter
+policyFilter --> comments
+policyFilter --> reviewValidator
+reviewValidator --> evaluation
+evaluation --> rating
+evaluation --> comments
+evaluation --> activity
+reviewValidator --> notificationManager
+notificationManager --> notification
+notification --> trainerEntity
+notification --> manager
+reviewValidator --> successMsg
+successMsg --> member
+manager --> reviewDashboard
+reviewDashboard --> reviewManager
+reviewManager --> evaluation
+trainer --> reviewDashboard
+reviewDashboard --> ratingCalculator
+ratingCalculator --> trainer
+
+' Alternative: Rejection (Red)
+policyFilter -[#red]-> reviewStatus
+reviewStatus -[#red]-> rejectionMsg
+rejectionMsg -[#red]-> member
+
+@enduml

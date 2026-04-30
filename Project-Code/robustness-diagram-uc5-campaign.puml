@@ -1,0 +1,63 @@
+@startuml Διάγραμμα Ευρωστίας ΠΧ-5: Δημιουργία Καμπάνιας με Κωδικό Προσφοράς
+
+left to right direction
+
+' Actors
+actor "Διαχειριστής" as manager
+actor "Μέλος" as member
+
+' Boundary Objects
+boundary "Πίνακας\nΚαμπανιών" as campaignDashboard
+boundary "Φόρμα\nΔημιουργίας\nΚαμπάνιας" as campaignForm
+boundary "Γεννήτρια\nΚωδικού\nΠροσφοράς" as promoCodeGenerator
+boundary "Επιλογέας\nΕύρους\nΗμερομηνιών" as dateRangePicker
+boundary "Επιλογέας\nΚαναλιών\nΜάρκετινγκ" as channelSelector
+boundary "Προεπισκόπηση\nΚαμπάνιας" as campaignPreview
+boundary "Φόρμα\nΕπιβεβαίωσης" as confirmationForm
+boundary "Μήνυμα\nΕπιτυχίας" as successMsg
+boundary "Προβολή\nΕνεργών\nΚωδικών" as activeCodesDisplay
+
+' Control Objects
+control "Διαχειριστής\nΚαμπανιών" as campaignManager
+control "Επικυρωτής\nΚαμπανιών" as campaignValidator
+control "Διαχειριστής\nΚωδικών\nΠροσφοράς" as promoCodeManager
+control "Διαχειριστής\nΚαναλιών" as channelManager
+control "Υπολογιστής\nΈκπτωσης" as discountCalculator
+
+' Entity Objects
+entity "Καμπάνια" as campaign
+entity "Κωδικός\nΠροσφοράς" as promoCode
+entity "Ποσοστό\nΈκπτωσης" as discountPercentage
+entity "Περίοδος\nΙσχύος" as validityPeriod
+entity "Κανάλι\nΜάρκετινγκ" as marketingChannel
+entity "Προϋπολογισμός" as budget
+entity "Περιγραφή" as description
+
+' Main Flow
+manager --> campaignDashboard
+campaignDashboard --> campaignForm
+manager --> campaignForm
+campaignForm --> campaignManager
+manager --> promoCodeGenerator
+promoCodeGenerator --> promoCodeManager
+promoCodeManager --> promoCode
+manager --> dateRangePicker
+dateRangePicker --> campaignManager
+campaignManager --> validityPeriod
+manager --> channelSelector
+channelSelector --> channelManager
+channelManager --> marketingChannel
+campaignForm --> discountCalculator
+discountCalculator --> discountPercentage
+manager --> campaignPreview
+campaignPreview --> campaignValidator
+campaignValidator --> campaign
+campaign --> promoCode
+campaign --> description
+campaign --> budget
+campaignManager --> activeCodesDisplay
+activeCodesDisplay --> member
+campaignManager --> successMsg
+successMsg --> manager
+
+@enduml

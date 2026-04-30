@@ -6,6 +6,7 @@ import { ManagerDashboard } from './components/manager-dashboard';
 import { ReceptionistDashboard } from './components/receptionist-dashboard';
 import { TrainerDashboard } from './components/trainer-dashboard';
 import { MemberDashboard } from './components/member-dashboard';
+import { ClientDetail } from './components/client-detail';
 
 export const router = createBrowserRouter([
   {
@@ -31,6 +32,10 @@ export const router = createBrowserRouter([
   {
     path: '/trainer',
     element: <TrainerDashboard />
+  },
+  {
+    path: '/trainer/client/:clientId',
+    element: <ClientDetail />
   },
   {
     path: '/member',

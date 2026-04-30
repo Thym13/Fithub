@@ -1,0 +1,75 @@
+@startuml Διάγραμμα Ευρωστίας ΠΧ-2: Κράτηση Μαθήματος
+
+left to right direction
+
+' Actors
+actor "Μέλος" as member
+actor "Γραμματέας" as receptionist
+actor "Γυμναστής" as trainer
+actor "Πύλη\nΠληρωμών" as payment
+
+' Boundary Objects
+boundary "Λίστα\nΜαθημάτων" as classList
+boundary "Λεπτομέρειες\nΜαθήματος" as classDetails
+boundary "Φόρμα\nΚράτησης" as bookingForm
+boundary "Οθόνη\nΛίστας\nΑναμονής" as waitlistScreen #red
+boundary "Οθόνη\nΠληρωμής\nΜαθήματος" as sessionPayment #red
+boundary "Μήνυμα\nΕπιβεβαίωσης" as confirmation
+boundary "Μήνυμα\nΣφάλματος" as errorMsg #red
+
+' Control Objects
+control "Διαχειριστής\nΜαθημάτων" as classManager
+control "Επικυρωτής\nΚρατήσεων" as bookingValidator
+control "Έλεγχος\nΣυνδρομής" as subscriptionChecker
+control "Διαχειριστής\nΛίστας\nΑναμονής" as waitlistManager #red
+control "Επεξεργαστής\nΠληρωμής" as paymentProcessor #red
+control "Διαχειριστής\nΕιδοποιήσεων" as notificationManager
+
+' Entity Objects
+entity "Μάθημα" as classEntity
+entity "Κράτηση" as booking
+entity "Μέλος" as memberEntity
+entity "Συνδρομή" as subscription
+entity "Λίστα\nΑναμονής" as waitlist #red
+entity "Συναλλαγή" as transaction #red
+entity "Ειδοποίηση" as notification
+
+' Main Flow
+member --> classList
+classList --> classManager
+classManager --> classEntity
+member --> classDetails
+classDetails --> bookingValidator
+bookingValidator --> subscriptionChecker
+subscriptionChecker --> memberEntity
+subscriptionChecker --> subscription
+bookingValidator --> classEntity
+bookingValidator --> booking
+booking --> classEntity
+bookingValidator --> notificationManager
+notificationManager --> notification
+notificationManager --> receptionist
+notificationManager --> trainer
+bookingValidator --> confirmation
+confirmation --> member
+
+' Alternative: Join Waitlist (Red)
+bookingValidator -[#red]-> waitlistScreen
+member -[#red]-> waitlistScreen
+waitlistScreen -[#red]-> waitlistManager
+waitlistManager -[#red]-> waitlist
+waitlistManager -[#red]-> confirmation
+
+' Alternative: Pay for Session (Red)
+subscriptionChecker -[#red]-> sessionPayment
+member -[#red]-> sessionPayment
+sessionPayment -[#red]-> paymentProcessor
+paymentProcessor -[#red]-> payment
+paymentProcessor -[#red]-> transaction
+paymentProcessor -[#red]-> bookingValidator
+
+' Alternative: Error (Red)
+bookingValidator -[#red]-> errorMsg
+errorMsg -[#red]-> member
+
+@enduml

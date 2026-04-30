@@ -33,6 +33,7 @@ import {
 import { mockTrainerClients, mockClasses } from '../utils/mockData';
 import { ClientProgressTracking } from './client-progress-tracking';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 
 const trainerTabs = [
   { id: 'clients', label: 'My Clients', path: '#clients' },
@@ -44,6 +45,7 @@ const trainerTabs = [
 ];
 
 export function TrainerDashboard() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('clients');
   const myClients = mockTrainerClients;
   const myClasses = mockClasses.filter(c => c.instructor === 'Sarah Johnson');
@@ -741,7 +743,11 @@ export function TrainerDashboard() {
             <CardContent>
               <div className="space-y-4">
                 {myClients.map((client) => (
-                  <div key={client.id} className="p-4 border rounded-lg">
+                  <div
+                    key={client.id}
+                    className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-300 transition-colors"
+                    onClick={() => navigate(`/trainer/client/${client.id}`)}
+                  >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
                         <img src={client.avatar} alt={client.name} className="size-12 rounded-full" />
@@ -752,7 +758,7 @@ export function TrainerDashboard() {
                       </div>
                       <Badge variant="secondary">{client.progress}% Complete</Badge>
                     </div>
-                    
+
                     <div className="space-y-3">
                       <div>
                         <div className="flex items-center justify-between text-sm mb-2">
@@ -780,17 +786,6 @@ export function TrainerDashboard() {
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Calendar className="size-4" />
                         Next session: {client.nextSession}
-                      </div>
-
-                      <div className="flex gap-2 pt-2">
-                        <Button variant="outline" size="sm" className="flex-1">
-                          <Activity className="size-4 mr-2" />
-                          View Progress
-                        </Button>
-                        <Button variant="outline" size="sm" className="flex-1">
-                          <MessageSquare className="size-4 mr-2" />
-                          Message
-                        </Button>
                       </div>
                     </div>
                   </div>
