@@ -550,9 +550,11 @@ export function ManagerDashboard() {
               <div className="space-y-4">
                 {mockStaff.filter(s => s.role === 'Trainer').map((staff) => (
                   <div key={staff.id} className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
                       <div className="flex items-center gap-3">
-                        <img src={staff.avatar} alt={staff.name} className="size-12 rounded-full" />
+                        <div className="size-12 rounded-full bg-gray-200 flex items-center justify-center">
+                          <Users className="size-6 text-gray-600" />
+                        </div>
                         <div>
                           <div>{staff.name}</div>
                           <div className="text-sm text-gray-500">{staff.specialization}</div>
