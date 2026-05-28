@@ -1,0 +1,175 @@
+@startuml UC-8: Client Progress Tracking
+
+actor "Trainer" as Trainer
+
+participant "Trainer\nDashboard" as Dashboard
+participant "Client\nList" as ClientList
+participant "Client\nDetail\nPage" as ClientDetailPage
+participant "Progress\nHistory\nView" as ProgressHistory
+participant "Progress\nChart" as ProgressChart
+participant "Measurement\nForm" as MeasurementForm
+participant "Goals\nForm" as GoalsForm
+participant "Comparison\nView" as ComparisonView
+participant "Success\nModal" as SuccessModal
+participant "Error\nMessage" as ErrorMsg
+
+database "Client\nTable" as ClientDB
+database "Measurement\nTable" as MeasurementDB
+database "Measurement\nHistory\nTable" as HistoryDB
+database "Goals\nTable" as GoalsDB
+database "Notification\nTable" as NotificationDB
+
+' Step 1: Select Client
+Trainer -> Dashboard: navigate("/trainer#clients")
+activate Dashboard
+Dashboard -> ClientList: renderClientList()
+activate ClientList
+ClientList -> ClientDB: findAll({trainerId})
+activate ClientDB
+ClientDB --> ClientList: return clientsList[]
+deactivate ClientDB
+ClientList --> Trainer: return renderClientCards(clientsList)
+deactivate ClientList
+deactivate Dashboard
+
+Trainer -> ClientList: onClick(clientId)
+activate ClientList
+ClientList -> ClientDetailPage: navigate(`/trainer/client/${clientId}`)
+deactivate ClientList
+activate ClientDetailPage
+
+ClientDetailPage -> ClientDB: findById(clientId)
+activate ClientDB
+ClientDB --> ClientDetailPage: return {name, program, goals, startWeight, currentWeight, targetWeight}
+deactivate ClientDB
+
+ClientDetailPage -> HistoryDB: findAll({clientId}, orderBy: 'measurementDate DESC')
+activate HistoryDB
+HistoryDB --> ClientDetailPage: return measurementsList[]
+deactivate HistoryDB
+
+ClientDetailPage -> ProgressHistory: renderHistory(measurementsList)
+activate ProgressHistory
+ProgressHistory --> Trainer: return renderPreviousMeasurements()
+deactivate ProgressHistory
+
+ClientDetailPage -> ClientDetailPage: calculateStats(measurementsList)
+ClientDetailPage -> ClientDetailPage: calculateWeightChange(startWeight, currentWeight)
+ClientDetailPage -> ClientDetailPage: calculateProgressPercentage(weightChange, totalGoal)
+ClientDetailPage -> ClientDetailPage: calculateAverageWeeklyLoss(weightChange, weeksElapsed)
+
+ClientDetailPage -> ProgressChart: renderCharts(measurementsList)
+activate ProgressChart
+ProgressChart -> ProgressChart: createLineChart('weight_over_time', measurementsList)
+ProgressChart -> ProgressChart: createLineChart('bodyFat_over_time', measurementsList)
+ProgressChart -> ProgressChart: createLineChart('muscleMass_over_time', measurementsList)
+ProgressChart --> Trainer: return renderProgressCharts()
+deactivate ProgressChart
+deactivate ClientDetailPage
+
+' Step 2: Add New Measurement
+Trainer -> MeasurementForm: onClick("Add Measurement")
+activate MeasurementForm
+MeasurementForm -> MeasurementForm: setState({showForm: true})
+MeasurementForm --> Trainer: return renderMeasurementForm()
+deactivate MeasurementForm
+
+Trainer -> MeasurementForm: onChange(field, value)
+activate MeasurementForm
+loop For each field
+    MeasurementForm -> MeasurementForm: handleInputChange(field, value)
+    MeasurementForm -> MeasurementForm: setFormData({...formData, [field]: value})
+end
+deactivate MeasurementForm
+
+Trainer -> MeasurementForm: onClick("Submit")
+activate MeasurementForm
+MeasurementForm -> MeasurementForm: validateMeasurements()
+MeasurementForm -> MeasurementForm: checkValueRanges(weight, bodyFat, muscleMass)
+
+alt Invalid measurements
+    MeasurementForm -> ErrorMsg: showError("Invalid values")
+    activate ErrorMsg
+    ErrorMsg --> Trainer: return renderError("Please check the measurement values")
+    deactivate ErrorMsg
+    deactivate MeasurementForm
+else Valid measurements
+    MeasurementForm -> MeasurementDB: createMeasurement(clientId, trainerId, measurementDate)
+    activate MeasurementDB
+    MeasurementDB --> MeasurementForm: return measurementId
+    deactivate MeasurementDB
+
+    MeasurementForm -> MeasurementDB: updateMeasurement(measurementId, {weight, bodyFatPercentage, muscleMassKg, waist, chest})
+    activate MeasurementDB
+    MeasurementDB --> MeasurementForm: return updateSuccess
+    deactivate MeasurementDB
+
+    MeasurementForm -> HistoryDB: createHistory(clientId, measurementId, measurementDate)
+    activate HistoryDB
+    HistoryDB --> MeasurementForm: return historyId
+    deactivate HistoryDB
+
+    MeasurementForm -> ClientDB: updateClient(clientId, {currentWeight: weight})
+    activate ClientDB
+    ClientDB --> MeasurementForm: return updateSuccess
+    deactivate ClientDB
+
+    MeasurementForm -> MeasurementForm: recalculateStats()
+    MeasurementForm -> ComparisonView: showComparison(previousMeasurement, newMeasurement)
+    activate ComparisonView
+    ComparisonView -> ComparisonView: calculateChanges(previous, current)
+    ComparisonView -> ComparisonView: calculateWeightDiff(current.weight, previous.weight)
+    ComparisonView -> ComparisonView: calculateBodyFatDiff(current.bodyFat, previous.bodyFat)
+    ComparisonView --> Trainer: return renderComparison({weightDiff: -2kg, bodyFatDiff: -1.5%, muscleDiff: +0.5kg})
+    deactivate ComparisonView
+
+    MeasurementForm -> NotificationDB: createNotification(clientId, type: "progress_updated", title, content)
+    activate NotificationDB
+    NotificationDB --> MeasurementForm: return notificationId
+    deactivate NotificationDB
+
+    MeasurementForm -> SuccessModal: showSuccess()
+    deactivate MeasurementForm
+    activate SuccessModal
+    SuccessModal --> Trainer: return renderSuccess("Measurement recorded successfully!")
+    deactivate SuccessModal
+end
+
+' Step 3: Set Goals
+Trainer -> GoalsForm: onClick("Set Goals")
+activate GoalsForm
+GoalsForm -> GoalsDB: findOne({clientId})
+activate GoalsDB
+GoalsDB --> GoalsForm: return currentGoals || null
+deactivate GoalsDB
+
+GoalsForm --> Trainer: return renderGoalsForm(currentGoals)
+deactivate GoalsForm
+
+Trainer -> GoalsForm: onChange(field, value)
+activate GoalsForm
+loop For each goal field
+    GoalsForm -> GoalsForm: handleInputChange(field, value)
+    GoalsForm -> GoalsForm: setGoalsData({...goalsData, [field]: value})
+end
+deactivate GoalsForm
+
+Trainer -> GoalsForm: onClick("Save Goals")
+activate GoalsForm
+GoalsForm -> GoalsDB: upsert(clientId, {targetWeight, targetBodyFat, targetMuscleMass, deadline})
+activate GoalsDB
+GoalsDB --> GoalsForm: return goalsId
+deactivate GoalsDB
+
+GoalsForm -> NotificationDB: createNotification(clientId, type: "goals_updated", title, content)
+activate NotificationDB
+NotificationDB --> GoalsForm: return notificationId
+deactivate NotificationDB
+
+GoalsForm -> SuccessModal: showSuccess()
+deactivate GoalsForm
+activate SuccessModal
+SuccessModal --> Trainer: return renderSuccess("Goals updated successfully!")
+deactivate SuccessModal
+
+@enduml

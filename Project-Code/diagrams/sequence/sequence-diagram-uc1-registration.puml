@@ -1,0 +1,252 @@
+@startuml UC-1: Registration and Activation Wizard
+
+actor "User" as User
+actor "Payment\nGateway" as PaymentGateway
+actor "Email\nSystem" as EmailSystem
+actor "Admin" as Admin
+
+participant "Register\nComponent" as RegisterComp
+participant "Role\nSelection\nView" as RoleView
+participant "Personal\nInfo\nForm" as PersonalForm
+participant "Email\nVerification\nView" as EmailVerifyView
+participant "Payment\nView" as PaymentView
+participant "Success\nView" as SuccessView
+
+database "User\nTable" as UserDB
+database "Member\nTable" as MemberDB
+database "Membership\nTable" as MembershipDB
+database "Transaction\nTable" as TransactionDB
+
+' Main Flow - Member Registration
+User -> RegisterComp: navigate("/register")
+activate RegisterComp
+RegisterComp -> RoleView: renderRoleSelection()
+activate RoleView
+RoleView --> User: return roleOptions[]
+deactivate RoleView
+
+User -> RoleView: onClick("member")
+activate RoleView
+RoleView -> RegisterComp: handleRoleSelection("member")
+RegisterComp -> RegisterComp: setSelectedRole("member")
+RegisterComp -> RegisterComp: setCurrentStep("personal-info")
+RegisterComp -> PersonalForm: renderPersonalInfo()
+deactivate RoleView
+activate PersonalForm
+PersonalForm --> User: return formFields[]
+deactivate PersonalForm
+
+User -> PersonalForm: onChange(field, value)
+activate PersonalForm
+PersonalForm -> RegisterComp: handleInputChange(field, value)
+loop For each field
+    RegisterComp -> RegisterComp: setFormData({...formData, [field]: value})
+end
+deactivate PersonalForm
+
+User -> PersonalForm: onClick("Continue")
+activate PersonalForm
+PersonalForm -> RegisterComp: handlePersonalInfoSubmit()
+RegisterComp -> RegisterComp: setCurrentStep("subscription")
+RegisterComp -> PersonalForm: renderSubscriptionPlans()
+PersonalForm --> User: return membershipPlans[]
+deactivate PersonalForm
+
+User -> PersonalForm: onSelect(planId)
+activate PersonalForm
+PersonalForm -> RegisterComp: handleInputChange("subscriptionPlan", planId)
+RegisterComp -> RegisterComp: setFormData({...formData, subscriptionPlan: planId})
+deactivate PersonalForm
+
+User -> PersonalForm: onClick("Continue")
+activate PersonalForm
+PersonalForm -> RegisterComp: handleSubscriptionSubmit()
+RegisterComp -> RegisterComp: setCurrentStep("email-verification")
+RegisterComp -> UserDB: createUser(name, email, phone, role)
+activate UserDB
+UserDB --> RegisterComp: return userId
+deactivate UserDB
+
+RegisterComp -> EmailSystem: sendVerificationEmail(email, userId, token)
+activate EmailSystem
+EmailSystem --> User: deliverEmail(verificationLink)
+deactivate EmailSystem
+
+RegisterComp -> EmailVerifyView: renderEmailVerification()
+deactivate PersonalForm
+activate EmailVerifyView
+EmailVerifyView --> User: return verificationMessage
+deactivate EmailVerifyView
+
+User -> EmailVerifyView: onClick(verificationLink)
+activate EmailVerifyView
+EmailVerifyView -> RegisterComp: handleEmailVerification(token)
+RegisterComp -> RegisterComp: setIsEmailVerified(true)
+RegisterComp -> UserDB: updateUser(userId, {emailVerified: true})
+activate UserDB
+UserDB --> RegisterComp: return updateSuccess
+deactivate UserDB
+
+RegisterComp -> RegisterComp: setCurrentStep("payment")
+RegisterComp -> PaymentView: renderPayment()
+deactivate EmailVerifyView
+activate PaymentView
+PaymentView --> User: return paymentForm
+deactivate PaymentView
+
+User -> PaymentView: onSubmit(paymentDetails)
+activate PaymentView
+PaymentView -> RegisterComp: handlePaymentSubmit(paymentData)
+RegisterComp -> PaymentGateway: processPayment(amount, paymentMethod, cardDetails)
+activate PaymentGateway
+PaymentGateway --> RegisterComp: return {success, transactionId}
+deactivate PaymentGateway
+
+RegisterComp -> TransactionDB: createTransaction(userId, amount, status, method)
+activate TransactionDB
+TransactionDB --> RegisterComp: return transactionId
+deactivate TransactionDB
+
+RegisterComp -> MembershipDB: createMembership(type, monthlyCost, startDate, expiryDate)
+activate MembershipDB
+MembershipDB --> RegisterComp: return membershipId
+deactivate MembershipDB
+
+RegisterComp -> MemberDB: createMember(userId, membershipId, memberSince)
+activate MemberDB
+MemberDB --> RegisterComp: return memberId
+deactivate MemberDB
+
+RegisterComp -> RegisterComp: setCurrentStep("success")
+RegisterComp -> SuccessView: renderSuccess()
+deactivate PaymentView
+activate SuccessView
+SuccessView --> User: return successMessage
+deactivate SuccessView
+deactivate RegisterComp
+
+' Alternative Flow - Trainer Registration
+group Trainer Registration Flow
+    User -> RoleView: onClick("trainer")
+    activate RoleView
+    RoleView -> RegisterComp: handleRoleSelection("trainer")
+    RegisterComp -> RegisterComp: setSelectedRole("trainer")
+    RegisterComp -> RegisterComp: setCurrentStep("personal-info")
+    deactivate RoleView
+
+    User -> PersonalForm: onSubmit(personalData, specialty)
+    activate PersonalForm
+    PersonalForm -> RegisterComp: handlePersonalInfoSubmit()
+    RegisterComp -> RegisterComp: setCurrentStep("pending-approval")
+    deactivate PersonalForm
+
+    participant "Documents\nUpload\nView" as DocsView
+    database "Trainer\nApplication\nTable" as AppDB
+    database "Document\nTable" as DocDB
+
+    User -> DocsView: onFileSelect(resumeFile)
+    activate DocsView
+    DocsView -> RegisterComp: handleFileUpload("resume", file)
+    RegisterComp -> RegisterComp: setUploadedFiles({...uploadedFiles, resume: file})
+    deactivate DocsView
+
+    User -> DocsView: onFileSelect(certificationsFile)
+    activate DocsView
+    DocsView -> RegisterComp: handleFileUpload("certifications", file)
+    RegisterComp -> RegisterComp: setUploadedFiles({...uploadedFiles, certifications: file})
+    deactivate DocsView
+
+    User -> DocsView: onClick("Submit Application")
+    activate DocsView
+    DocsView -> RegisterComp: handleDocumentsSubmit()
+    RegisterComp -> UserDB: createUser(name, email, role, applicationStatus: "Pending")
+    activate UserDB
+    UserDB --> RegisterComp: return userId
+    deactivate UserDB
+
+    RegisterComp -> DocDB: uploadDocument(userId, type, fileName, fileData)
+    activate DocDB
+    DocDB --> RegisterComp: return {documentId, url}
+    deactivate DocDB
+
+    RegisterComp -> AppDB: createApplication(userId, status: "Pending", cvURL)
+    activate AppDB
+    AppDB --> RegisterComp: return applicationId
+    deactivate AppDB
+
+    RegisterComp --> User: return applicationSubmittedMessage
+    deactivate DocsView
+
+    ' Admin reviews application
+    participant "Application\nList\nView" as AppListView
+    participant "Contract\nView" as ContractView
+    database "Employment\nContract\nTable" as ContractDB
+    database "Trainer\nTable" as TrainerDB
+
+    Admin -> AppListView: navigate("/admin/applications")
+    activate AppListView
+    AppListView -> AppDB: findAll({status: "Pending"})
+    activate AppDB
+    AppDB --> AppListView: return applications[]
+    deactivate AppDB
+    AppListView --> Admin: return applicationsList
+    deactivate AppListView
+
+    Admin -> AppListView: onClick("Approve", applicationId)
+    activate AppListView
+    AppListView -> AppDB: updateApplication(applicationId, {status: "Approved"})
+    activate AppDB
+    AppDB --> AppListView: return updateSuccess
+    deactivate AppDB
+    deactivate AppListView
+
+    ' Contract Creation
+    Admin -> ContractView: onClick("Create Contract", trainerId)
+    activate ContractView
+    ContractView -> ContractView: renderContractForm(trainerDetails)
+    ContractView -> ContractDB: createContract(trainerId, salary, workingHours, services, terms)
+    activate ContractDB
+    ContractDB --> ContractView: return contractId
+    deactivate ContractDB
+
+    ContractView -> EmailSystem: sendContractEmail(trainerId, contractId, contractUrl)
+    activate EmailSystem
+    EmailSystem --> User: deliverEmail(contractLink)
+    deactivate EmailSystem
+    deactivate ContractView
+
+    ' Trainer responds to contract
+    User -> ContractView: navigate(contractUrl)
+    activate ContractView
+    ContractView -> ContractDB: findById(contractId)
+    activate ContractDB
+    ContractDB --> ContractView: return contractDetails
+    deactivate ContractDB
+    ContractView --> User: return renderContract(contractDetails)
+    deactivate ContractView
+
+    User -> ContractView: onClick("Accept Contract")
+    activate ContractView
+    ContractView -> RegisterComp: handleContractSign(contractId, response: "Accepted")
+    RegisterComp -> ContractDB: updateContract(contractId, {status: "Accepted", responseDate})
+    activate ContractDB
+    ContractDB --> RegisterComp: return updateSuccess
+    deactivate ContractDB
+
+    RegisterComp -> TrainerDB: createTrainer(userId, specialty, applicationStatus: "Approved")
+    activate TrainerDB
+    TrainerDB --> RegisterComp: return trainerId
+    deactivate TrainerDB
+
+    RegisterComp -> EmailSystem: sendNotification(adminEmail, "Trainer accepted contract", trainerDetails)
+    activate EmailSystem
+    EmailSystem --> Admin: deliverEmail(notificationMessage)
+    deactivate EmailSystem
+
+    RegisterComp -> RegisterComp: setCurrentStep("success")
+    RegisterComp --> User: return registrationCompleteMessage
+    deactivate ContractView
+    deactivate RegisterComp
+end
+
+@enduml

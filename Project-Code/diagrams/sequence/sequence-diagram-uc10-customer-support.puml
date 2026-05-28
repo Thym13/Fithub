@@ -1,0 +1,236 @@
+@startuml UC-10: Customer Support System
+
+actor "Member" as Member
+actor "AI\nSystem" as AISystem
+actor "Receptionist" as Receptionist
+
+participant "Support\nButton" as SupportBtn
+participant "Category\nSelector" as CategorySelector
+participant "Problem\nDescription\nForm" as ProblemForm
+participant "Chat\nWindow" as ChatWindow
+participant "AI\nMessage\nView" as AIMessage
+participant "User\nMessage\nInput" as UserMessage
+participant "Escalate\nButton" as EscalateBtn
+participant "Close\nButton" as CloseBtn
+participant "Satisfaction\nRating" as SatisfactionRating
+participant "Ticket\nDashboard" as TicketDashboard
+participant "Ticket\nDetails" as TicketDetails
+participant "AI Error\nMessage" as AIError
+
+database "Support\nTicket\nTable" as TicketDB
+database "Message\nTable" as MessageDB
+database "Chat\nHistory\nTable" as ChatHistoryDB
+database "Notification\nTable" as NotificationDB
+
+' Main Flow - AI Support
+Member -> SupportBtn: onClick()
+activate SupportBtn
+SupportBtn -> CategorySelector: openSupportDialog()
+activate CategorySelector
+CategorySelector -> CategorySelector: setState({showSupport: true, step: 'category'})
+CategorySelector --> Member: return renderCategories(["Technical", "Billing", "General"])
+deactivate CategorySelector
+deactivate SupportBtn
+
+Member -> CategorySelector: onClick(category)
+activate CategorySelector
+CategorySelector -> TicketDB: createTicket(memberId, category, status: "Open", handlerType: "AI", createdAt)
+activate TicketDB
+TicketDB --> CategorySelector: return ticketId
+deactivate TicketDB
+
+CategorySelector -> ProblemForm: showProblemForm(category)
+deactivate CategorySelector
+activate ProblemForm
+ProblemForm --> Member: return renderProblemDescriptionField()
+deactivate ProblemForm
+
+Member -> ProblemForm: onChange(description)
+activate ProblemForm
+ProblemForm -> ProblemForm: handleInputChange(description)
+ProblemForm -> ProblemForm: setState({problemDescription: description})
+deactivate ProblemForm
+
+Member -> ProblemForm: onClick("Submit")
+activate ProblemForm
+ProblemForm -> TicketDB: updateTicket(ticketId, {description})
+activate TicketDB
+TicketDB --> ProblemForm: return updateSuccess
+deactivate TicketDB
+
+ProblemForm -> ChatWindow: openChatWindow(ticketId)
+deactivate ProblemForm
+activate ChatWindow
+ChatWindow -> ChatWindow: setState({showChat: true, messages: []})
+
+ChatWindow -> AISystem: analyzeIssue(category, description)
+activate AISystem
+AISystem --> ChatWindow: return {message, suggestedSolution}
+deactivate AISystem
+
+ChatWindow -> MessageDB: createMessage(ticketId, sender: "AI", content, type: "ai_response", timestamp)
+activate MessageDB
+MessageDB --> ChatWindow: return messageId
+deactivate MessageDB
+
+ChatWindow -> ChatHistoryDB: createChatHistory(ticketId, messageId)
+activate ChatHistoryDB
+ChatHistoryDB --> ChatWindow: return historyId
+deactivate ChatHistoryDB
+
+ChatWindow -> AIMessage: displayAIMessage(aiResponse)
+activate AIMessage
+AIMessage --> Member: return renderAIMessage("Hello! I understand you're having an issue...")
+deactivate AIMessage
+deactivate ChatWindow
+
+' AI Conversation Loop
+loop Member interacts with AI (up to 5 messages)
+    Member -> UserMessage: onChange(messageText)
+    activate UserMessage
+    UserMessage -> ChatWindow: sendMessage(messageText)
+    activate ChatWindow
+    ChatWindow -> ChatWindow: incrementMessageCount()
+    ChatWindow -> ChatWindow: setState({messageCount: messageCount + 1})
+
+    ChatWindow -> MessageDB: createMessage(ticketId, sender: "Member", content, type: "user_message", timestamp)
+    activate MessageDB
+    MessageDB --> ChatWindow: return messageId
+    deactivate MessageDB
+
+    ChatWindow -> ChatHistoryDB: createChatHistory(ticketId, messageId)
+    activate ChatHistoryDB
+    ChatHistoryDB --> ChatWindow: return historyId
+    deactivate ChatHistoryDB
+
+    ChatWindow -> AISystem: processMessage(messageText, context)
+    activate AISystem
+    alt AI Error
+        AISystem -> AIError: throwError("Cannot process request")
+        activate AIError
+        AIError --> Member: return renderError("I'm having trouble processing your request")
+        deactivate AIError
+
+        AIError -> EscalateBtn: enableEscalation()
+        activate EscalateBtn
+        EscalateBtn -> TicketDB: updateTicket(ticketId, {status: 'Escalated', handlerType: 'Human'})
+        activate TicketDB
+        TicketDB --> EscalateBtn: return updateSuccess
+        deactivate TicketDB
+
+        EscalateBtn -> NotificationDB: createNotification(receptionistId, type: "ticket_escalated", content)
+        activate NotificationDB
+        NotificationDB --> EscalateBtn: return notificationId
+        deactivate NotificationDB
+        deactivate EscalateBtn
+        deactivate AISystem
+    else AI Response
+        AISystem --> ChatWindow: return {message}
+        deactivate AISystem
+
+        ChatWindow -> MessageDB: createMessage(ticketId, sender: "AI", content, type: "ai_response")
+        activate MessageDB
+        MessageDB --> ChatWindow: return messageId
+        deactivate MessageDB
+
+        ChatWindow -> AIMessage: displayAIMessage(aiResponse)
+        activate AIMessage
+        AIMessage --> Member: return renderAIMessage(aiResponse.message)
+        deactivate AIMessage
+    end
+
+    ChatWindow -> ChatWindow: checkMessageThreshold(messageCount)
+    alt Message count >= 5
+        ChatWindow -> EscalateBtn: showEscalateButton()
+        activate EscalateBtn
+        EscalateBtn --> Member: return renderEscalateButton()
+        deactivate EscalateBtn
+    end
+    deactivate ChatWindow
+    deactivate UserMessage
+end
+
+' Alternative Flow - Escalate to Human
+group Escalation to Human Support
+    Member -> EscalateBtn: onClick()
+    activate EscalateBtn
+    EscalateBtn -> TicketDB: updateTicket(ticketId, {status: 'Escalated', handlerType: 'Human'})
+    activate TicketDB
+    TicketDB --> EscalateBtn: return updateSuccess
+    deactivate TicketDB
+
+    EscalateBtn -> NotificationDB: createNotification(receptionistId, type: "ticket_escalated", title, content)
+    activate NotificationDB
+    NotificationDB --> EscalateBtn: return notificationId
+    deactivate NotificationDB
+    deactivate EscalateBtn
+
+    Receptionist -> TicketDashboard: navigate("/receptionist#support")
+    activate TicketDashboard
+    TicketDashboard -> TicketDB: findAll({status: 'Escalated', handlerType: 'Human'})
+    activate TicketDB
+    TicketDB --> TicketDashboard: return escalatedTicketsList[]
+    deactivate TicketDB
+    TicketDashboard --> Receptionist: return renderEscalatedTickets(escalatedTicketsList)
+    deactivate TicketDashboard
+
+    Receptionist -> TicketDetails: onClick(ticketId)
+    activate TicketDetails
+    TicketDetails -> TicketDB: findById(ticketId)
+    activate TicketDB
+    TicketDB --> TicketDetails: return {category, description, status}
+    deactivate TicketDB
+
+    TicketDetails -> ChatHistoryDB: findAll({ticketId})
+    activate ChatHistoryDB
+    ChatHistoryDB -> MessageDB: findByIds(chatHistory.messageIds)
+    activate MessageDB
+    MessageDB --> ChatHistoryDB: return messagesList[]
+    deactivate MessageDB
+    ChatHistoryDB --> TicketDetails: return fullChatHistory[]
+    deactivate ChatHistoryDB
+
+    TicketDetails --> Receptionist: return renderConversationHistory(fullChatHistory)
+    deactivate TicketDetails
+
+    Receptionist -> ChatWindow: onChange(response)
+    activate ChatWindow
+    ChatWindow -> MessageDB: createMessage(ticketId, sender: "Receptionist", content, type: "human_response")
+    activate MessageDB
+    MessageDB --> ChatWindow: return messageId
+    deactivate MessageDB
+
+    ChatWindow -> ChatHistoryDB: createChatHistory(ticketId, messageId)
+    activate ChatHistoryDB
+    ChatHistoryDB --> ChatWindow: return historyId
+    deactivate ChatHistoryDB
+
+    ChatWindow --> Member: return renderReceptionistMessage(response)
+    deactivate ChatWindow
+end
+
+' Close Ticket
+Member -> CloseBtn: onClick()
+activate CloseBtn
+CloseBtn -> TicketDB: updateTicket(ticketId, {status: 'Closed', resolvedAt: NOW()})
+activate TicketDB
+TicketDB --> CloseBtn: return updateSuccess
+deactivate TicketDB
+
+CloseBtn -> SatisfactionRating: showRatingForm()
+deactivate CloseBtn
+activate SatisfactionRating
+SatisfactionRating --> Member: return renderRatingForm("How satisfied are you? (1-5)")
+deactivate SatisfactionRating
+
+Member -> SatisfactionRating: onClick(rating)
+activate SatisfactionRating
+SatisfactionRating -> TicketDB: updateTicket(ticketId, {satisfactionRating: rating})
+activate TicketDB
+TicketDB --> SatisfactionRating: return updateSuccess
+deactivate TicketDB
+
+SatisfactionRating --> Member: return renderThankYou("Thank you for your feedback!")
+deactivate SatisfactionRating
+
+@enduml

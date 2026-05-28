@@ -1,0 +1,579 @@
+@startuml FitHub Domain Model V2
+
+' Styling
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+    ArrowColor Black
+}
+
+' Abstract User Class
+abstract class User {
+    - userId: String
+    - firstName: String
+    - lastName: String
+    - email: String
+    - phone: String
+    - password: String
+    - role: String
+    - accountStatus: String
+    - createdDate: Date
+    - lastLogin: DateTime
+    - emailVerified: Boolean
+    --
+    + login(): Boolean
+    + logout(): void
+    + updateProfile(data: Map): void
+    + changePassword(oldPassword: String, newPassword: String): Boolean
+    + verifyEmail(token: String): Boolean
+    + sendNotification(notification: Notification): void
+}
+
+' Specialized User Roles
+class GymOwner {
+    - numberOfGyms: Integer
+    - totalRevenue: Float
+    --
+    + viewAllStats(): Map
+    + approveCampaign(campaignId: String): void
+    + approveContract(contractId: String): void
+    + generateFinancialReport(startDate: Date, endDate: Date): Document
+}
+
+class Manager {
+    - department: String
+    - accessLevel: String
+    - numberOfEmployees: Integer
+    --
+    + createCampaign(data: Map): Campaign
+    + assignTask(employeeId: String, task: Task): void
+    + reviewApplication(applicationId: String): void
+    + approveApplication(applicationId: String): void
+    + rejectApplication(applicationId: String, reason: String): void
+    + createContract(trainerId: String, contractData: Map): EmploymentContract
+    + viewCampaignStats(campaignId: String): Map
+    + exportReport(campaignId: String, format: String): Document
+    + updateSystemSettings(settings: Map): void
+}
+
+class Receptionist {
+    - shift: String
+    - workingHours: Integer
+    - numberOfCheckIns: Integer
+    - applicationStatus: String
+    --
+    + checkInMember(memberId: String): CheckInRecord
+    + checkOutMember(checkInId: String): void
+    + verifyMembership(memberId: String): Boolean
+    + handleWalkIn(visitorData: Map): void
+    + processApplication(): void
+}
+
+class Trainer {
+    - specialty: String
+    - yearsOfExperience: Integer
+    - averageRating: Float
+    - certifications: List<String>
+    - hourlyRate: Float
+    - availability: Map
+    - cvDocument: String
+    - applicationStatus: String
+    - applicationDate: Date
+    - numberOfClients: Integer
+    --
+    + viewClients(): List<Member>
+    + createTrainingProgram(memberId: String, programData: Map): TrainingProgram
+    + addMeasurement(memberId: String, measurements: Map): ClientProgress
+    + setGoals(memberId: String, goals: Map): void
+    + updateClientProgress(progressId: String, data: Map): void
+    + viewReviews(): List<Review>
+    + calculateAverageRating(): Float
+    + assignExercise(programId: String, exercise: Exercise): void
+    + viewSchedule(): Schedule
+    + acceptContract(contractId: String): void
+}
+
+class Member {
+    - membershipType: String
+    - memberSince: Date
+    - expiryDate: Date
+    - fitnessGoals: List<String>
+    - age: Integer
+    - gender: String
+    - weight: Float
+    - height: Float
+    - activityLevel: String
+    - medicalHistory: String
+    - classPreferences: List<String>
+    --
+    + bookClass(classId: String): Booking
+    + cancelBooking(bookingId: String): void
+    + joinWaitlist(classId: String): Waitlist
+    + viewSchedule(): List<Booking>
+    + submitEvaluation(classId: String, rating: Integer, comments: String): Review
+    + applyPromoCode(code: String): Boolean
+    + renewMembership(): void
+    + viewTrainingProgram(): TrainingProgram
+    + viewProgress(): List<ClientProgress>
+    + createSupportTicket(category: String, description: String): SupportTicket
+    + updateProfile(data: Map): void
+}
+
+' Core Classes
+class Membership {
+    - membershipId: String
+    - type: String
+    - monthlyCost: Float
+    - durationMonths: Integer
+    - startDate: Date
+    - expiryDate: Date
+    - status: String
+    - autoRenewal: Boolean
+    - classLimit: Integer
+    - ptSessions: Integer
+    - spaAccess: Boolean
+    - discountPercentage: Float
+    --
+    + isActive(): Boolean
+    + renew(): void
+    + calculateExpiry(): Date
+    + applyDiscount(percentage: Float): void
+    + checkClassLimit(currentBookings: Integer): Boolean
+    + deactivate(): void
+    + updateType(newType: String): void
+}
+
+class Class {
+    - classId: String
+    - name: String
+    - category: String
+    - description: String
+    - dayOfWeek: String
+    - time: String
+    - durationMinutes: Integer
+    - capacity: Integer
+    - enrolled: Integer
+    - room: String
+    - difficultyLevel: String
+    - equipmentRequired: List<String>
+    - status: String
+    --
+    + enroll(memberId: String): Booking
+    + unenroll(bookingId: String): void
+    + isFull(): Boolean
+    + getAvailableSpots(): Integer
+    + updateCapacity(newCapacity: Integer): void
+    + activate(): void
+    + deactivate(): void
+    + updateSchedule(day: String, time: String): void
+}
+
+class Booking {
+    - bookingId: String
+    - bookingDate: Date
+    - bookingTime: String
+    - status: String
+    - createdAt: DateTime
+    - cancelledAt: DateTime
+    - cancellationReason: String
+    - bookingType: String
+    --
+    + confirm(): void
+    + cancel(reason: String): void
+    + checkIn(): void
+    + isValid(): Boolean
+    + reschedule(newDate: Date, newTime: String): void
+}
+
+class Waitlist {
+    - waitlistId: String
+    - position: Integer
+    - joinedAt: DateTime
+    - status: String
+    - notified: Boolean
+    - expiryDate: DateTime
+    --
+    + moveUp(): void
+    + notify(): void
+    + remove(): void
+    + hasExpired(): Boolean
+}
+
+class TrainingProgram {
+    - programId: String
+    - name: String
+    - goal: String
+    - durationWeeks: Integer
+    - difficultyLevel: String
+    - weeklyFrequency: Integer
+    - startDate: Date
+    - endDate: Date
+    - status: String
+    - programType: String
+    - instructions: String
+    --
+    + assignToMember(memberId: String): void
+    + addExercise(exercise: Exercise): void
+    + removeExercise(exerciseId: String): void
+    + updateProgress(progressData: Map): void
+    + activate(): void
+    + deactivate(): void
+    + clone(): TrainingProgram
+}
+
+class Exercise {
+    - exerciseId: String
+    - name: String
+    - category: String
+    - description: String
+    - muscleGroups: List<String>
+    - sets: Integer
+    - repetitions: Integer
+    - weightKg: Float
+    - distanceKm: Float
+    - durationMinutes: Integer
+    - restSeconds: Integer
+    - instructions: String
+    - difficultyLevel: String
+    - equipment: List<String>
+    --
+    + setParameters(sets: Integer, reps: Integer, weight: Float): void
+    + validate(): Boolean
+    + calculateCalories(): Float
+    + updateDifficulty(level: String): void
+}
+
+class ClientProgress {
+    - progressId: String
+    - weightKg: Float
+    - bodyFatPercentage: Float
+    - muscleMassKg: Float
+    - waistCircumferenceCm: Float
+    - chestCircumferenceCm: Float
+    - armCircumferenceCm: Float
+    - thighCircumferenceCm: Float
+    - measurementDate: Date
+    - trainerNotes: String
+    - photos: List<String>
+    --
+    + calculate(): Map
+    + compareWithPrevious(previousProgress: ClientProgress): Map
+    + updateMeasurements(measurements: Map): void
+    + addPhoto(photoUrl: String): void
+    + addTrainerNotes(notes: String): void
+}
+
+class Review {
+    - reviewId: String
+    - rating: Integer
+    - comments: String
+    - suggestions: String
+    - submissionDate: Date
+    - status: String
+    - rejectionReason: String
+    - reviewType: String
+    --
+    + submit(): void
+    + validate(): Boolean
+    + approve(): void
+    + reject(reason: String): void
+    + checkForInappropriateContent(): Boolean
+}
+
+class SupportTicket {
+    - ticketId: String
+    - category: String
+    - title: String
+    - description: String
+    - status: String
+    - priority: String
+    - handlerType: String
+    - createdAt: DateTime
+    - assignedAt: DateTime
+    - resolvedAt: DateTime
+    - satisfactionRating: Integer
+    - messageCount: Integer
+    --
+    + escalate(): void
+    + resolve(): void
+    + addMessage(message: Message): void
+    + assignTo(handlerId: String): void
+    + updateStatus(status: String): void
+    + close(): void
+}
+
+class Message {
+    - messageId: String
+    - sender: String
+    - content: String
+    - timestamp: DateTime
+    - read: Boolean
+    - type: String
+    --
+    + send(): void
+    + markAsRead(): void
+    + delete(): void
+}
+
+class Payment {
+    - transactionId: String
+    - amount: Float
+    - type: String
+    - paymentMethod: String
+    - date: Date
+    - status: String
+    - receipt: String
+    - taxPercentage: Float
+    - taxAmount: Float
+    - totalAmount: Float
+    --
+    + process(paymentDetails: Map): Boolean
+    + refund(amount: Float): Boolean
+    + generateReceipt(): Document
+    + calculateTax(): Float
+    + validate(): Boolean
+}
+
+class Campaign {
+    - campaignId: String
+    - name: String
+    - description: String
+    - budget: Float
+    - spent: Float
+    - startDate: Date
+    - endDate: Date
+    - status: String
+    - impressions: Integer
+    - clicks: Integer
+    - signups: Integer
+    - revenue: Float
+    - roi: Float
+    --
+    + activate(): void
+    + deactivate(): void
+    + calculateROI(): Float
+    + calculateCTR(): Float
+    + calculateConversionRate(): Float
+    + generateReport(format: String): Document
+    + updateMetrics(metrics: Map): void
+    + updateBudget(newBudget: Float): void
+}
+
+class PromoCode {
+    - promoId: String
+    - code: String
+    - discountPercentage: Integer
+    - startDate: Date
+    - expiryDate: Date
+    - maxUses: Integer
+    - currentUses: Integer
+    - minimumValue: Float
+    - status: String
+    --
+    + validate(): Boolean
+    + apply(amount: Float): Float
+    + incrementUsage(): void
+    + checkExpiry(): Boolean
+    + activate(): void
+    + deactivate(): void
+    + calculateDiscount(originalPrice: Float): Float
+}
+
+class MarketingChannel {
+    - channelId: String
+    - name: String
+    - type: String
+    - budgetPercentage: Float
+    - active: Boolean
+    --
+    + activate(): void
+    + deactivate(): void
+    + trackPerformance(): Map
+    + updateBudget(percentage: Float): void
+}
+
+class Task {
+    - taskId: String
+    - title: String
+    - description: String
+    - type: String
+    - deadline: Date
+    - frequency: String
+    - status: String
+    - priority: String
+    - createdAt: DateTime
+    - assignedAt: DateTime
+    - completedAt: DateTime
+    - notes: String
+    --
+    + assign(employeeId: String): void
+    + complete(): void
+    + reassign(newEmployeeId: String): void
+    + updateStatus(status: String): void
+    + updatePriority(priority: String): void
+    + addNotes(notes: String): void
+}
+
+class Notification {
+    - notificationId: String
+    - type: String
+    - title: String
+    - content: String
+    - priority: String
+    - read: Boolean
+    - channel: String
+    - timestamp: DateTime
+    --
+    + send(): void
+    + markAsRead(): void
+    + scheduleDelivery(deliveryTime: DateTime): void
+    + delete(): void
+}
+
+class EmploymentContract {
+    - contractId: String
+    - position: String
+    - monthlySalary: Float
+    - workingHours: Integer
+    - workingDays: Integer
+    - startDate: Date
+    - endDate: Date
+    - services: List<String>
+    - terms: String
+    - status: String
+    - sentDate: Date
+    - responseDate: Date
+    - response: String
+    --
+    + send(trainerEmail: String): void
+    + sign(): void
+    + terminate(reason: String): void
+    + renew(newEndDate: Date): void
+    + generatePDF(): Document
+}
+
+class TrainerApplication {
+    - applicationId: String
+    - applicationDate: Date
+    - status: String
+    - cvURL: String
+    - certificationsURL: List<String>
+    - yearsExperience: Integer
+    - specialties: List<String>
+    - managerNotes: String
+    - reviewDate: Date
+    --
+    + submit(): void
+    + review(notes: String): void
+    + approve(): void
+    + reject(reason: String): void
+    + updateStatus(status: String): void
+}
+
+class Document {
+    - documentId: String
+    - type: String
+    - fileName: String
+    - sizeBytes: Integer
+    - url: String
+    - uploadDate: Date
+    - status: String
+    --
+    + upload(file: File): void
+    + download(): File
+    + delete(): void
+    + validate(): Boolean
+}
+
+class CheckInRecord {
+    - checkInId: String
+    - checkInTime: DateTime
+    - checkOutTime: DateTime
+    - purpose: String
+    - membershipVerified: Boolean
+    --
+    + checkOut(): void
+    + getDuration(): Integer
+    + verify(): Boolean
+}
+
+class Schedule {
+    - scheduleId: String
+    - week: Integer
+    - month: Integer
+    - year: Integer
+    - operatingHours: Map
+    --
+    + updateOperatingHours(day: String, hours: Map): void
+    + addClass(class: Class): void
+    + removeClass(classId: String): void
+    + getClassesByDay(day: String): List<Class>
+}
+
+' Inheritance
+User <|-- GymOwner
+User <|-- Manager
+User <|-- Receptionist
+User <|-- Trainer
+User <|-- Member
+
+' Composition (black diamond - strong ownership)
+Member "1" *-- "1" Membership
+TrainingProgram "1" *-- "1*" Exercise
+SupportTicket "1" *-- "1*" Message
+Campaign "1" *-- "1" PromoCode
+TrainerApplication "1" *-- "1*" Document
+
+' Aggregation (white diamond - weak ownership)
+Member "1" o-- "0*" Booking
+Member "1" o-- "0*" ClientProgress
+Member "1" o-- "0*" Review
+Member "1" o-- "0*" SupportTicket
+Member "1" o-- "0*" Payment
+Member "1" o-- "0*" CheckInRecord
+Member "1" o-- "0*" Waitlist
+Class "1" o-- "0*" Booking
+Class "1" o-- "01" Waitlist
+Trainer "1" o-- "0*" TrainingProgram
+Trainer "1" o-- "0*" ClientProgress
+Trainer "1" o-- "0*" EmploymentContract
+Trainer "1" o-- "0*" Task
+Manager "1" o-- "0*" Task
+GymOwner "1" o-- "0*" Task
+Receptionist "1" o-- "0*" CheckInRecord
+Receptionist "1" o-- "0*" Task
+Campaign "1" o-- "1*" MarketingChannel
+
+' Association (simple relationships)
+Booking "1" -- "1" Member
+Booking "1" -- "1" Class
+Waitlist "1" -- "1" Member
+Waitlist "1" -- "1" Class
+Review "1" -- "1" Member
+Review "01" -- "01" Class
+Review "01" -- "01" Trainer
+Payment "1" -- "1" Member
+Payment "01" -- "01" Membership
+Payment "01" -- "01" PromoCode
+Class "0*" -- "1" Trainer
+Class "0*" -- "1" Schedule
+TrainingProgram "1" -- "1" Member
+Trainer "1" -- "0*" Member
+SupportTicket "0*" -- "01" Receptionist
+PromoCode "0*" -- "0*" Membership
+Task "1" -- "1" Trainer
+Task "1" -- "1" Receptionist
+Notification "1" -- "1" User
+Campaign "0*" -- "1" Manager
+Campaign "0*" -- "1" GymOwner
+EmploymentContract "0*" -- "1" Manager
+EmploymentContract "0*" -- "1" GymOwner
+EmploymentContract "1" -- "1" Trainer
+TrainerApplication "1" -- "1" Trainer
+TrainerApplication "0*" -- "01" Receptionist
+TrainerApplication "0*" -- "01" Manager
+ClientProgress "1" -- "1" Member
+ClientProgress "1" -- "1" Trainer
+
+@enduml

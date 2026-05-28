@@ -9,13 +9,22 @@ import { Badge } from './ui/badge';
 import { Textarea } from './ui/textarea';
 import { Calendar } from './ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { PasswordInput } from './ui/password-input';
 import { cn } from './ui/utils';
 import { format } from 'date-fns';
-import { 
-  User, 
-  Dumbbell, 
-  UserCog, 
-  ArrowLeft, 
+import {
+  validateEmail,
+  validatePhone,
+  validatePassword,
+  validatePasswordMatch,
+  validateName,
+  validateDateOfBirth
+} from '../utils/validation';
+import {
+  User,
+  Dumbbell,
+  UserCog,
+  ArrowLeft,
   Upload,
   CheckCircle,
   AlertCircle,
@@ -39,6 +48,8 @@ export function Register() {
     email: '',
     phone: '',
     dateOfBirth: '',
+    password: '',
+    confirmPassword: '',
     specialty: '',
     subscriptionPlan: '',
     fitnessGoals: [] as string[],
@@ -48,6 +59,7 @@ export function Register() {
     weeklyWorkouts: '',
     paymentMethod: ''
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [uploadedFiles, setUploadedFiles] = useState<{ resume?: File; certifications?: File }>({});
   const [isEmailVerified, setIsEmailVerified] = useState(false);
 
@@ -58,6 +70,53 @@ export function Register() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
+    // Clear error when user types
+    if (errors[field]) {
+      setErrors({ ...errors, [field]: '' });
+    }
+  };
+
+  const validatePersonalInfo = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    // Validate name
+    const nameValidation = validateName(formData.name);
+    if (!nameValidation.isValid) {
+      newErrors.name = nameValidation.error!;
+    }
+
+    // Validate email
+    const emailValidation = validateEmail(formData.email);
+    if (!emailValidation.isValid) {
+      newErrors.email = emailValidation.error!;
+    }
+
+    // Validate phone
+    const phoneValidation = validatePhone(formData.phone);
+    if (!phoneValidation.isValid) {
+      newErrors.phone = phoneValidation.error!;
+    }
+
+    // Validate date of birth
+    const dobValidation = validateDateOfBirth(formData.dateOfBirth);
+    if (!dobValidation.isValid) {
+      newErrors.dateOfBirth = dobValidation.error!;
+    }
+
+    // Validate password
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.isValid) {
+      newErrors.password = passwordValidation.error!;
+    }
+
+    // Validate password match
+    const passwordMatchValidation = validatePasswordMatch(formData.password, formData.confirmPassword);
+    if (!passwordMatchValidation.isValid) {
+      newErrors.confirmPassword = passwordMatchValidation.error!;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleFileUpload = (type: 'resume' | 'certifications', event: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,6 +127,11 @@ export function Register() {
   };
 
   const handlePersonalInfoSubmit = () => {
+    // Validate form before proceeding
+    if (!validatePersonalInfo()) {
+      return;
+    }
+
     if (selectedRole === 'member') {
       setCurrentStep('subscription');
     } else if (selectedRole === 'trainer') {
@@ -187,8 +251,10 @@ export function Register() {
             placeholder="Enter your full name"
             value={formData.name}
             onChange={(e) => handleInputChange('name', e.target.value)}
+            className={errors.name ? 'border-red-500' : ''}
             required
           />
+          {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
         </div>
 
         <div className="space-y-2">
@@ -199,8 +265,10 @@ export function Register() {
             placeholder="your.email@example.com"
             value={formData.email}
             onChange={(e) => handleInputChange('email', e.target.value)}
+            className={errors.email ? 'border-red-500' : ''}
             required
           />
+          {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
         </div>
 
         <div className="space-y-2">
@@ -208,11 +276,14 @@ export function Register() {
           <Input
             id="phone"
             type="tel"
-            placeholder="+1 (555) 123-4567"
+            placeholder="+30 698 123 4567"
             value={formData.phone}
             onChange={(e) => handleInputChange('phone', e.target.value)}
+            className={errors.phone ? 'border-red-500' : ''}
             required
           />
+          {errors.phone && <p className="text-sm text-red-600">{errors.phone}</p>}
+          <p className="text-xs text-gray-500">Greek phone number format: +30 XXX XXX XXXX</p>
         </div>
 
         <div className="space-y-2">
@@ -224,7 +295,8 @@ export function Register() {
                 variant="outline"
                 className={cn(
                   "w-full justify-start text-left font-normal",
-                  !selectedDate && "text-muted-foreground"
+                  !selectedDate && "text-muted-foreground",
+                  errors.dateOfBirth && "border-red-500"
                 )}
               >
                 <CalendarIcon className="mr-2 size-4" />
@@ -246,7 +318,29 @@ export function Register() {
               />
             </PopoverContent>
           </Popover>
+          {errors.dateOfBirth && <p className="text-sm text-red-600">{errors.dateOfBirth}</p>}
         </div>
+
+        <PasswordInput
+          id="password"
+          label="Password"
+          value={formData.password}
+          onChange={(value) => handleInputChange('password', value)}
+          placeholder="Create a strong password"
+          showStrength={true}
+          error={errors.password}
+          required
+        />
+
+        <PasswordInput
+          id="confirmPassword"
+          label="Confirm Password"
+          value={formData.confirmPassword}
+          onChange={(value) => handleInputChange('confirmPassword', value)}
+          placeholder="Re-enter your password"
+          error={errors.confirmPassword}
+          required
+        />
 
         {(selectedRole === 'trainer' || selectedRole === 'secretary') && (
           <div className="space-y-2">

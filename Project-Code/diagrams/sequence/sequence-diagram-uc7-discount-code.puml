@@ -1,0 +1,148 @@
+@startuml UC-7: Apply Discount Code
+
+actor "Member" as Member
+actor "Payment\nGateway" as PaymentGateway
+actor "Email\nSystem" as EmailSystem
+
+participant "Membership\nTab" as MembershipTab
+participant "Active Codes\nList" as ActiveCodesList
+participant "Promo Code\nCard" as PromoCard
+participant "Code Input\nField" as CodeInput
+participant "Apply\nButton" as ApplyBtn
+participant "Discount\nBreakdown" as DiscountView
+participant "Payment\nScreen" as PaymentScreen
+participant "Success\nModal" as SuccessModal
+participant "Error\nMessage" as ErrorMsg
+
+database "Promo Code\nTable" as PromoCodeDB
+database "Campaign\nTable" as CampaignDB
+database "Membership\nTable" as MembershipDB
+database "Transaction\nTable" as TransactionDB
+
+' Main Flow
+Member -> MembershipTab: navigate("/member#membership")
+activate MembershipTab
+MembershipTab -> PromoCodeDB: findAll({status: 'Active', expiryDate: {gte: NOW()}})
+activate PromoCodeDB
+PromoCodeDB --> MembershipTab: return activePromoCodesList[]
+deactivate PromoCodeDB
+
+MembershipTab -> CampaignDB: findByIds(promoCodesList.campaignId, select: ['name'])
+activate CampaignDB
+CampaignDB --> MembershipTab: return campaignDetails[]
+deactivate CampaignDB
+
+MembershipTab -> ActiveCodesList: renderActivePromos(promoCodesList)
+activate ActiveCodesList
+ActiveCodesList -> PromoCard: renderPromoCards(promoCodesList, campaignDetails)
+activate PromoCard
+PromoCard --> Member: return renderPromoCodesWithDiscounts()
+deactivate PromoCard
+deactivate ActiveCodesList
+deactivate MembershipTab
+
+alt Manual Code Entry
+    Member -> CodeInput: onChange(typedCode)
+    activate CodeInput
+    CodeInput -> CodeInput: setState({codeValue: typedCode})
+    CodeInput --> Member: return renderCodeInput(typedCode)
+    deactivate CodeInput
+else Click Promo Card
+    Member -> PromoCard: onClick(promoCode)
+    activate PromoCard
+    PromoCard -> CodeInput: autoFillCode(promoCode)
+    activate CodeInput
+    CodeInput -> CodeInput: setState({codeValue: promoCode})
+    CodeInput --> Member: return renderCodeInput(promoCode)
+    deactivate CodeInput
+    deactivate PromoCard
+end
+
+Member -> ApplyBtn: onClick()
+activate ApplyBtn
+ApplyBtn -> PromoCodeDB: findOne({code: enteredCode})
+activate PromoCodeDB
+PromoCodeDB --> ApplyBtn: return promoCodeData || null
+deactivate PromoCodeDB
+
+alt Code not found
+    ApplyBtn -> ErrorMsg: showError("Invalid code")
+    activate ErrorMsg
+    ErrorMsg --> Member: return renderError("The promo code does not exist")
+    deactivate ErrorMsg
+    deactivate ApplyBtn
+else Code found
+    ApplyBtn -> CampaignDB: findById(campaignId, select: ['startDate', 'endDate'])
+    activate CampaignDB
+    CampaignDB --> ApplyBtn: return {startDate, endDate}
+    deactivate CampaignDB
+
+    ApplyBtn -> ApplyBtn: validateDates(startDate, endDate, NOW())
+    alt Code expired
+        ApplyBtn -> ErrorMsg: showError("Code expired")
+        activate ErrorMsg
+        ErrorMsg --> Member: return renderError("This promo code has expired")
+        deactivate ErrorMsg
+        deactivate ApplyBtn
+    else Code valid
+        ApplyBtn -> MembershipDB: findOne({type: selectedPlan}, select: ['monthlyCost'])
+        activate MembershipDB
+        MembershipDB --> ApplyBtn: return originalPrice
+        deactivate MembershipDB
+
+        ApplyBtn -> ApplyBtn: calculateDiscount(originalPrice, discountPercentage)
+        ApplyBtn -> ApplyBtn: calculateDiscountAmount(originalPrice, discountPercentage)
+        ApplyBtn -> ApplyBtn: calculateFinalPrice(originalPrice, discountAmount)
+
+        ApplyBtn -> DiscountView: displayBreakdown(originalPrice, discountAmount, finalPrice, discountPercentage)
+        deactivate ApplyBtn
+        activate DiscountView
+        DiscountView --> Member: return renderBreakdown({original: $X, discount: -$Y (Z%), final: $W})
+        deactivate DiscountView
+
+        Member -> PaymentScreen: onClick("Proceed to Payment")
+        activate PaymentScreen
+        PaymentScreen -> PaymentGateway: processPayment(finalPrice, paymentMethod, cardDetails)
+        activate PaymentGateway
+        PaymentGateway --> Member: return renderPaymentForm()
+        Member -> PaymentGateway: onSubmit(cardDetails)
+        PaymentGateway --> PaymentScreen: return {success: true, transactionId}
+        deactivate PaymentGateway
+
+        alt Payment successful
+            PaymentScreen -> TransactionDB: createTransaction(memberId, amount, discountAmount, promoCodeId, status: "Completed")
+            activate TransactionDB
+            TransactionDB --> PaymentScreen: return transactionId
+            deactivate TransactionDB
+
+            PaymentScreen -> PromoCodeDB: updatePromoCode(promoCode, {currentUses: increment(1)})
+            activate PromoCodeDB
+            PromoCodeDB --> PaymentScreen: return updateSuccess
+            deactivate PromoCodeDB
+
+            PaymentScreen -> MembershipDB: createMembership(memberId, type, startDate, expiryDate, status: "Active")
+            activate MembershipDB
+            MembershipDB --> PaymentScreen: return membershipId
+            deactivate MembershipDB
+
+            PaymentScreen -> EmailSystem: sendConfirmationEmail(memberEmail, receiptDetails, discountSaved)
+            activate EmailSystem
+            EmailSystem --> Member: deliverEmail(receiptWithDiscount)
+            deactivate EmailSystem
+
+            PaymentScreen -> SuccessModal: showSuccess(savedAmount)
+            deactivate PaymentScreen
+            activate SuccessModal
+            SuccessModal --> Member: return renderSuccess(`Subscription activated! You saved $${discountAmount}`)
+            deactivate SuccessModal
+        else Payment failed
+            PaymentScreen -> ErrorMsg: showError("Payment failed")
+            activate ErrorMsg
+            ErrorMsg --> Member: return renderError("Payment could not be processed")
+            deactivate ErrorMsg
+            deactivate PaymentScreen
+        end
+    end
+end
+
+@enduml

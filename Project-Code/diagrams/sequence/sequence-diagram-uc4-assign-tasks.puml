@@ -1,0 +1,180 @@
+@startuml UC-4: Assign Tasks
+
+actor "Manager" as Manager
+actor "Employee" as Employee
+
+participant "Manager\nDashboard" as Dashboard
+participant "Assign\nTask\nButton" as AssignBtn
+participant "Task\nForm" as TaskForm
+participant "Employee\nSelector" as EmployeeSelector
+participant "Success\nModal" as SuccessModal
+participant "Task\nNotification\nBell" as NotificationBell
+participant "Task\nDetails\nModal" as TaskDetailsModal
+
+database "Task\nTable" as TaskDB
+database "Trainer\nTable" as TrainerDB
+database "Receptionist\nTable" as ReceptionistDB
+database "Notification\nTable" as NotificationDB
+
+' Main Flow - Assign Task
+Manager -> Dashboard: navigate("/manager")
+activate Dashboard
+Dashboard --> Manager: return renderDashboard()
+deactivate Dashboard
+
+Manager -> AssignBtn: onClick()
+activate AssignBtn
+AssignBtn -> TaskForm: openTaskForm()
+activate TaskForm
+TaskForm -> TaskForm: setState({showTaskForm: true})
+TaskForm --> Manager: return renderTaskForm()
+deactivate AssignBtn
+deactivate TaskForm
+
+Manager -> TaskForm: onChange(field, value)
+activate TaskForm
+loop For each field
+    TaskForm -> TaskForm: handleInputChange(field, value)
+    TaskForm -> TaskForm: setFormData({...formData, [field]: value})
+end
+deactivate TaskForm
+
+Manager -> EmployeeSelector: onClick()
+activate EmployeeSelector
+EmployeeSelector -> TrainerDB: findAll({status: 'Active'}, ['id', 'name', 'specialty'])
+activate TrainerDB
+TrainerDB --> EmployeeSelector: return trainersList[]
+deactivate TrainerDB
+
+EmployeeSelector -> ReceptionistDB: findAll({status: 'Active'}, ['id', 'name'])
+activate ReceptionistDB
+ReceptionistDB --> EmployeeSelector: return receptionistsList[]
+deactivate ReceptionistDB
+
+EmployeeSelector --> Manager: return renderEmployeeDropdown([...trainers, ...receptionists])
+EmployeeSelector -> TaskForm: onEmployeeSelect(employeeId)
+activate TaskForm
+TaskForm -> TaskForm: setFormData({...formData, assignedTo: employeeId})
+deactivate TaskForm
+deactivate EmployeeSelector
+
+Manager -> TaskForm: onChange(deadline, frequency, priority)
+activate TaskForm
+TaskForm -> TaskForm: handleDateChange(deadline)
+TaskForm -> TaskForm: handlePriorityChange(priority)
+deactivate TaskForm
+
+Manager -> TaskForm: onClick("Assign Task")
+activate TaskForm
+TaskForm -> TaskForm: validateForm()
+alt Form valid
+    TaskForm -> TaskDB: createTask(title, description, type, assignedTo, assignedBy, deadline, frequency, priority, status: "Pending")
+    activate TaskDB
+    TaskDB --> TaskForm: return taskId
+    deactivate TaskDB
+
+    TaskForm -> NotificationDB: createNotification(userId, type: "task_assigned", title, content, priority, timestamp)
+    activate NotificationDB
+    NotificationDB --> TaskForm: return notificationId
+    deactivate NotificationDB
+
+    TaskForm -> TaskForm: setState({showTaskForm: false})
+    TaskForm -> SuccessModal: showSuccess()
+    deactivate TaskForm
+    activate SuccessModal
+    SuccessModal --> Manager: return renderSuccess("Task assigned successfully!")
+    deactivate SuccessModal
+else Form invalid
+    TaskForm --> Manager: return errorMessage("Please fill all required fields")
+    deactivate TaskForm
+end
+
+' Alternative Flow - Employee Receives Task Notification
+group Task Notification Received
+    participant "Notification\nList" as NotificationList
+    participant "Push\nNotification" as PushNotif
+
+    NotificationDB -> PushNotif: sendPushNotification(employeeId, taskDetails)
+    activate PushNotif
+    PushNotif --> Employee: deliverNotification("New task assigned by Manager")
+    deactivate PushNotif
+
+    NotificationDB -> NotificationBell: updateBadgeCount(employeeId)
+    activate NotificationBell
+    NotificationBell -> NotificationDB: count({userId: employeeId, read: false})
+    activate NotificationDB
+    NotificationDB --> NotificationBell: return unreadCount
+    deactivate NotificationDB
+    NotificationBell --> Employee: return renderBadge(unreadCount)
+    deactivate NotificationBell
+
+    Employee -> NotificationBell: onClick()
+    activate NotificationBell
+    NotificationBell -> NotificationList: openNotificationList()
+    activate NotificationList
+    NotificationList -> NotificationDB: findAll({userId: employeeId}, orderBy: 'timestamp DESC')
+    activate NotificationDB
+    NotificationDB --> NotificationList: return notificationsList[]
+    deactivate NotificationDB
+    NotificationList --> Employee: return renderNotifications(notificationsList)
+    deactivate NotificationList
+    deactivate NotificationBell
+
+    Employee -> NotificationList: onClick(notificationId)
+    activate NotificationList
+    NotificationList -> NotificationDB: updateNotification(notificationId, {read: true})
+    activate NotificationDB
+    NotificationDB --> NotificationList: return updateSuccess
+    deactivate NotificationDB
+
+    NotificationList -> TaskDetailsModal: openTaskDetails(taskId)
+    deactivate NotificationList
+    activate TaskDetailsModal
+    TaskDetailsModal -> TaskDB: findById(taskId)
+    activate TaskDB
+    TaskDB --> TaskDetailsModal: return {title, description, deadline, priority, status}
+    deactivate TaskDB
+    TaskDetailsModal --> Employee: return renderTaskDetails(taskDetails)
+    deactivate TaskDetailsModal
+
+    participant "Start\nTask\nButton" as StartBtn
+    Employee -> StartBtn: onClick()
+    activate StartBtn
+    StartBtn -> TaskDB: updateTask(taskId, {status: 'In Progress', startedAt: NOW()})
+    activate TaskDB
+    TaskDB --> StartBtn: return updateSuccess
+    deactivate TaskDB
+
+    StartBtn -> NotificationDB: createNotification(managerId, type: "task_started", content)
+    activate NotificationDB
+    NotificationDB --> StartBtn: return notificationId
+    deactivate NotificationDB
+
+    StartBtn --> Employee: return statusMessage("Task status updated to In Progress")
+    deactivate StartBtn
+end
+
+' Alternative Flow - Complete Task
+group Complete Task
+    participant "Complete\nTask\nButton" as CompleteBtn
+
+    Employee -> CompleteBtn: onClick()
+    activate CompleteBtn
+    CompleteBtn -> TaskDB: updateTask(taskId, {status: 'Completed', completedAt: NOW()})
+    activate TaskDB
+    TaskDB --> CompleteBtn: return updateSuccess
+    deactivate TaskDB
+
+    CompleteBtn -> NotificationDB: createNotification(managerId, type: "task_completed", title, content)
+    activate NotificationDB
+    NotificationDB --> CompleteBtn: return notificationId
+    deactivate NotificationDB
+
+    CompleteBtn -> SuccessModal: showSuccess()
+    activate SuccessModal
+    SuccessModal --> Employee: return renderSuccess("Task marked as completed!")
+    deactivate SuccessModal
+    deactivate CompleteBtn
+end
+
+@enduml

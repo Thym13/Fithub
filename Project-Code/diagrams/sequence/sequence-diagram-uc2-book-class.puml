@@ -1,0 +1,162 @@
+@startuml UC-2: Book Class
+
+actor "Member" as Member
+
+participant "Member\nDashboard" as Dashboard
+participant "Class\nCalendar\nView" as CalendarView
+participant "Class\nCard" as ClassCard
+participant "Booking\nModal" as BookingModal
+participant "Success\nModal" as SuccessModal
+
+database "Class\nTable" as ClassDB
+database "Booking\nTable" as BookingDB
+database "Membership\nTable" as MembershipDB
+database "Waitlist\nTable" as WaitlistDB
+database "Notification\nTable" as NotificationDB
+
+' Main Flow - Successful Booking
+Member -> Dashboard: navigate("/member")
+activate Dashboard
+Dashboard -> CalendarView: renderClassCalendar()
+activate CalendarView
+CalendarView -> ClassDB: findAll({status: 'Active'})
+activate ClassDB
+ClassDB --> CalendarView: return classList[]
+deactivate ClassDB
+CalendarView --> Member: return renderClasses(classList)
+deactivate CalendarView
+deactivate Dashboard
+
+Member -> ClassCard: onClick(classId)
+activate ClassCard
+ClassCard -> ClassDB: findById(classId)
+activate ClassDB
+ClassDB --> ClassCard: return {name, time, capacity, enrolled, instructor}
+deactivate ClassDB
+ClassCard --> Member: return renderClassDetails(classDetails)
+deactivate ClassCard
+
+Member -> ClassCard: onClick("Book Now")
+activate ClassCard
+ClassCard -> BookingModal: openBookingModal(classId, memberId)
+activate BookingModal
+BookingModal -> BookingModal: validateAvailability(classId, memberId)
+
+BookingModal -> MembershipDB: findByMemberId(memberId)
+activate MembershipDB
+MembershipDB --> BookingModal: return {status, expiryDate, classLimit}
+deactivate MembershipDB
+
+BookingModal -> BookingModal: checkMembershipStatus(membership)
+alt Membership expired
+    BookingModal --> Member: return errorMessage("Membership expired. Please renew.")
+    deactivate BookingModal
+    deactivate ClassCard
+else Membership active
+    BookingModal -> ClassDB: findById(classId, ['enrolled', 'capacity'])
+    activate ClassDB
+    ClassDB --> BookingModal: return {enrolled, capacity}
+    deactivate ClassDB
+
+    BookingModal -> BookingModal: checkCapacity(enrolled, capacity)
+    alt Class full (enrolled >= capacity)
+        participant "Waitlist\nModal" as WaitlistModal
+        BookingModal -> WaitlistModal: showWaitlistOption(classId)
+        deactivate BookingModal
+        activate WaitlistModal
+        WaitlistModal --> Member: return renderWaitlistPrompt()
+
+        Member -> WaitlistModal: onClick("Join Waitlist")
+        WaitlistModal -> WaitlistDB: createWaitlist(classId, memberId, joinedAt)
+        activate WaitlistDB
+        WaitlistDB -> WaitlistDB: calculatePosition()
+        WaitlistDB --> WaitlistModal: return {waitlistId, position}
+        deactivate WaitlistDB
+
+        WaitlistModal -> NotificationDB: createNotification(memberId, type: "waitlist", content)
+        activate NotificationDB
+        NotificationDB --> WaitlistModal: return notificationId
+        deactivate NotificationDB
+
+        WaitlistModal -> SuccessModal: showSuccess(position)
+        deactivate WaitlistModal
+        activate SuccessModal
+        SuccessModal --> Member: return renderSuccess(`Added to waitlist (Position #${position})`)
+        deactivate SuccessModal
+        deactivate ClassCard
+    else Class available
+        BookingModal -> BookingDB: createBooking(classId, memberId, bookingDate, status: "Confirmed")
+        activate BookingDB
+        BookingDB --> BookingModal: return bookingId
+        deactivate BookingDB
+
+        BookingModal -> ClassDB: updateEnrollment(classId, increment: 1)
+        activate ClassDB
+        ClassDB --> BookingModal: return updateSuccess
+        deactivate ClassDB
+
+        BookingModal -> NotificationDB: createNotification(memberId, type: "booking_confirmed", title, content)
+        activate NotificationDB
+        NotificationDB --> BookingModal: return notificationId
+        deactivate NotificationDB
+
+        BookingModal -> SuccessModal: showSuccess(bookingDetails)
+        deactivate BookingModal
+        activate SuccessModal
+        SuccessModal --> Member: return renderSuccess("Booking confirmed!")
+        deactivate SuccessModal
+        deactivate ClassCard
+    end
+end
+
+' Alternative Flow - Cancel Booking
+group Cancel Booking Flow
+    participant "My\nBookings\nView" as BookingsView
+    participant "Cancel\nButton" as CancelBtn
+
+    Member -> BookingsView: navigate("/member/bookings")
+    activate BookingsView
+    BookingsView -> BookingDB: findAll({memberId, status: 'Confirmed'})
+    activate BookingDB
+    BookingDB --> BookingsView: return bookingsList[]
+    deactivate BookingDB
+    BookingsView --> Member: return renderBookings(bookingsList)
+    deactivate BookingsView
+
+    Member -> CancelBtn: onClick(bookingId)
+    activate CancelBtn
+    CancelBtn -> BookingDB: updateBooking(bookingId, {status: 'Cancelled', cancelledAt: NOW()})
+    activate BookingDB
+    BookingDB --> CancelBtn: return updateSuccess
+    deactivate BookingDB
+
+    CancelBtn -> ClassDB: updateEnrollment(classId, decrement: 1)
+    activate ClassDB
+    ClassDB --> CancelBtn: return updateSuccess
+    deactivate ClassDB
+
+    CancelBtn -> WaitlistDB: findFirst({classId, status: 'Active'}, orderBy: 'position')
+    activate WaitlistDB
+    WaitlistDB --> CancelBtn: return {memberId, waitlistId}
+    deactivate WaitlistDB
+
+    alt Waitlist has members
+        CancelBtn -> NotificationDB: createNotification(memberId, type: "spot_available", title, content)
+        activate NotificationDB
+        NotificationDB --> CancelBtn: return notificationId
+        deactivate NotificationDB
+
+        CancelBtn -> WaitlistDB: updateWaitlist(waitlistId, {status: 'Notified', notified: true})
+        activate WaitlistDB
+        WaitlistDB --> CancelBtn: return updateSuccess
+        deactivate WaitlistDB
+    end
+
+    CancelBtn -> SuccessModal: showSuccess()
+    activate SuccessModal
+    SuccessModal --> Member: return renderSuccess("Booking cancelled successfully")
+    deactivate SuccessModal
+    deactivate CancelBtn
+end
+
+@enduml

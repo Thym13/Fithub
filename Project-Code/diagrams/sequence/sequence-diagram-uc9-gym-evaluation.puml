@@ -1,0 +1,144 @@
+@startuml UC-9: Gym Evaluation
+
+actor "Member" as Member
+actor "Trainer" as Trainer
+actor "Manager" as Manager
+
+participant "Evaluation\nPrompt" as EvalPrompt
+participant "Activity\nSelector" as ActivitySelector
+participant "Evaluation\nForm" as EvalForm
+participant "Star Rating\nSystem" as StarRating
+participant "Comments\nField" as CommentsField
+participant "Review\nPreview" as ReviewPreview
+participant "Success\nMessage" as SuccessMsg
+participant "Rejection\nMessage" as RejectionMsg
+participant "Review\nDashboard" as ReviewDashboard
+
+database "Evaluation\nTable" as EvaluationDB
+database "Activity\nTable" as ActivityDB
+database "Class\nTable" as ClassDB
+database "Trainer\nTable" as TrainerDB
+database "Notification\nTable" as NotificationDB
+
+' Main Flow - Submit Review
+Member -> EvalPrompt: onClassCompletion()
+activate EvalPrompt
+EvalPrompt -> ActivitySelector: showEvaluationDialog()
+activate ActivitySelector
+ActivitySelector -> ActivityDB: findAll({memberId, completed: true})
+activate ActivityDB
+ActivityDB --> ActivitySelector: return activitiesList[]
+deactivate ActivityDB
+ActivitySelector --> Member: return renderActivities(activitiesList)
+deactivate ActivitySelector
+deactivate EvalPrompt
+
+Member -> ActivitySelector: onClick(activityId)
+activate ActivitySelector
+ActivitySelector -> ClassDB: findById(activityId)
+activate ClassDB
+ClassDB --> ActivitySelector: return {name, instructor, category}
+deactivate ClassDB
+
+ActivitySelector -> EvalForm: openEvaluationForm(activityDetails)
+deactivate ActivitySelector
+activate EvalForm
+EvalForm --> Member: return renderEvaluationForm()
+deactivate EvalForm
+
+Member -> StarRating: onClick(ratingValue)
+activate StarRating
+StarRating -> EvalForm: handleRatingChange(ratingValue)
+activate EvalForm
+EvalForm -> EvalForm: setState({rating: ratingValue})
+EvalForm --> Member: return renderStars(ratingValue)
+deactivate EvalForm
+deactivate StarRating
+
+Member -> CommentsField: onChange(text)
+activate CommentsField
+CommentsField -> EvalForm: handleCommentsChange(text)
+activate EvalForm
+EvalForm -> EvalForm: setState({comments: text, suggestions: text})
+deactivate EvalForm
+deactivate CommentsField
+
+Member -> ReviewPreview: onClick("Submit Review")
+activate ReviewPreview
+ReviewPreview -> EvalForm: validateReview()
+activate EvalForm
+EvalForm -> EvalForm: checkRequiredFields(rating)
+EvalForm -> EvalForm: validateContent(comments)
+EvalForm --> ReviewPreview: return validationResult
+deactivate EvalForm
+
+ReviewPreview -> ReviewPreview: checkForInappropriateContent(comments)
+ReviewPreview -> ReviewPreview: scanForProfanity(comments)
+ReviewPreview -> ReviewPreview: scanForPersonalInfo(comments)
+ReviewPreview -> ReviewPreview: checkForSpam(comments)
+
+alt Content rejected
+    ReviewPreview -> RejectionMsg: showRejection(reason)
+    deactivate ReviewPreview
+    activate RejectionMsg
+    RejectionMsg --> Member: return renderRejection("Review contains inappropriate content")
+    deactivate RejectionMsg
+else Content approved
+    ReviewPreview -> EvaluationDB: createEvaluation(memberId, activityId, rating, comments, suggestions, submissionDate, status: "Approved")
+    activate EvaluationDB
+    EvaluationDB --> ReviewPreview: return evaluationId
+    deactivate EvaluationDB
+
+    ReviewPreview -> ActivityDB: updateActivity(activityId, {reviewId: evaluationId})
+    activate ActivityDB
+    ActivityDB --> ReviewPreview: return updateSuccess
+    deactivate ActivityDB
+
+    ReviewPreview -> NotificationDB: createNotification(trainerId, type: "new_review", title, content)
+    activate NotificationDB
+    NotificationDB --> ReviewPreview: return notificationId
+    deactivate NotificationDB
+
+    ReviewPreview -> NotificationDB: createNotification(managerId, type: "new_review", title, content)
+    activate NotificationDB
+    NotificationDB --> ReviewPreview: return notificationId
+    deactivate NotificationDB
+
+    ReviewPreview -> SuccessMsg: showSuccess()
+    deactivate ReviewPreview
+    activate SuccessMsg
+    SuccessMsg --> Member: return renderSuccess("Thank you for your review!")
+    deactivate SuccessMsg
+end
+
+' Trainer/Manager View Reviews
+group View Reviews
+    Manager -> ReviewDashboard: navigate("/manager#reviews")
+    activate ReviewDashboard
+    ReviewDashboard -> EvaluationDB: findAll(orderBy: 'submissionDate DESC')
+    activate EvaluationDB
+    EvaluationDB --> ReviewDashboard: return allReviewsList[]
+    deactivate EvaluationDB
+    ReviewDashboard --> Manager: return renderReviews(allReviewsList)
+    deactivate ReviewDashboard
+
+    Trainer -> ReviewDashboard: navigate("/trainer#reviews")
+    activate ReviewDashboard
+    ReviewDashboard -> EvaluationDB: findAll({activity: {trainerId}})
+    activate EvaluationDB
+    EvaluationDB --> ReviewDashboard: return trainerReviewsList[]
+    deactivate EvaluationDB
+
+    ReviewDashboard -> ReviewDashboard: calculateAverageRating(trainerReviewsList)
+    ReviewDashboard -> ReviewDashboard: aggregateRatings(trainerReviewsList.ratings)
+
+    ReviewDashboard -> TrainerDB: updateTrainer(trainerId, {averageRating})
+    activate TrainerDB
+    TrainerDB --> ReviewDashboard: return updateSuccess
+    deactivate TrainerDB
+
+    ReviewDashboard --> Trainer: return renderReviewsAndRating(trainerReviewsList, averageRating)
+    deactivate ReviewDashboard
+end
+
+@enduml
