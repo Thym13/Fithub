@@ -151,3 +151,55 @@ export function getPasswordStrength(password: string): {
   if (score <= 4) return { level: 'medium', score };
   return { level: 'strong', score };
 }
+
+/**
+ * Validates credit card number format
+ */
+export function validateCardNumber(cardNumber: string): ValidationResult {
+  const cleaned = cardNumber.replace(/\s+/g, '');
+
+  if (!cleaned) {
+    return { isValid: false, error: 'Card number is required' };
+  }
+
+  if (!/^\d+$/.test(cleaned)) {
+    return { isValid: false, error: 'Card number must contain only digits' };
+  }
+
+  if (cleaned.length < 13 || cleaned.length > 19) {
+    return { isValid: false, error: 'Card number must be between 13 and 19 digits' };
+  }
+
+  return { isValid: true };
+}
+
+/**
+ * Validates CVV format
+ */
+export function validateCVVFormat(cvv: string): ValidationResult {
+  if (!cvv) {
+    return { isValid: false, error: 'CVV is required' };
+  }
+
+  if (!/^\d{3,4}$/.test(cvv.trim())) {
+    return { isValid: false, error: 'CVV must be 3 or 4 digits' };
+  }
+
+  return { isValid: true };
+}
+
+/**
+ * Validates expiry date format (MM/YY)
+ */
+export function validateExpiryFormat(expiry: string): ValidationResult {
+  if (!expiry) {
+    return { isValid: false, error: 'Expiry date is required' };
+  }
+
+  const expiryPattern = /^(0[1-9]|1[0-2])\/\d{2}$/;
+  if (!expiryPattern.test(expiry)) {
+    return { isValid: false, error: 'Expiry must be in MM/YY format' };
+  }
+
+  return { isValid: true };
+}

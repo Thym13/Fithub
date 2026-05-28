@@ -18,10 +18,14 @@ import {
   validatePassword,
   validatePasswordMatch,
   validateName,
-  validateDateOfBirth
+  validateDateOfBirth,
+  validateCardNumber,
+  validateCVVFormat,
+  validateExpiryFormat
 } from '../utils/validation';
 import { db } from '../services/database';
 import { emailService } from '../services/email';
+import { paymentService } from '../services/payment';
 import {
   User,
   Dumbbell,
@@ -61,7 +65,11 @@ export function Register() {
     targetWeight: '',
     fitnessLevel: '',
     weeklyWorkouts: '',
-    paymentMethod: ''
+    paymentMethod: '',
+    cardNumber: '',
+    cardHolder: '',
+    expiryDate: '',
+    cvv: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [uploadedFiles, setUploadedFiles] = useState<{ resume?: File; certifications?: File }>({});
@@ -241,8 +249,99 @@ export function Register() {
     setCurrentStep('payment');
   };
 
-  const handlePaymentSubmit = () => {
-    setCurrentStep('pending-approval');
+  const handlePaymentSubmit = async () => {
+    // Validate payment fields
+    const paymentErrors: Record<string, string> = {};
+
+    const cardValidation = validateCardNumber(formData.cardNumber);
+    if (!cardValidation.isValid) {
+      paymentErrors.cardNumber = cardValidation.error!;
+    }
+
+    if (!formData.cardHolder.trim()) {
+      paymentErrors.cardHolder = 'Card holder name is required';
+    }
+
+    const expiryValidation = validateExpiryFormat(formData.expiryDate);
+    if (!expiryValidation.isValid) {
+      paymentErrors.expiryDate = expiryValidation.error!;
+    }
+
+    const cvvValidation = validateCVVFormat(formData.cvv);
+    if (!cvvValidation.isValid) {
+      paymentErrors.cvv = cvvValidation.error!;
+    }
+
+    if (Object.keys(paymentErrors).length > 0) {
+      setErrors(paymentErrors);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Get payment amount from subscription plan
+      const planCosts = { Basic: 49, Premium: 99, Elite: 149 };
+      const amount = planCosts[formData.subscriptionPlan as keyof typeof planCosts] || 49;
+
+      // Parse expiry date
+      const [expiryMonth, expiryYear] = formData.expiryDate.split('/');
+
+      // Process payment
+      const paymentResult = await paymentService.processPayment(
+        userId,
+        amount,
+        {
+          cardNumber: formData.cardNumber,
+          cardHolder: formData.cardHolder,
+          expiryMonth,
+          expiryYear,
+          cvv: formData.cvv
+        },
+        `${formData.subscriptionPlan} Membership - First Month`
+      );
+
+      if (!paymentResult.success) {
+        setErrors({ payment: paymentResult.message });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Update membership status to Active
+      const membership = db.getMembershipByUserId(userId);
+      if (membership) {
+        const updatedMemberships = db.getAllMemberships().map(m =>
+          m.id === membership.id
+            ? {
+                ...m,
+                status: 'Active' as const,
+                startDate: new Date().toISOString(),
+                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // +30 days
+              }
+            : m
+        );
+        db.saveMemberships(updatedMemberships);
+      }
+
+      // Create fitness goals record
+      if (formData.fitnessGoals.length > 0) {
+        db.createFitnessGoal({
+          userId,
+          goal: formData.fitnessGoals.join(', '),
+          level: formData.fitnessLevel as 'beginner' | 'intermediate' | 'advanced',
+          currentWeight: parseFloat(formData.currentWeight),
+          targetWeight: formData.targetWeight ? parseFloat(formData.targetWeight) : undefined,
+          weeklyWorkouts: formData.weeklyWorkouts
+        });
+      }
+
+      // Proceed to pending approval
+      setCurrentStep('pending-approval');
+    } catch (error: any) {
+      setErrors({ payment: error.message });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDocumentsSubmit = () => {
@@ -794,69 +893,178 @@ export function Register() {
     );
   };
 
-  const renderPayment = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <button 
-          onClick={() => setCurrentStep('preferences')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-        >
-          <ArrowLeft className="size-4" />
-          Back
-        </button>
-        <Badge>Step 5 of 6</Badge>
-      </div>
+  const renderPayment = () => {
+    const planCosts = { Basic: 49, Premium: 99, Elite: 149 };
+    const amount = planCosts[formData.subscriptionPlan as keyof typeof planCosts] || 49;
+    const cardType = formData.cardNumber ? paymentService.getCardType(formData.cardNumber) : '';
 
-      <div>
-        <h2 className="text-2xl mb-2">Payment Information</h2>
-        <p className="text-gray-600">Complete payment for your {formData.subscriptionPlan} membership</p>
-      </div>
+    const formatCardInput = (value: string) => {
+      const cleaned = value.replace(/\s+/g, '');
+      const groups = cleaned.match(/.{1,4}/g);
+      return groups ? groups.join(' ') : cleaned;
+    };
 
-      <Alert>
-        <CreditCard className="size-4" />
-        <AlertDescription>
-          First month: {formData.subscriptionPlan === 'Basic' ? '$49' : formData.subscriptionPlan === 'Premium' ? '$99' : '$149'}
-        </AlertDescription>
-      </Alert>
+    const formatExpiryInput = (value: string) => {
+      const cleaned = value.replace(/\D/g, '');
+      if (cleaned.length >= 2) {
+        return `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}`;
+      }
+      return cleaned;
+    };
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="cardNumber">Card Number</Label>
-          <Input
-            id="cardNumber"
-            placeholder="4242 4242 4242 4242"
-            required
-          />
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => setCurrentStep('preferences')}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="size-4" />
+            Back
+          </button>
+          <Badge>Step 5 of 6</Badge>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="expiry">Expiry Date</Label>
-            <Input
-              id="expiry"
-              placeholder="MM/YY"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="cvc">CVC</Label>
-            <Input
-              id="cvc"
-              placeholder="123"
-              required
-            />
-          </div>
+        <div>
+          <h2 className="text-2xl mb-2">Payment Information</h2>
+          <p className="text-gray-600">Complete payment for your {formData.subscriptionPlan} membership</p>
         </div>
 
-        <Button onClick={handlePaymentSubmit} className="w-full">
-          Complete Payment
-        </Button>
-        <p className="text-xs text-gray-500 text-center">
-          (Mock payment - no real charge will be made)
-        </p>
+        <Alert>
+          <CreditCard className="size-4" />
+          <AlertDescription>
+            <div className="flex justify-between items-center">
+              <span>First month payment:</span>
+              <span className="text-lg font-bold">€{amount.toFixed(2)}</span>
+            </div>
+          </AlertDescription>
+        </Alert>
+
+        {errors.payment && (
+          <Alert variant="destructive">
+            <AlertCircle className="size-4" />
+            <AlertDescription>{errors.payment}</AlertDescription>
+          </Alert>
+        )}
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="cardHolder">Card Holder Name *</Label>
+            <Input
+              id="cardHolder"
+              placeholder="JOHN DOE"
+              value={formData.cardHolder}
+              onChange={(e) => handleInputChange('cardHolder', e.target.value.toUpperCase())}
+              className={errors.cardHolder ? 'border-red-500' : ''}
+              required
+            />
+            {errors.cardHolder && <p className="text-sm text-red-600">{errors.cardHolder}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="cardNumber">Card Number *</Label>
+            <div className="relative">
+              <Input
+                id="cardNumber"
+                placeholder="4111 1111 1111 1111"
+                value={formData.cardNumber}
+                onChange={(e) => {
+                  const formatted = formatCardInput(e.target.value);
+                  if (formatted.replace(/\s/g, '').length <= 19) {
+                    handleInputChange('cardNumber', formatted);
+                  }
+                }}
+                className={errors.cardNumber ? 'border-red-500' : ''}
+                maxLength={23}
+                required
+              />
+              {cardType && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                  {cardType}
+                </span>
+              )}
+            </div>
+            {errors.cardNumber && <p className="text-sm text-red-600">{errors.cardNumber}</p>}
+            <p className="text-xs text-gray-500">
+              Test cards: 4111 1111 1111 1111 (Success) | 4000 0000 0000 0002 (Declined)
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="expiry">Expiry Date *</Label>
+              <Input
+                id="expiry"
+                placeholder="MM/YY"
+                value={formData.expiryDate}
+                onChange={(e) => {
+                  const formatted = formatExpiryInput(e.target.value);
+                  if (formatted.length <= 5) {
+                    handleInputChange('expiryDate', formatted);
+                  }
+                }}
+                className={errors.expiryDate ? 'border-red-500' : ''}
+                maxLength={5}
+                required
+              />
+              {errors.expiryDate && <p className="text-sm text-red-600">{errors.expiryDate}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cvv">CVV *</Label>
+              <Input
+                id="cvv"
+                type="password"
+                placeholder="123"
+                value={formData.cvv}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  if (value.length <= 4) {
+                    handleInputChange('cvv', value);
+                  }
+                }}
+                className={errors.cvv ? 'border-red-500' : ''}
+                maxLength={4}
+                required
+              />
+              {errors.cvv && <p className="text-sm text-red-600">{errors.cvv}</p>}
+            </div>
+          </div>
+
+          <div className="border rounded-lg p-4 bg-gray-50">
+            <div className="flex items-start gap-3">
+              <CheckCircle className="size-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-gray-600">
+                <p className="font-medium text-gray-900 mb-1">Secure Payment</p>
+                <p>Your payment information is encrypted and secure. We never store your full card details.</p>
+              </div>
+            </div>
+          </div>
+
+          <Button
+            onClick={handlePaymentSubmit}
+            className="w-full"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Clock className="size-4 mr-2 animate-spin" />
+                Processing Payment...
+              </>
+            ) : (
+              <>
+                <CreditCard className="size-4 mr-2" />
+                Pay €{amount.toFixed(2)}
+              </>
+            )}
+          </Button>
+
+          <p className="text-xs text-gray-500 text-center">
+            By completing this payment, you agree to our Terms of Service and Privacy Policy.
+          </p>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderDocuments = () => (
     <div className="space-y-6">
@@ -984,43 +1192,84 @@ export function Register() {
     </div>
   );
 
-  const renderPendingApproval = () => (
-    <div className="space-y-6 text-center">
-      <div className="p-4 bg-yellow-100 rounded-full w-fit mx-auto">
-        <Clock className="size-12 text-yellow-600" />
-      </div>
-      
-      <div>
-        <h2 className="text-2xl mb-2">Application Submitted</h2>
-        <p className="text-gray-600 max-w-md mx-auto">
-          {selectedRole === 'member' 
-            ? 'Thank you for registering! Our team is reviewing your membership application and payment. You will receive a confirmation email shortly.'
-            : selectedRole === 'trainer'
-            ? 'Thank you for applying! Our team is reviewing your application and documents. If your application is accepted, we will schedule an interview and send you possible dates via Doodle poll.'
-            : 'Thank you! Your registration has been submitted for review.'}
-        </p>
-      </div>
+  const renderPendingApproval = () => {
+    const membership = userId ? db.getMembershipByUserId(userId) : null;
+    const transactions = userId ? paymentService.getUserTransactions(userId) : [];
+    const lastTransaction = transactions[transactions.length - 1];
 
-      {selectedRole === 'trainer' && (
-        <Alert>
-          <CalendarIcon className="size-4" />
-          <AlertDescription>
-            <strong>Next Steps:</strong> If approved, you'll receive an interview invitation. 
-            After a successful interview, we'll discuss terms and generate your employment contract.
-          </AlertDescription>
-        </Alert>
-      )}
+    return (
+      <div className="space-y-6 text-center">
+        <div className="p-4 bg-yellow-100 rounded-full w-fit mx-auto">
+          <Clock className="size-12 text-yellow-600" />
+        </div>
 
-      <div className="space-y-2">
-        <p className="text-sm text-gray-500">We've sent a confirmation to:</p>
-        <p className="font-medium">{formData.email}</p>
+        <div>
+          <h2 className="text-2xl mb-2">
+            {selectedRole === 'member' ? 'Registration Complete!' : 'Application Submitted'}
+          </h2>
+          <p className="text-gray-600 max-w-md mx-auto">
+            {selectedRole === 'member'
+              ? 'Thank you for registering! Your payment has been processed successfully. Our team will review and activate your membership shortly.'
+              : selectedRole === 'trainer'
+              ? 'Thank you for applying! Our team is reviewing your application and documents. If your application is accepted, we will schedule an interview and send you possible dates via Doodle poll.'
+              : 'Thank you! Your registration has been submitted for review.'}
+          </p>
+        </div>
+
+        {selectedRole === 'member' && lastTransaction && lastTransaction.status === 'Completed' && (
+          <Alert className="text-left">
+            <CheckCircle className="size-4" />
+            <AlertDescription>
+              <div className="space-y-2">
+                <p className="font-medium">Payment Successful ✅</p>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p><strong>Transaction ID:</strong> {lastTransaction.id}</p>
+                  <p><strong>Amount:</strong> €{lastTransaction.amount.toFixed(2)}</p>
+                  <p><strong>Plan:</strong> {membership?.type} Membership</p>
+                  <p><strong>Status:</strong> <span className="text-green-600 font-medium">Paid</span></p>
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {selectedRole === 'trainer' && (
+          <Alert>
+            <CalendarIcon className="size-4" />
+            <AlertDescription>
+              <strong>Next Steps:</strong> If approved, you'll receive an interview invitation.
+              After a successful interview, we'll discuss terms and generate your employment contract.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <div className="border-t pt-6">
+          <div className="space-y-2">
+            <p className="text-sm text-gray-500">Confirmation email sent to:</p>
+            <p className="font-medium">{formData.email}</p>
+          </div>
+
+          {selectedRole === 'member' && (
+            <div className="mt-4 text-sm text-gray-600">
+              <p>Our team will review your registration and activate your account within 24 hours.</p>
+              <p className="mt-2">You'll receive an email notification once your account is approved.</p>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-3">
+          <Button onClick={() => navigate('/')} variant="outline" className="w-full">
+            Return to Login
+          </Button>
+          {selectedRole === 'member' && (
+            <p className="text-xs text-gray-500">
+              Questions? Contact us at support@fithub.gr
+            </p>
+          )}
+        </div>
       </div>
-
-      <Button onClick={() => navigate('/')} variant="outline">
-        Return to Login
-      </Button>
-    </div>
-  );
+    );
+  };
 
   const renderSuccess = () => (
     <div className="space-y-6 text-center">

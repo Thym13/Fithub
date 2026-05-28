@@ -185,7 +185,7 @@ class EmailService {
   /**
    * Core email sending function (simulated)
    */
-  private async sendEmail(emailOptions: EmailOptions): Promise<boolean> {
+  async sendEmail(emailOptions: EmailOptions): Promise<boolean> {
     try {
       // Simulate email sending delay
       await new Promise(resolve => setTimeout(resolve, 500));

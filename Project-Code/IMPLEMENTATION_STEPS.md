@@ -169,15 +169,185 @@ To test email verification:
 
 ---
 
+## ✅ STEP 3: Payment Integration & Transaction Management (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: UC-1 Εγγραφή και Οδηγός Ενεργοποίησης (Registration)  
+**Reference**: UC-1 βήματα 11-12 (Payment processing & transaction recording)
+
+### Files Added:
+
+1. **`src/app/services/payment.ts`** - Payment processing service
+   - ✅ Credit card validation (Luhn algorithm)
+   - ✅ CVV validation
+   - ✅ Expiry date validation
+   - ✅ Card holder name validation
+   - ✅ Mock payment processing
+   - ✅ Transaction recording
+   - ✅ Payment confirmation emails
+   - ✅ Refund processing
+   - ✅ Card type detection (Visa, Mastercard, Amex, Discover)
+   - ✅ Test card numbers for development
+   - ✅ Payment failure simulation
+
+### Files Modified:
+
+1. **`src/app/utils/validation.ts`**
+   - ✅ Added `validateCardNumber()` for card format validation
+   - ✅ Added `validateCVVFormat()` for CVV validation
+   - ✅ Added `validateExpiryFormat()` for MM/YY validation
+
+2. **`src/app/components/register.tsx`**
+   - ✅ Integrated payment service
+   - ✅ Added payment form fields (card number, holder, expiry, CVV)
+   - ✅ Card number auto-formatting (groups of 4 digits)
+   - ✅ Expiry date auto-formatting (MM/YY)
+   - ✅ Card type detection and display
+   - ✅ Payment validation before processing
+   - ✅ Real-time payment processing
+   - ✅ Transaction creation
+   - ✅ Membership activation after successful payment
+   - ✅ Fitness goals recording
+   - ✅ Payment confirmation display
+   - ✅ Loading states during payment
+   - ✅ Error handling for failed payments
+
+### Features Implemented:
+
+**UC-1 Βήμα 11**: Εισαγωγή δεδομένων πληρωμής
+- 💳 Card number input with auto-formatting
+- 👤 Card holder name field
+- 📅 Expiry date (MM/YY format)
+- 🔒 CVV input (password field)
+- ✅ Real-time validation
+- 🎨 Visual feedback (card type display)
+- 📋 Test card numbers displayed
+
+**UC-1 Βήμα 12**: Επεξεργασία πληρωμής
+- 💰 Payment processing simulation
+- 📝 Transaction recording in database
+- ✉️ Payment confirmation email
+- 🔐 Secure payment indicator
+- ⚠️ Payment failure handling
+- 💾 Transaction status tracking
+
+**UC-1 Membership Activation**:
+- ✅ Membership status → "Active" after payment
+- 📅 Start date and end date calculation (+30 days)
+- 💪 Fitness goals saved to database
+- 📧 Confirmation email with transaction details
+
+### Payment Flow:
+
+1. **User enters payment details**:
+   - Card number (formatted: XXXX XXXX XXXX XXXX)
+   - Card holder name
+   - Expiry date (MM/YY)
+   - CVV (3-4 digits)
+
+2. **Validation**:
+   - Card number format check
+   - Luhn algorithm validation
+   - CVV format validation
+   - Expiry date validation
+   - Card holder name validation
+
+3. **Payment Processing**:
+   - Simulate 2-second processing delay
+   - Check for test card (declined: 4000 0000 0000 0002)
+   - Create transaction record
+   - Update membership status to "Active"
+   - Set membership dates (start + 30 days)
+
+4. **Post-Payment**:
+   - Send payment confirmation email
+   - Save fitness goals to database
+   - Display transaction summary
+   - Proceed to pending approval screen
+
+### Payment Validation Rules:
+
+- **Card Number**: 13-19 digits, passes Luhn check
+- **CVV**: 3-4 digits only
+- **Expiry**: MM/YY format, not expired
+- **Card Holder**: At least 3 characters, letters only
+
+### Test Cards:
+
+```
+Success: 4111 1111 1111 1111 (Visa)
+Declined: 4000 0000 0000 0002 (Visa - Payment Declined)
+Success: 5555 5555 5555 4444 (Mastercard)
+Success: 3782 822463 10005 (American Express)
+```
+
+### Transaction Schema:
+
+```typescript
+Transaction {
+  id: string
+  userId: string
+  amount: number
+  status: 'Pending' | 'Completed' | 'Failed' | 'Refunded'
+  paymentMethod: 'Card' | 'Cash' | 'Bank Transfer'
+  description: string
+  createdAt: string
+}
+```
+
+### Email Templates:
+
+1. ✅ **Payment Confirmation Email**:
+   - Transaction ID
+   - Amount paid
+   - Payment method
+   - Transaction date
+   - Membership details
+   - Link to dashboard
+
+2. ✅ **Refund Confirmation Email**:
+   - Refund amount
+   - Refund reason
+   - Processing time (5-10 business days)
+
+### Security Features:
+
+- 🔒 CVV input masked (password field)
+- ✅ Luhn algorithm for card validation
+- 📧 Payment confirmation via email
+- 💾 Transaction logging
+- ⚠️ Error messages for security (generic)
+
+### Testing:
+
+To test payment:
+1. Register as member
+2. Select subscription plan
+3. Verify email
+4. Set fitness goals
+5. Enter payment details:
+   - Use test card: 4111 1111 1111 1111
+   - Card holder: YOUR NAME
+   - Expiry: 12/28
+   - CVV: 123
+6. Click "Pay €49.00" (or appropriate amount)
+7. Payment processes (2 sec delay)
+8. Transaction created ✅
+9. Membership activated ✅
+10. Confirmation email sent ✅
+
+To test payment failure:
+- Use card: 4000 0000 0000 0002
+- Payment will be declined
+- Error message displayed
+- Transaction recorded as "Failed"
+- User can retry with different card
+
+---
+
 ## 📋 Upcoming Steps:
 
-### STEP 3: Payment Integration & Transaction Management
-- Payment form validation
-- Mock payment processing
-- Transaction recording
-- Payment confirmation
-
-### STEP 4: Fitness Goals & Preferences
+### STEP 4: Admin Approval Workflow (Secretary/Manager Dashboard)
 - Goal selection interface
 - Fitness level assessment
 - Weight tracking setup
@@ -205,12 +375,14 @@ To test email verification:
 |------|--------|----------|-------------|
 | 1 | ✅ | UC-1 | Form Validation & Password Security |
 | 2 | ✅ | UC-1 | Email Verification & Duplicate Check |
-| 3 | 🔜 | UC-1 | Payment Integration |
-| 4 | 🔜 | UC-1 | Fitness Goals & Preferences |
-| 5 | 🔜 | UC-1 | Admin Approval Workflow |
-| 6 | 🔜 | UC-2 | Class Booking System |
+| 3 | ✅ | UC-1 | Payment Integration & Transaction Management |
+| 4 | 🔜 | UC-1 | Admin Approval Workflow |
+| 5 | 🔜 | UC-1 | Welcome Email & Activation |
+| 6 | 🔜 | UC-2 | Class Browsing & Filtering |
+| 7 | 🔜 | UC-2 | Class Booking System |
+| 8 | 🔜 | UC-2 | Waitlist Management |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 2 (8%)  
-**Steps Remaining**: 23
+**Steps Completed**: 3 (12%)  
+**Steps Remaining**: 22
