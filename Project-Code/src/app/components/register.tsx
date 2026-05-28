@@ -20,6 +20,8 @@ import {
   validateName,
   validateDateOfBirth
 } from '../utils/validation';
+import { db } from '../services/database';
+import { emailService } from '../services/email';
 import {
   User,
   Dumbbell,
@@ -31,7 +33,9 @@ import {
   Calendar as CalendarIcon,
   FileText,
   CreditCard,
-  Clock
+  Clock,
+  Mail,
+  Copy
 } from 'lucide-react';
 
 type UserRole = 'member' | 'trainer' | 'secretary' | null;
@@ -62,6 +66,9 @@ export function Register() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [uploadedFiles, setUploadedFiles] = useState<{ resume?: File; certifications?: File }>({});
   const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [verificationToken, setVerificationToken] = useState<string>('');
+  const [userId, setUserId] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleRoleSelection = (role: UserRole) => {
     setSelectedRole(role);
@@ -89,6 +96,12 @@ export function Register() {
     const emailValidation = validateEmail(formData.email);
     if (!emailValidation.isValid) {
       newErrors.email = emailValidation.error!;
+    } else {
+      // Check for duplicate email
+      const existingUser = db.findUserByEmail(formData.email);
+      if (existingUser) {
+        newErrors.email = 'This email is already registered. Please login or use a different email.';
+      }
     }
 
     // Validate phone
@@ -126,31 +139,102 @@ export function Register() {
     }
   };
 
-  const handlePersonalInfoSubmit = () => {
+  const handlePersonalInfoSubmit = async () => {
     // Validate form before proceeding
     if (!validatePersonalInfo()) {
       return;
     }
 
-    if (selectedRole === 'member') {
-      setCurrentStep('subscription');
-    } else if (selectedRole === 'trainer') {
-      setCurrentStep('pending-approval');
-    } else if (selectedRole === 'secretary') {
-      setCurrentStep('contract');
+    setIsSubmitting(true);
+
+    try {
+      // Generate verification token
+      const token = db.generateVerificationToken();
+      setVerificationToken(token);
+
+      // Create user in database
+      const newUser = db.createUser({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        dateOfBirth: formData.dateOfBirth,
+        password: formData.password, // In production, this should be hashed!
+        role: selectedRole!,
+        accountStatus: 'Pending',
+        emailVerified: false,
+        emailVerificationToken: token
+      });
+
+      setUserId(newUser.id);
+
+      // Send verification email
+      await emailService.sendVerificationEmail(
+        formData.email,
+        token,
+        formData.name
+      );
+
+      // Notify admin about new registration
+      const admins = db.getAllUsers().filter(u => u.role === 'secretary' || u.role === 'manager');
+      for (const admin of admins) {
+        await emailService.notifyAdminNewRegistration(
+          admin.email,
+          formData.name,
+          formData.email,
+          selectedRole!
+        );
+      }
+
+      // Navigate to appropriate step
+      if (selectedRole === 'member') {
+        setCurrentStep('subscription');
+      } else if (selectedRole === 'trainer') {
+        setCurrentStep('pending-approval');
+      } else if (selectedRole === 'secretary') {
+        setCurrentStep('contract');
+      }
+    } catch (error: any) {
+      setErrors({ ...errors, email: error.message });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleSubscriptionSubmit = () => {
+  const handleSubscriptionSubmit = async () => {
+    // Create membership record
+    if (userId) {
+      const planCosts = { Basic: 49, Premium: 99, Elite: 149 };
+      const cost = planCosts[formData.subscriptionPlan as keyof typeof planCosts] || 49;
+
+      db.createMembership({
+        userId,
+        type: formData.subscriptionPlan as 'Basic' | 'Premium' | 'Elite',
+        monthlyCost: cost,
+        status: 'Pending'
+      });
+    }
+
     setCurrentStep('email-verification');
   };
 
   const handleEmailVerification = () => {
-    // Simulate email verification
-    setIsEmailVerified(true);
-    setTimeout(() => {
-      setCurrentStep('preferences');
-    }, 1500);
+    // Verify email using token
+    const verifiedUser = db.verifyEmail(verificationToken);
+
+    if (verifiedUser) {
+      setIsEmailVerified(true);
+      setTimeout(() => {
+        setCurrentStep('preferences');
+      }, 1500);
+    } else {
+      setErrors({ ...errors, verification: 'Invalid verification token' });
+    }
+  };
+
+  const copyVerificationLink = () => {
+    const link = emailService.getVerificationLink(verificationToken);
+    navigator.clipboard.writeText(link);
+    alert('Verification link copied to clipboard!');
   };
 
   const handlePreferencesSubmit = () => {
@@ -408,9 +492,16 @@ export function Register() {
         <Button
           onClick={handlePersonalInfoSubmit}
           className="w-full"
-          disabled={selectedRole === 'trainer' && !uploadedFiles.resume}
+          disabled={(selectedRole === 'trainer' && !uploadedFiles.resume) || isSubmitting}
         >
-          {selectedRole === 'trainer' ? 'Submit Application' : 'Continue'}
+          {isSubmitting ? (
+            <>
+              <Clock className="size-4 mr-2 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            selectedRole === 'trainer' ? 'Submit Application' : 'Continue'
+          )}
         </Button>
       </div>
     </div>
@@ -496,26 +587,65 @@ export function Register() {
         {!isEmailVerified ? (
           <>
             <div className="p-4 bg-blue-100 rounded-full w-fit mx-auto mb-4">
-              <AlertCircle className="size-12 text-blue-600" />
+              <Mail className="size-12 text-blue-600" />
             </div>
             <h2 className="text-2xl mb-2">Verify Your Email</h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 mb-4">
               We've sent a verification link to <strong>{formData.email}</strong>
             </p>
-            <Button onClick={handleEmailVerification}>
-              Simulate Email Verification
-            </Button>
-            <p className="text-xs text-gray-500 mt-4">
-              (In production, user would click link in their email)
-            </p>
+
+            <Alert className="text-left mb-6">
+              <AlertCircle className="size-4" />
+              <AlertDescription>
+                <p className="mb-2"><strong>Check your email inbox</strong></p>
+                <p className="text-sm text-gray-600">
+                  Click the verification link in the email we sent you.
+                  If you don't see it, check your spam folder.
+                </p>
+              </AlertDescription>
+            </Alert>
+
+            {/* Development: Show verification link */}
+            <div className="border rounded-lg p-4 bg-gray-50 text-left space-y-2">
+              <p className="text-sm font-medium text-gray-700">
+                🔧 Development Mode - Verification Link:
+              </p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={emailService.getVerificationLink(verificationToken)}
+                  className="flex-1 text-xs p-2 border rounded bg-white"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={copyVerificationLink}
+                >
+                  <Copy className="size-4" />
+                </Button>
+              </div>
+              <Button onClick={handleEmailVerification} className="w-full mt-2" size="sm">
+                Simulate Email Verification
+              </Button>
+            </div>
+
+            <div className="mt-6 text-sm text-gray-500">
+              <p>Didn't receive the email?</p>
+              <button className="text-blue-600 hover:underline mt-1">
+                Resend verification email
+              </button>
+            </div>
           </>
         ) : (
           <>
             <div className="p-4 bg-green-100 rounded-full w-fit mx-auto mb-4">
               <CheckCircle className="size-12 text-green-600" />
             </div>
-            <h2 className="text-2xl mb-2">Email Verified!</h2>
-            <p className="text-gray-600">Redirecting you to complete your profile...</p>
+            <h2 className="text-2xl mb-2">Email Verified! ✅</h2>
+            <p className="text-gray-600">Your email has been successfully verified.</p>
+            <p className="text-gray-600 mt-2">Redirecting you to complete your profile...</p>
           </>
         )}
       </div>
