@@ -5043,6 +5043,525 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 
 ---
 
+## 🔐 STEP 19: Member Check-In System
+
+### Test Case 19.1: Check-In Member - Basic Flow
+
+**Steps**:
+1. Login as receptionist
+2. Navigate to "Check-Ins" tab
+3. Click "Check In Member" button
+4. Select member from dropdown
+5. Choose check-in method: "Manual"
+6. Click "Check In"
+
+**Expected Result**:
+- ✅ Modal opens with form
+- ✅ Member dropdown populated with active members
+- ✅ Check-in method dropdown shows 3 options
+- ✅ Check-in created successfully
+- ✅ Member appears in "Currently in Gym" list
+- ✅ Modal closes
+- ✅ Statistics update (Currently in Gym +1)
+- ✅ Today's check-ins count increases
+
+### Test Case 19.2: Check-In Methods - All Types
+
+**Steps**:
+1. Login as receptionist
+2. Check in member with method "QR Code"
+3. Check out member
+4. Check in same member with method "Card Scan"
+5. Check out member
+6. Check in same member with method "Manual"
+
+**Expected Result**:
+- ✅ All three methods work
+- ✅ QR Code: Blue badge displayed
+- ✅ Card Scan: Green badge displayed
+- ✅ Manual: Purple badge displayed
+- ✅ Each check-in recorded with correct method
+- ✅ History shows all three check-ins
+
+### Test Case 19.3: Check-In with Notes
+
+**Steps**:
+1. Login as receptionist
+2. Click "Check In Member"
+3. Select member
+4. Choose "Manual" method
+5. Add note: "Forgot membership card"
+6. Click "Check In"
+
+**Expected Result**:
+- ✅ Check-in created with notes
+- ✅ Notes displayed in "Currently in Gym" card
+- ✅ Notes appear in check-in history
+- ✅ Notes italic formatted
+- ✅ Receptionist name recorded
+
+### Test Case 19.4: Validation - Duplicate Check-In Prevention
+
+**Steps**:
+1. Login as receptionist
+2. Check in a member
+3. Try to check in the same member again while still active
+
+**Expected Result**:
+- ❌ Error message: "User already checked in. Please check out first."
+- ❌ Second check-in not created
+- ✅ First check-in remains active
+- ✅ Modal stays open
+
+### Test Case 19.5: Validation - No Active Membership
+
+**Steps**:
+1. Login as receptionist
+2. Try to check in a member with expired/no membership
+
+**Expected Result**:
+- ❌ Error message: "No active membership found"
+- ❌ Check-in not created
+- ✅ Member cannot access gym
+
+### Test Case 19.6: Check-Out Member - Basic Flow
+
+**Steps**:
+1. Member is checked in (active status)
+2. Receptionist clicks "Check Out" button
+3. Confirmation modal appears
+4. Click "Confirm Check Out"
+
+**Expected Result**:
+- ✅ Check-out confirmation modal opens
+- ✅ Shows member name
+- ✅ Shows check-in time
+- ✅ Shows current duration
+- ✅ Shows method and notes
+- ✅ On confirm: status changes to "Completed"
+- ✅ Check-out time recorded
+- ✅ Duration calculated automatically
+- ✅ Member removed from "Currently in Gym"
+- ✅ Appears in "Today's Check-Ins" as completed
+
+### Test Case 19.7: Duration Calculation
+
+**Steps**:
+1. Check in member at 09:00 AM
+2. Check out member at 10:30 AM
+3. View check-in record
+
+**Expected Result**:
+- ✅ Duration calculated as 90 minutes
+- ✅ Duration displayed as "1h 30m"
+- ✅ Duration only shown after check-out
+- ✅ Active check-ins show live duration counter
+
+### Test Case 19.8: Member Search Functionality
+
+**Steps**:
+1. Open check-in modal
+2. Type member name in search box
+3. Observe dropdown filtering
+
+**Expected Result**:
+- ✅ Dropdown filters by name
+- ✅ Dropdown filters by email
+- ✅ Case-insensitive search
+- ✅ Real-time filtering
+- ✅ Shows "No members found" if no match
+
+### Test Case 19.9: Currently in Gym Display
+
+**Steps**:
+1. Check in 3 members
+2. View "Currently in Gym" section
+
+**Expected Result**:
+- ✅ Shows all 3 active check-ins
+- ✅ Green highlighted cards
+- ✅ "Active" badge displayed
+- ✅ Real-time duration counter updating
+- ✅ Member details visible (name, email)
+- ✅ Membership type badge shown
+- ✅ Check-in method badge shown
+- ✅ Check-in time displayed
+- ✅ Notes visible if present
+- ✅ Receptionist name shown if manual
+- ✅ "Check Out" button available
+
+### Test Case 19.10: Today's Check-Ins List
+
+**Steps**:
+1. Check in and check out 5 members
+2. View "Today's Check-Ins" section
+
+**Expected Result**:
+- ✅ Shows all 5 check-ins
+- ✅ Both active and completed visible
+- ✅ Sorted by time (newest first)
+- ✅ Completed: shows duration
+- ✅ Active: shows "Check Out" button
+- ✅ Check-in time displayed
+- ✅ Check-out time shown for completed
+- ✅ Notes visible if present
+
+### Test Case 19.11: Statistics Dashboard - Receptionist
+
+**Steps**:
+1. Login as receptionist
+2. Navigate to Check-Ins tab
+3. View statistics cards
+
+**Expected Result**:
+- ✅ 4 statistics cards displayed
+- ✅ "Currently in Gym" shows active count
+- ✅ "Today's Check-Ins" shows total today
+- ✅ "Completed Today" shows finished sessions
+- ✅ "Avg. Duration" shows mean time
+- ✅ Icons match categories
+- ✅ Real-time updates when check-in/out
+
+### Test Case 19.12: Member View - Check-In History
+
+**Steps**:
+1. Login as member
+2. Navigate to "My Check-Ins" tab
+3. View check-in history
+
+**Expected Result**:
+- ✅ Last 10 check-ins displayed
+- ✅ Sorted newest first
+- ✅ Each shows date and time
+- ✅ Duration shown for completed
+- ✅ Check-in and check-out times visible
+- ✅ Method badge displayed
+- ✅ Notes shown if present
+- ✅ Receptionist name if manual check-in
+
+### Test Case 19.13: Member View - Active Check-In Banner
+
+**Steps**:
+1. Receptionist checks in a member
+2. Member logs in
+3. Navigates to "My Check-Ins" tab
+
+**Expected Result**:
+- ✅ Green highlighted alert banner shown
+- ✅ Text: "You're Currently Checked In!"
+- ✅ Shows check-in time
+- ✅ Shows check-in method
+- ✅ Shows live duration counter
+- ✅ Shows notes if present
+- ✅ Banner not shown when checked out
+
+### Test Case 19.14: Member Statistics - Personal Stats
+
+**Steps**:
+1. Member has 10 check-ins in history
+2. Member views "My Check-Ins" tab
+3. Check statistics cards
+
+**Expected Result**:
+- ✅ Total Visits: 10
+- ✅ Total Time: Sum of all durations
+- ✅ Avg. Session: Mean duration
+- ✅ This Week: Count of last 7 days
+- ✅ Icons displayed
+- ✅ Formatted correctly (e.g., "1h 30m")
+
+### Test Case 19.15: Monthly Summary
+
+**Steps**:
+1. Member has check-ins this month
+2. View monthly summary section
+
+**Expected Result**:
+- ✅ Shows visits this month
+- ✅ Calculates daily average percentage
+- ✅ Shows average session length
+- ✅ 3 summary cards displayed
+- ✅ Proper formatting
+
+### Test Case 19.16: Empty State - No Check-Ins
+
+**Steps**:
+1. New member with no check-in history
+2. Navigate to "My Check-Ins" tab
+
+**Expected Result**:
+- ✅ Empty state message shown
+- ✅ Icon displayed (calendar)
+- ✅ Helpful text: "No check-in history yet"
+- ✅ Instructions: "Check in at reception..."
+- ✅ No error messages
+
+### Test Case 19.17: Empty State - No Active Check-Ins
+
+**Steps**:
+1. Receptionist view with no one in gym
+2. View "Currently in Gym" section
+
+**Expected Result**:
+- ✅ Empty state shown
+- ✅ Icon displayed (users)
+- ✅ Message: "No members currently checked in"
+- ✅ No error messages
+
+### Test Case 19.18: Analytics - Date Range
+
+**Steps**:
+1. Create check-ins across multiple days
+2. Call getCheckInsByDateRange() with specific range
+3. View analytics
+
+**Expected Result**:
+- ✅ Only check-ins in range returned
+- ✅ Start date inclusive
+- ✅ End date inclusive
+- ✅ Correct count
+- ✅ Sorted properly
+
+### Test Case 19.19: Analytics - Peak Hours
+
+**Steps**:
+1. Create check-ins at various hours
+2. 10 check-ins at 18:00 (most)
+3. 5 check-ins at 09:00
+4. Call getCheckInStats()
+
+**Expected Result**:
+- ✅ Peak hour identified: "18:00"
+- ✅ byHour object shows all hours
+- ✅ Correct counts per hour
+- ✅ Peak hour has highest count
+
+### Test Case 19.20: Analytics - By Membership Type
+
+**Steps**:
+1. Check in 3 Premium members
+2. Check in 2 Basic members
+3. Check in 1 Elite member
+4. View stats
+
+**Expected Result**:
+- ✅ byMembershipType.Premium = 3
+- ✅ byMembershipType.Basic = 2
+- ✅ byMembershipType.Elite = 1
+- ✅ Breakdown accurate
+
+### Test Case 19.21: Analytics - By Method
+
+**Steps**:
+1. 4 check-ins via QR Code
+2. 3 check-ins via Card Scan
+3. 2 check-ins via Manual
+4. View stats
+
+**Expected Result**:
+- ✅ byMethod['QR Code'] = 4
+- ✅ byMethod['Card Scan'] = 3
+- ✅ byMethod['Manual'] = 2
+- ✅ All methods tracked
+
+### Test Case 19.22: Demo Data Initialization
+
+**Steps**:
+1. Clear localStorage
+2. Refresh page
+3. Login as member
+4. View check-ins
+
+**Expected Result**:
+- ✅ 5 demo check-ins created
+- ✅ 1 active check-in
+- ✅ 4 completed check-ins
+- ✅ Different dates (today, yesterday, 2 days ago, etc.)
+- ✅ Various durations (60, 75, 90, 105 min)
+- ✅ Different methods
+- ✅ One with notes
+- ✅ One with receptionist name
+
+### Test Case 19.23: Real-Time Duration Counter
+
+**Steps**:
+1. Check in a member
+2. View active check-in card
+3. Wait 1 minute
+4. Observe duration
+
+**Expected Result**:
+- ✅ Duration updates in real-time
+- ✅ Increments every minute
+- ✅ Formatted correctly (e.g., "5m", "1h 5m")
+- ✅ No page refresh needed
+
+### Test Case 19.24: Check-Out Validation
+
+**Steps**:
+1. Check out a member
+2. Try to check out the same member again
+
+**Expected Result**:
+- ❌ Error: "Member already checked out"
+- ✅ Status remains "Completed"
+- ✅ Duration unchanged
+- ✅ Check-out time unchanged
+
+### Test Case 19.25: Member Total Gym Time
+
+**Steps**:
+1. Member has 3 completed check-ins:
+   - 60 minutes
+   - 90 minutes
+   - 75 minutes
+2. Call getMemberTotalGymTime()
+
+**Expected Result**:
+- ✅ Returns 225 (total minutes)
+- ✅ Formatted as "3h 45m" in UI
+- ✅ Only counts completed check-ins
+- ✅ Ignores active check-ins
+
+### Test Case 19.26: Average Duration Calculation
+
+**Steps**:
+1. 3 completed check-ins today:
+   - 60 min
+   - 90 min
+   - 120 min
+2. View "Avg. Duration" stat
+
+**Expected Result**:
+- ✅ Average: 90 minutes
+- ✅ Displayed as "1h 30m"
+- ✅ Rounded to nearest minute
+- ✅ Only includes completed check-ins
+- ✅ Updates in real-time
+
+### Test Case 19.27: Receptionist Name Recording
+
+**Steps**:
+1. Receptionist "Maria" checks in member manually
+2. View check-in details
+
+**Expected Result**:
+- ✅ receptionistId recorded
+- ✅ receptionistName: "Maria"
+- ✅ Displayed in active check-in card
+- ✅ Visible in history
+- ✅ Only for manual check-ins
+- ✅ QR/Card check-ins have no receptionist
+
+### Test Case 19.28: Multiple Members Active
+
+**Steps**:
+1. Check in 5 different members
+2. All stay active (no check-out)
+3. View "Currently in Gym"
+
+**Expected Result**:
+- ✅ All 5 displayed
+- ✅ Count shows 5
+- ✅ Each has separate card
+- ✅ Each has check-out button
+- ✅ Durations independent
+- ✅ No data mixing
+
+### Test Case 19.29: Data Persistence
+
+**Steps**:
+1. Check in 2 members
+2. Check out 1 member
+3. Refresh page
+4. Check data
+
+**Expected Result**:
+- ✅ 1 active check-in persists
+- ✅ 1 completed check-in persists
+- ✅ All data intact (time, method, notes)
+- ✅ Statistics accurate after refresh
+- ✅ localStorage working
+
+### Test Case 19.30: Peak Day Identification
+
+**Steps**:
+1. Create check-ins across week:
+   - Monday: 10 check-ins
+   - Tuesday: 5 check-ins
+   - Wednesday: 15 check-ins (most)
+   - Thursday: 8 check-ins
+2. Call getCheckInStats()
+
+**Expected Result**:
+- ✅ Peak day: "Wednesday"
+- ✅ byDay object shows all days
+- ✅ Correct counts per day
+- ✅ Peak day has highest count
+
+### Checklist - Member Check-In History
+
+- [x] Tab accessible from member dashboard
+- [x] Statistics cards display (4 cards)
+- [x] Total visits count accurate
+- [x] Total time calculated correctly
+- [x] Average session accurate
+- [x] This week count correct
+- [x] Active check-in banner shows when in gym
+- [x] Active banner shows live duration
+- [x] Active banner shows check-in time
+- [x] Active banner shows method
+- [x] Recent 10 check-ins displayed
+- [x] Check-ins sorted newest first
+- [x] Date and time formatted correctly
+- [x] Duration shown for completed
+- [x] Check-in/check-out times visible
+- [x] Method badges color-coded
+- [x] Notes displayed if present
+- [x] Receptionist name shown if manual
+- [x] Empty state for no check-ins
+- [x] Monthly summary displayed
+- [x] Responsive design works
+
+### Checklist - Receptionist Check-In Management
+
+- [x] Tab accessible from receptionist dashboard
+- [x] Statistics cards display (4 cards)
+- [x] Currently in gym count accurate
+- [x] Today's check-ins count accurate
+- [x] Completed today count accurate
+- [x] Average duration accurate
+- [x] "Check In Member" button functional
+- [x] Check-in modal opens
+- [x] Member search works
+- [x] Search filters by name
+- [x] Search filters by email
+- [x] Member dropdown populated
+- [x] Method dropdown has 3 options
+- [x] Notes textarea functional
+- [x] Check-in validation works
+- [x] Duplicate check-in prevented
+- [x] Active membership required
+- [x] Check-in created successfully
+- [x] Currently in gym list updates
+- [x] Active check-ins green highlighted
+- [x] Real-time duration counter works
+- [x] Check-out button functional
+- [x] Check-out modal opens
+- [x] Check-out confirmation works
+- [x] Duration calculated on check-out
+- [x] Status changes to completed
+- [x] Today's check-ins list displays
+- [x] Both active and completed shown
+- [x] Method badges displayed
+- [x] Notes visible if present
+- [x] Receptionist name recorded for manual
+- [x] Empty states shown appropriately
+- [x] Responsive design works
+- [x] Demo check-ins initialized (5 check-ins)
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-18  
-**Total Test Cases**: 350+
+**Steps Tested**: 1-19  
+**Total Test Cases**: 380+

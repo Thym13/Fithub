@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { PendingRegistrations } from './pending-registrations';
 import { ClassManagement } from './class-management';
 import { SupportTicketManagement } from './support-ticket-management';
+import { CheckInManagement } from './checkin-management';
 import {
   UserCheck,
   Calendar,
@@ -155,110 +156,7 @@ export function ReceptionistDashboard() {
         </TabsContent>
 
         <TabsContent value="checkin" className="space-y-6">
-          {/* Quick Check-In */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Member Check-In</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <Label>Search Member</Label>
-                  <div className="relative mt-2">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
-                    <Input placeholder="Name, email, or member ID..." className="pl-9" />
-                  </div>
-                </div>
-                <div className="flex items-end">
-                  <Button className="bg-green-600 hover:bg-green-700">
-                    <UserCheck className="size-4 mr-2" />
-                    Check In
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Today's Check-Ins */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Today's Check-Ins</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {mockCheckIns.map((checkIn) => (
-                  <div key={checkIn.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-green-100 rounded-full">
-                        <CheckCircle className="size-5 text-green-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">{checkIn.memberName}</div>
-                        <div className="text-sm text-gray-500 flex items-center gap-2">
-                          <Clock className="size-3" />
-                          {checkIn.time}
-                        </div>
-                      </div>
-                    </div>
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      {checkIn.status}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Active Members */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Member Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Last Check-In</TableHead>
-                    <TableHead>Total Visits</TableHead>
-                    <TableHead>Membership Status</TableHead>
-                    <TableHead>Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mockMembers.slice(0, 5).map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <img src={member.avatar} alt={member.name} className="size-10 rounded-full" />
-                          <div>
-                            <div>{member.name}</div>
-                            <div className="text-xs text-gray-500">{member.email}</div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{member.lastCheckIn}</TableCell>
-                      <TableCell>{member.totalVisits}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant="secondary" 
-                          className={member.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}
-                        >
-                          {member.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">
-                          <UserCheck className="size-4 mr-2" />
-                          Check In
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <CheckInManagement />
         </TabsContent>
 
         <TabsContent value="booking" className="space-y-6">

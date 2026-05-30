@@ -284,6 +284,23 @@ export interface SupportTicket {
   updatedAt: string;
 }
 
+export interface CheckIn {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  membershipType: 'Basic' | 'Premium' | 'Elite';
+  checkInTime: string; // ISO timestamp
+  checkOutTime?: string; // ISO timestamp (optional)
+  duration?: number; // Duration in minutes (calculated on checkout)
+  method: 'QR Code' | 'Manual' | 'Card Scan'; // Check-in method
+  receptionistId?: string; // ID of receptionist who checked in manually
+  receptionistName?: string;
+  notes?: string; // Any notes about the check-in
+  status: 'Active' | 'Completed'; // Active = still in gym, Completed = checked out
+  createdAt: string;
+}
+
 export class MockDatabase {
   private static instance: MockDatabase;
 
@@ -301,6 +318,7 @@ export class MockDatabase {
   private CLIENT_PROGRESS_KEY = 'fithub_client_progress';
   private REVIEWS_KEY = 'fithub_reviews';
   private SUPPORT_TICKETS_KEY = 'fithub_support_tickets';
+  private CHECKINS_KEY = 'fithub_checkins';
 
   static getInstance(): MockDatabase {
     if (!MockDatabase.instance) {
@@ -1460,6 +1478,260 @@ export class MockDatabase {
     return true;
   }
 
+  // Check-In Operations
+
+  private saveCheckIns(checkIns: CheckIn[]): void {
+    localStorage.setItem(this.CHECKINS_KEY, JSON.stringify(checkIns));
+  }
+
+  getAllCheckIns(): CheckIn[] {
+    const checkIns = localStorage.getItem(this.CHECKINS_KEY);
+    return checkIns ? JSON.parse(checkIns) : [];
+  }
+
+  getCheckInById(id: string): CheckIn | null {
+    const checkIns = this.getAllCheckIns();
+    return checkIns.find(c => c.id === id) || null;
+  }
+
+  getCheckInsByUser(userId: string): CheckIn[] {
+    const checkIns = this.getAllCheckIns();
+    return checkIns.filter(c => c.userId === userId);
+  }
+
+  getCheckInsByStatus(status: 'Active' | 'Completed'): CheckIn[] {
+    const checkIns = this.getAllCheckIns();
+    return checkIns.filter(c => c.status === status);
+  }
+
+  getCheckInsByDateRange(startDate: string, endDate: string): CheckIn[] {
+    const checkIns = this.getAllCheckIns();
+    return checkIns.filter(c => {
+      const checkInDate = new Date(c.checkInTime);
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      return checkInDate >= start && checkInDate <= end;
+    });
+  }
+
+  getTodaysCheckIns(): CheckIn[] {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    return this.getCheckInsByDateRange(today.toISOString(), tomorrow.toISOString());
+  }
+
+  getActiveCheckIns(): CheckIn[] {
+    return this.getCheckInsByStatus('Active');
+  }
+
+  createCheckIn(data: {
+    userId: string;
+    method: 'QR Code' | 'Manual' | 'Card Scan';
+    receptionistId?: string;
+    receptionistName?: string;
+    notes?: string;
+  }): CheckIn {
+    const user = this.findUserById(data.userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const membership = this.getMembershipByUserId(data.userId);
+    if (!membership || membership.status !== 'Active') {
+      throw new Error('No active membership found');
+    }
+
+    // Check if user has an active check-in
+    const activeCheckIns = this.getActiveCheckIns();
+    const existingCheckIn = activeCheckIns.find(c => c.userId === data.userId);
+    if (existingCheckIn) {
+      throw new Error('User already checked in. Please check out first.');
+    }
+
+    const checkIn: CheckIn = {
+      id: this.generateId(),
+      userId: data.userId,
+      userName: user.name,
+      userEmail: user.email,
+      membershipType: membership.type,
+      checkInTime: new Date().toISOString(),
+      method: data.method,
+      receptionistId: data.receptionistId,
+      receptionistName: data.receptionistName,
+      notes: data.notes,
+      status: 'Active',
+      createdAt: new Date().toISOString(),
+    };
+
+    const checkIns = this.getAllCheckIns();
+    checkIns.push(checkIn);
+    this.saveCheckIns(checkIns);
+
+    return checkIn;
+  }
+
+  checkOutMember(checkInId: string): CheckIn | null {
+    const checkIns = this.getAllCheckIns();
+    const checkIn = checkIns.find(c => c.id === checkInId);
+
+    if (!checkIn) {
+      return null;
+    }
+
+    if (checkIn.status === 'Completed') {
+      throw new Error('Member already checked out');
+    }
+
+    const checkOutTime = new Date();
+    const checkInTime = new Date(checkIn.checkInTime);
+    const durationMs = checkOutTime.getTime() - checkInTime.getTime();
+    const durationMinutes = Math.floor(durationMs / (1000 * 60));
+
+    checkIn.checkOutTime = checkOutTime.toISOString();
+    checkIn.duration = durationMinutes;
+    checkIn.status = 'Completed';
+
+    this.saveCheckIns(checkIns);
+    return checkIn;
+  }
+
+  checkOutMemberByUserId(userId: string): CheckIn | null {
+    const activeCheckIns = this.getActiveCheckIns();
+    const checkIn = activeCheckIns.find(c => c.userId === userId);
+
+    if (!checkIn) {
+      return null;
+    }
+
+    return this.checkOutMember(checkIn.id);
+  }
+
+  updateCheckInNotes(checkInId: string, notes: string): CheckIn | null {
+    const checkIns = this.getAllCheckIns();
+    const checkIn = checkIns.find(c => c.id === checkInId);
+
+    if (!checkIn) {
+      return null;
+    }
+
+    checkIn.notes = notes;
+    this.saveCheckIns(checkIns);
+    return checkIn;
+  }
+
+  deleteCheckIn(id: string): boolean {
+    const checkIns = this.getAllCheckIns();
+    const filteredCheckIns = checkIns.filter(c => c.id !== id);
+
+    if (filteredCheckIns.length === checkIns.length) {
+      return false;
+    }
+
+    this.saveCheckIns(filteredCheckIns);
+    return true;
+  }
+
+  // Check-In Analytics
+
+  getCheckInStats(startDate?: string, endDate?: string): {
+    total: number;
+    active: number;
+    completed: number;
+    averageDuration: number;
+    byMembershipType: { [key: string]: number };
+    byMethod: { [key: string]: number };
+    byHour: { [key: string]: number };
+    byDay: { [key: string]: number };
+    peakHour: string;
+    peakDay: string;
+  } {
+    let checkIns = this.getAllCheckIns();
+
+    if (startDate && endDate) {
+      checkIns = this.getCheckInsByDateRange(startDate, endDate);
+    }
+
+    const total = checkIns.length;
+    const active = checkIns.filter(c => c.status === 'Active').length;
+    const completed = checkIns.filter(c => c.status === 'Completed').length;
+
+    const completedCheckIns = checkIns.filter(c => c.duration);
+    const totalDuration = completedCheckIns.reduce((sum, c) => sum + (c.duration || 0), 0);
+    const averageDuration = completedCheckIns.length > 0 ? Math.floor(totalDuration / completedCheckIns.length) : 0;
+
+    const byMembershipType: { [key: string]: number } = {};
+    const byMethod: { [key: string]: number } = {};
+    const byHour: { [key: string]: number } = {};
+    const byDay: { [key: string]: number } = {};
+
+    checkIns.forEach(c => {
+      // By membership type
+      byMembershipType[c.membershipType] = (byMembershipType[c.membershipType] || 0) + 1;
+
+      // By method
+      byMethod[c.method] = (byMethod[c.method] || 0) + 1;
+
+      // By hour
+      const hour = new Date(c.checkInTime).getHours();
+      const hourKey = `${hour.toString().padStart(2, '0')}:00`;
+      byHour[hourKey] = (byHour[hourKey] || 0) + 1;
+
+      // By day
+      const day = new Date(c.checkInTime).toLocaleDateString('en-US', { weekday: 'long' });
+      byDay[day] = (byDay[day] || 0) + 1;
+    });
+
+    // Find peak hour and day
+    let peakHour = '00:00';
+    let maxHourCount = 0;
+    Object.entries(byHour).forEach(([hour, count]) => {
+      if (count > maxHourCount) {
+        maxHourCount = count;
+        peakHour = hour;
+      }
+    });
+
+    let peakDay = 'Monday';
+    let maxDayCount = 0;
+    Object.entries(byDay).forEach(([day, count]) => {
+      if (count > maxDayCount) {
+        maxDayCount = count;
+        peakDay = day;
+      }
+    });
+
+    return {
+      total,
+      active,
+      completed,
+      averageDuration,
+      byMembershipType,
+      byMethod,
+      byHour,
+      byDay,
+      peakHour,
+      peakDay,
+    };
+  }
+
+  getMemberCheckInHistory(userId: string, limit?: number): CheckIn[] {
+    const checkIns = this.getCheckInsByUser(userId);
+    const sorted = checkIns.sort((a, b) => new Date(b.checkInTime).getTime() - new Date(a.checkInTime).getTime());
+    return limit ? sorted.slice(0, limit) : sorted;
+  }
+
+  getMemberCheckInCount(userId: string): number {
+    return this.getCheckInsByUser(userId).length;
+  }
+
+  getMemberTotalGymTime(userId: string): number {
+    const checkIns = this.getCheckInsByUser(userId).filter(c => c.duration);
+    return checkIns.reduce((sum, c) => sum + (c.duration || 0), 0);
+  }
+
   // Utility Methods
 
   generateId(): string {
@@ -1494,6 +1766,7 @@ export class MockDatabase {
     localStorage.removeItem(this.CLIENT_PROGRESS_KEY);
     localStorage.removeItem(this.REVIEWS_KEY);
     localStorage.removeItem(this.SUPPORT_TICKETS_KEY);
+    localStorage.removeItem(this.CHECKINS_KEY);
   }
 
   // Initialize demo data
@@ -2437,6 +2710,102 @@ export class MockDatabase {
         }
 
         console.log('✅ Demo support tickets initialized');
+      }
+    }
+
+    // Check-In Demo Data
+    const checkIns = this.getAllCheckIns();
+    if (checkIns.length === 0) {
+      const memberUser = users.find(u => u.role === 'member');
+      const secretary = users.find(u => u.role === 'secretary');
+
+      if (memberUser && secretary) {
+        // Active check-in (member currently in gym)
+        const activeCheckIn = this.createCheckIn({
+          userId: memberUser.id,
+          method: 'QR Code',
+          notes: 'Regular morning workout',
+        });
+
+        // Completed check-in from earlier today (2 hours)
+        const today = new Date();
+        const twoHoursAgo = new Date(today.getTime() - 2 * 60 * 60 * 1000);
+        const completedToday: CheckIn = {
+          id: this.generateId(),
+          userId: memberUser.id,
+          userName: memberUser.name,
+          userEmail: memberUser.email,
+          membershipType: 'Premium',
+          checkInTime: twoHoursAgo.toISOString(),
+          checkOutTime: new Date(twoHoursAgo.getTime() + 90 * 60 * 1000).toISOString(), // 90 min session
+          duration: 90,
+          method: 'Card Scan',
+          status: 'Completed',
+          createdAt: twoHoursAgo.toISOString(),
+        };
+
+        // Yesterday's check-in
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        yesterday.setHours(18, 30, 0, 0);
+        const yesterdayCheckIn: CheckIn = {
+          id: this.generateId(),
+          userId: memberUser.id,
+          userName: memberUser.name,
+          userEmail: memberUser.email,
+          membershipType: 'Premium',
+          checkInTime: yesterday.toISOString(),
+          checkOutTime: new Date(yesterday.getTime() + 75 * 60 * 1000).toISOString(),
+          duration: 75,
+          method: 'QR Code',
+          status: 'Completed',
+          createdAt: yesterday.toISOString(),
+        };
+
+        // 2 days ago check-in
+        const twoDaysAgo = new Date(today);
+        twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+        twoDaysAgo.setHours(7, 0, 0, 0);
+        const twoDaysAgoCheckIn: CheckIn = {
+          id: this.generateId(),
+          userId: memberUser.id,
+          userName: memberUser.name,
+          userEmail: memberUser.email,
+          membershipType: 'Premium',
+          checkInTime: twoDaysAgo.toISOString(),
+          checkOutTime: new Date(twoDaysAgo.getTime() + 60 * 60 * 1000).toISOString(),
+          duration: 60,
+          method: 'Manual',
+          receptionistId: secretary.id,
+          receptionistName: secretary.name,
+          notes: 'Forgot membership card',
+          status: 'Completed',
+          createdAt: twoDaysAgo.toISOString(),
+        };
+
+        // 3 days ago check-in
+        const threeDaysAgo = new Date(today);
+        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+        threeDaysAgo.setHours(19, 0, 0, 0);
+        const threeDaysAgoCheckIn: CheckIn = {
+          id: this.generateId(),
+          userId: memberUser.id,
+          userName: memberUser.name,
+          userEmail: memberUser.email,
+          membershipType: 'Premium',
+          checkInTime: threeDaysAgo.toISOString(),
+          checkOutTime: new Date(threeDaysAgo.getTime() + 105 * 60 * 1000).toISOString(),
+          duration: 105,
+          method: 'QR Code',
+          status: 'Completed',
+          createdAt: threeDaysAgo.toISOString(),
+        };
+
+        // Save all demo check-ins
+        const allCheckIns = [activeCheckIn, completedToday, yesterdayCheckIn, twoDaysAgoCheckIn, threeDaysAgoCheckIn];
+        this.saveCheckIns(allCheckIns);
+
+        console.log('✅ Demo check-ins initialized');
       }
     }
   }

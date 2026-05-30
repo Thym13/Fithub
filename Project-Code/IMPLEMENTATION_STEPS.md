@@ -3194,6 +3194,312 @@ Features:
 
 ---
 
+## ✅ STEP 19: Member Check-In System (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: Additional Feature - Attendance Tracking and Analytics  
+**Reference**: Gym visit tracking, member check-in/check-out, attendance analytics
+
+### Overview:
+
+Step 19 introduces a comprehensive member check-in system that tracks gym visits, monitors attendance patterns, and provides detailed analytics for both members and staff. The system supports multiple check-in methods (QR Code, Card Scan, Manual) and tracks session durations automatically.
+
+### Files Added:
+
+1. **`src/app/components/member-checkin-history.tsx`** - Member check-in history and statistics
+   - ✅ Personal check-in history view
+   - ✅ Active check-in indicator
+   - ✅ Statistics dashboard (total visits, total time, avg session, weekly visits)
+   - ✅ Recent check-ins list (last 10)
+   - ✅ Monthly summary with graphs
+   - ✅ Duration tracking and display
+   - ✅ Check-in method badges
+   - ✅ Empty state handling
+
+2. **`src/app/components/checkin-management.tsx`** - Receptionist check-in management
+   - ✅ Check-in member modal with search
+   - ✅ Check-out member functionality
+   - ✅ Currently in gym list (active check-ins)
+   - ✅ Today's check-ins history
+   - ✅ Statistics dashboard (4 cards)
+   - ✅ Multiple check-in methods support
+   - ✅ Notes field for special cases
+   - ✅ Quick check-out buttons
+   - ✅ Real-time duration tracking
+
+### Files Modified:
+
+1. **`src/app/services/database.ts`**
+   - ✅ Added CheckIn interface with comprehensive fields
+   - ✅ Added CHECKINS_KEY constant
+   - ✅ Implemented full CRUD operations:
+     - getAllCheckIns()
+     - getCheckInById()
+     - getCheckInsByUser()
+     - getCheckInsByStatus()
+     - getCheckInsByDateRange()
+     - getTodaysCheckIns()
+     - getActiveCheckIns()
+     - createCheckIn()
+     - checkOutMember()
+     - checkOutMemberByUserId()
+     - updateCheckInNotes()
+     - deleteCheckIn()
+   - ✅ Implemented analytics methods:
+     - getCheckInStats() - comprehensive statistics
+     - getMemberCheckInHistory()
+     - getMemberCheckInCount()
+     - getMemberTotalGymTime()
+   - ✅ Added validation: prevents duplicate active check-ins
+   - ✅ Added automatic duration calculation on check-out
+   - ✅ Added 5 demo check-ins in initializeDemoData()
+   - ✅ Added CHECKINS_KEY to clearAllData()
+
+2. **`src/app/components/member-dashboard-complete.tsx`**
+   - ✅ Added import for MemberCheckInHistory
+   - ✅ Added "My Check-Ins" tab (9th tab)
+   - ✅ Added TabsContent for check-in history
+
+3. **`src/app/components/receptionist-dashboard.tsx`**
+   - ✅ Added import for CheckInManagement
+   - ✅ Replaced mock check-in implementation with real component
+   - ✅ Integrated into existing "Check-Ins" tab
+
+### Features Implemented:
+
+**CheckIn Interface**:
+```typescript
+export interface CheckIn {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  membershipType: 'Basic' | 'Premium' | 'Elite';
+  checkInTime: string; // ISO timestamp
+  checkOutTime?: string; // ISO timestamp (optional)
+  duration?: number; // Duration in minutes (calculated on checkout)
+  method: 'QR Code' | 'Manual' | 'Card Scan'; // Check-in method
+  receptionistId?: string; // ID of receptionist who checked in manually
+  receptionistName?: string;
+  notes?: string; // Any notes about the check-in
+  status: 'Active' | 'Completed'; // Active = still in gym, Completed = checked out
+  createdAt: string;
+}
+```
+
+**Member Features**:
+1. **Check-In History**:
+   - View last 10 check-ins with dates and times
+   - See check-in and check-out times
+   - View session durations
+   - See check-in method (QR Code/Card Scan/Manual)
+   - View notes added by receptionist
+   - Check who checked them in (if manual)
+
+2. **Active Check-In Alert**:
+   - Green highlighted banner when currently in gym
+   - Shows check-in time and method
+   - Displays live duration counter
+   - Shows any notes
+
+3. **Statistics Dashboard** (4 cards):
+   - Total Visits: Lifetime gym visits
+   - Total Time: Cumulative time spent in gym
+   - Average Session: Mean duration per visit
+   - This Week: Check-ins in last 7 days
+
+4. **Monthly Summary**:
+   - Total visits this month
+   - Daily average percentage
+   - Average session length
+
+**Receptionist Features**:
+1. **Check-In Member**:
+   - Search members by name or email
+   - Select member from dropdown
+   - Choose check-in method (QR Code/Card Scan/Manual)
+   - Add optional notes
+   - Validation: prevents duplicate active check-ins
+   - Validation: requires active membership
+
+2. **Check-Out Member**:
+   - Quick check-out buttons on active check-ins
+   - Confirmation dialog
+   - Shows current duration before check-out
+   - Automatic duration calculation
+   - Updates status to Completed
+
+3. **Currently in Gym View**:
+   - Green highlighted cards for active check-ins
+   - Real-time duration display
+   - Member details (name, email, membership type)
+   - Check-in method and time
+   - Notes display
+   - Receptionist name (if manual check-in)
+   - Quick check-out button
+
+4. **Today's Check-Ins**:
+   - Complete list of all check-ins today
+   - Both active and completed
+   - Color-coded by status
+   - Duration display for completed
+   - Check-in/check-out times
+
+5. **Statistics Dashboard** (4 cards):
+   - Currently in Gym: Count of active check-ins
+   - Today's Check-Ins: Total check-ins today
+   - Completed Today: Finished sessions
+   - Avg. Duration: Mean session length today
+
+**Analytics Features**:
+- **By Membership Type**: Count of check-ins per membership level
+- **By Method**: Distribution across QR Code/Card Scan/Manual
+- **By Hour**: Peak hours analysis (hourly breakdown)
+- **By Day**: Peak days analysis (daily breakdown)
+- **Average Duration**: Mean session length
+- **Date Range Filtering**: Custom time period analysis
+
+### Validation & Business Rules:
+
+1. **Check-In Validation**:
+   - User must exist in system
+   - User must have active membership
+   - User cannot have duplicate active check-ins
+   - Error messages for all validation failures
+
+2. **Check-Out Validation**:
+   - Check-in must exist
+   - Check-in must be active (not already completed)
+   - Cannot check out twice
+
+3. **Automatic Calculations**:
+   - Duration calculated automatically on check-out
+   - Duration in minutes: (checkOutTime - checkInTime) / 60000
+   - Status automatically set to "Completed"
+
+4. **Data Integrity**:
+   - All timestamps in ISO format
+   - Duration only exists for completed check-ins
+   - Check-out time only exists for completed check-ins
+
+### Check-In Methods:
+
+1. **QR Code**:
+   - Member scans QR code at entrance
+   - Fastest method
+   - No receptionist interaction needed
+   - Tracked for analytics
+
+2. **Card Scan**:
+   - Member scans membership card
+   - Automatic identification
+   - No receptionist interaction needed
+   - Tracked for analytics
+
+3. **Manual**:
+   - Receptionist checks in member manually
+   - Used when member forgets card
+   - Requires receptionist selection
+   - Stores receptionist ID and name
+   - Optional notes field
+
+### Analytics Dashboard:
+
+**For Members**:
+- Total visits (lifetime)
+- Total time in gym (formatted as hours + minutes)
+- Average session length
+- Visits this week
+- Visits this month
+- Daily average percentage
+- Recent 10 check-ins with full details
+
+**For Receptionists/Managers**:
+- Real-time: who's in the gym right now
+- Today's total check-ins
+- Today's completed sessions
+- Average session duration
+- Peak hour identification
+- Peak day identification
+- Breakdown by membership type
+- Breakdown by check-in method
+- Custom date range analytics
+
+### User Experience Flow:
+
+**Member Check-In Flow (Receptionist)**:
+1. Receptionist clicks "Check In Member"
+2. Modal opens with search functionality
+3. Search for member by name or email
+4. Select member from filtered dropdown
+5. Choose check-in method
+6. Add optional notes (e.g., "Forgot card")
+7. Click "Check In"
+8. System validates (active membership, no duplicate)
+9. Check-in created with timestamp
+10. Member appears in "Currently in Gym" list
+11. Modal closes, data refreshes
+
+**Member Check-Out Flow**:
+1. Receptionist finds member in "Currently in Gym"
+2. Clicks "Check Out" button
+3. Confirmation modal shows current duration
+4. Click "Confirm Check Out"
+5. System calculates total duration
+6. Updates status to "Completed"
+7. Adds check-out timestamp
+8. Member removed from active list
+9. Appears in "Completed Today" list
+10. Data refreshes
+
+**Member View Flow**:
+1. Member logs in
+2. Navigates to "My Check-Ins" tab
+3. If currently in gym: sees green active banner
+4. Views 4 statistics cards
+5. Scrolls through recent 10 check-ins
+6. See s monthly summary at bottom
+7. Each check-in shows:
+   - Date and time
+   - Duration (if completed)
+   - Check-in method
+   - Notes (if any)
+   - Who checked them in (if manual)
+
+### Benefits:
+
+1. **Attendance Tracking**: Accurate record of member visits
+2. **Duration Analysis**: Understand workout patterns
+3. **Peak Time Identification**: Optimize staffing and resources
+4. **Membership Validation**: Ensure only active members access gym
+5. **Security**: Know who's in the building at all times
+6. **Member Insights**: Members track their own consistency
+7. **Data-Driven Decisions**: Analytics for business planning
+8. **Accountability**: Track receptionist check-in activities
+9. **Flexibility**: Multiple check-in methods for convenience
+10. **Notes System**: Document special cases and exceptions
+
+### Visual Design:
+
+- **Active Check-Ins**: Green highlight with green badges
+- **Completed Check-Ins**: Gray outline with neutral badges
+- **Method Badges**: Color-coded (QR=blue, Card=green, Manual=purple)
+- **Statistics Cards**: Icon-based with clear metrics
+- **Duration Display**: Prominent, easy-to-read format (e.g., "1h 30m")
+- **Real-Time Updates**: Live duration counter for active check-ins
+- **Responsive Design**: Works on all screen sizes
+- **Empty States**: Helpful messages when no data
+
+### Security Considerations:
+
+1. **Membership Validation**: Only active members can check in
+2. **Duplicate Prevention**: Cannot check in twice simultaneously
+3. **Receptionist Tracking**: Manual check-ins record who performed them
+4. **Audit Trail**: Complete history of all check-ins
+5. **Data Privacy**: Members only see their own check-in history
+
+---
+
 ## 📋 Upcoming Steps:
 
 ... and more!
@@ -3222,8 +3528,9 @@ Features:
 | 16 | ✅ | UC-9 | Gym Review and Rating System |
 | 17 | ✅ | UC-10 | Customer Support and Ticketing System |
 | 18 | ✅ | Additional | Member Profile Management |
+| 19 | ✅ | Additional | Member Check-In System |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 18 (72%)  
-**Steps Remaining**: 7
+**Steps Completed**: 19 (76%)  
+**Steps Remaining**: 6
