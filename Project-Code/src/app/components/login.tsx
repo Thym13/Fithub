@@ -206,40 +206,91 @@ export function Login() {
         </Card>
 
         {/* Demo Accounts */}
-        <Card className="bg-yellow-50 border-yellow-200">
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
           <CardHeader>
-            <CardTitle className="text-sm">Demo Accounts (For Testing)</CardTitle>
+            <CardTitle className="text-base text-center">🎯 Demo Accounts</CardTitle>
+            <CardDescription className="text-center">Click any role to login instantly</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Button
                 variant="outline"
-                size="sm"
-                onClick={() => handleQuickLogin('manager@fithub.gr', 'Manager123!')}
+                size="default"
+                onClick={() => handleQuickLogin('member@fithub.gr', 'Member123!')}
                 disabled={isLoading}
-                className="justify-start"
+                className="justify-start bg-white hover:bg-blue-50 hover:border-blue-400 transition-all h-auto py-3"
               >
-                <span className="mr-2">👔</span>
-                <span className="text-left flex-1">Manager</span>
-                <span className="text-xs text-gray-500">manager@fithub.gr</span>
+                <div className="flex items-center gap-3 w-full">
+                  <div className="size-10 rounded-full bg-blue-100 flex items-center justify-center text-xl shrink-0">
+                    💪
+                  </div>
+                  <div className="text-left flex-1 min-w-0">
+                    <div className="font-semibold text-sm">Member</div>
+                    <div className="text-xs text-gray-500 truncate">member@fithub.gr</div>
+                  </div>
+                </div>
               </Button>
 
               <Button
                 variant="outline"
-                size="sm"
+                size="default"
+                onClick={() => handleQuickLogin('trainer@fithub.gr', 'Trainer123!')}
+                disabled={isLoading}
+                className="justify-start bg-white hover:bg-green-50 hover:border-green-400 transition-all h-auto py-3"
+              >
+                <div className="flex items-center gap-3 w-full">
+                  <div className="size-10 rounded-full bg-green-100 flex items-center justify-center text-xl shrink-0">
+                    🏋️
+                  </div>
+                  <div className="text-left flex-1 min-w-0">
+                    <div className="font-semibold text-sm">Trainer</div>
+                    <div className="text-xs text-gray-500 truncate">trainer@fithub.gr</div>
+                  </div>
+                </div>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="default"
                 onClick={() => handleQuickLogin('secretary@fithub.gr', 'Admin123!')}
                 disabled={isLoading}
-                className="justify-start"
+                className="justify-start bg-white hover:bg-purple-50 hover:border-purple-400 transition-all h-auto py-3"
               >
-                <span className="mr-2">📋</span>
-                <span className="text-left flex-1">Secretary</span>
-                <span className="text-xs text-gray-500">secretary@fithub.gr</span>
+                <div className="flex items-center gap-3 w-full">
+                  <div className="size-10 rounded-full bg-purple-100 flex items-center justify-center text-xl shrink-0">
+                    📋
+                  </div>
+                  <div className="text-left flex-1 min-w-0">
+                    <div className="font-semibold text-sm">Secretary</div>
+                    <div className="text-xs text-gray-500 truncate">secretary@fithub.gr</div>
+                  </div>
+                </div>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="default"
+                onClick={() => handleQuickLogin('manager@fithub.gr', 'Manager123!')}
+                disabled={isLoading}
+                className="justify-start bg-white hover:bg-orange-50 hover:border-orange-400 transition-all h-auto py-3"
+              >
+                <div className="flex items-center gap-3 w-full">
+                  <div className="size-10 rounded-full bg-orange-100 flex items-center justify-center text-xl shrink-0">
+                    👔
+                  </div>
+                  <div className="text-left flex-1 min-w-0">
+                    <div className="font-semibold text-sm">Manager</div>
+                    <div className="text-xs text-gray-500 truncate">manager@fithub.gr</div>
+                  </div>
+                </div>
               </Button>
             </div>
 
-            <p className="text-xs text-gray-600 text-center mt-3">
-              Click to auto-login with demo accounts
-            </p>
+            <div className="pt-2 border-t border-blue-200">
+              <p className="text-xs text-gray-600 text-center">
+                All passwords: <code className="px-2 py-0.5 bg-white rounded text-blue-600 font-mono">Role123!</code>
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
