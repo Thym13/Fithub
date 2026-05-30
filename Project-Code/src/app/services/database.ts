@@ -253,6 +253,37 @@ export interface Review {
   updatedAt: string;
 }
 
+export interface TicketMessage {
+  id: string;
+  ticketId: string;
+  senderId: string; // User ID or 'ai' or 'secretary'
+  senderName: string;
+  senderType: 'member' | 'ai' | 'secretary';
+  message: string;
+  timestamp: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  ticketNumber: string; // Human-readable ticket number (e.g., "TKT-001234")
+  userId: string;
+  userName: string;
+  userEmail: string;
+  category: 'Technical Problem' | 'Subscription Info' | 'System Errors' | 'Billing' | 'Classes & Programs' | 'General Inquiry';
+  subject: string;
+  description: string;
+  status: 'Open' | 'AI Responding' | 'Escalated' | 'Closed';
+  priority: 'Low' | 'Medium' | 'High';
+  assignedTo?: string; // Secretary ID if escalated
+  assignedToName?: string;
+  messages: TicketMessage[];
+  aiErrorOccurred?: boolean; // Flag for AI system errors
+  closedBy?: string; // 'member' | 'ai' | 'secretary'
+  closedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export class MockDatabase {
   private static instance: MockDatabase;
 
@@ -269,6 +300,7 @@ export class MockDatabase {
   private DISCOUNT_CODE_USAGE_KEY = 'fithub_discount_code_usage';
   private CLIENT_PROGRESS_KEY = 'fithub_client_progress';
   private REVIEWS_KEY = 'fithub_reviews';
+  private SUPPORT_TICKETS_KEY = 'fithub_support_tickets';
 
   static getInstance(): MockDatabase {
     if (!MockDatabase.instance) {
@@ -1230,6 +1262,204 @@ export class MockDatabase {
     };
   }
 
+  // ============ SUPPORT TICKET METHODS ============
+
+  getAllSupportTickets(): SupportTicket[] {
+    const data = localStorage.getItem(this.SUPPORT_TICKETS_KEY);
+    return data ? JSON.parse(data) : [];
+  }
+
+  saveSupportTickets(tickets: SupportTicket[]): void {
+    localStorage.setItem(this.SUPPORT_TICKETS_KEY, JSON.stringify(tickets));
+  }
+
+  generateTicketNumber(): string {
+    const tickets = this.getAllSupportTickets();
+    const ticketCount = tickets.length + 1;
+    return `TKT-${ticketCount.toString().padStart(6, '0')}`;
+  }
+
+  createSupportTicket(ticketData: Omit<SupportTicket, 'id' | 'ticketNumber' | 'messages' | 'status' | 'createdAt' | 'updatedAt'>): SupportTicket {
+    const tickets = this.getAllSupportTickets();
+    const newTicket: SupportTicket = {
+      ...ticketData,
+      id: this.generateId(),
+      ticketNumber: this.generateTicketNumber(),
+      messages: [],
+      status: 'Open',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    tickets.push(newTicket);
+    this.saveSupportTickets(tickets);
+
+    return newTicket;
+  }
+
+  getSupportTicketById(id: string): SupportTicket | null {
+    const tickets = this.getAllSupportTickets();
+    return tickets.find(t => t.id === id) || null;
+  }
+
+  getSupportTicketsByUser(userId: string): SupportTicket[] {
+    const tickets = this.getAllSupportTickets();
+    return tickets.filter(t => t.userId === userId).sort((a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  getSupportTicketsByStatus(status: 'Open' | 'AI Responding' | 'Escalated' | 'Closed'): SupportTicket[] {
+    const tickets = this.getAllSupportTickets();
+    return tickets.filter(t => t.status === status).sort((a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  getSupportTicketsBySecretary(secretaryId: string): SupportTicket[] {
+    const tickets = this.getAllSupportTickets();
+    return tickets.filter(t => t.assignedTo === secretaryId).sort((a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  updateSupportTicket(id: string, updates: Partial<SupportTicket>): SupportTicket | null {
+    const tickets = this.getAllSupportTickets();
+    const index = tickets.findIndex(t => t.id === id);
+
+    if (index === -1) {
+      return null;
+    }
+
+    tickets[index] = {
+      ...tickets[index],
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.saveSupportTickets(tickets);
+    return tickets[index];
+  }
+
+  addMessageToTicket(ticketId: string, message: Omit<TicketMessage, 'id' | 'ticketId' | 'timestamp'>): TicketMessage | null {
+    const ticket = this.getSupportTicketById(ticketId);
+    if (!ticket) return null;
+
+    const newMessage: TicketMessage = {
+      ...message,
+      id: this.generateId(),
+      ticketId: ticketId,
+      timestamp: new Date().toISOString(),
+    };
+
+    ticket.messages.push(newMessage);
+
+    // Update ticket status based on message sender
+    if (message.senderType === 'ai') {
+      ticket.status = 'AI Responding';
+    } else if (message.senderType === 'secretary') {
+      ticket.status = 'Escalated';
+    }
+
+    this.updateSupportTicket(ticketId, {
+      messages: ticket.messages,
+      status: ticket.status,
+    });
+
+    return newMessage;
+  }
+
+  escalateTicketToSecretary(ticketId: string, secretaryId: string, secretaryName: string): SupportTicket | null {
+    const ticket = this.getSupportTicketById(ticketId);
+    if (!ticket) return null;
+
+    const updatedTicket = this.updateSupportTicket(ticketId, {
+      status: 'Escalated',
+      assignedTo: secretaryId,
+      assignedToName: secretaryName,
+    });
+
+    if (updatedTicket) {
+      // Notify secretary
+      const secretary = this.findUserById(secretaryId);
+      if (secretary) {
+        this.sendEmail({
+          to: secretary.email,
+          subject: `New Support Ticket Escalated: ${ticket.ticketNumber}`,
+          body: `Hi ${secretaryName},\n\nA support ticket has been escalated to you for assistance.\n\nTicket #: ${ticket.ticketNumber}\nCategory: ${ticket.category}\nSubject: ${ticket.subject}\nMember: ${ticket.userName}\n\nPlease respond to the member through the support system.\n\nBest regards,\nFitHub System`
+        });
+      }
+    }
+
+    return updatedTicket;
+  }
+
+  closeTicket(ticketId: string, closedBy: 'member' | 'ai' | 'secretary'): SupportTicket | null {
+    return this.updateSupportTicket(ticketId, {
+      status: 'Closed',
+      closedBy,
+      closedAt: new Date().toISOString(),
+    });
+  }
+
+  // Simulate AI response (mock AI)
+  generateAIResponse(userMessage: string, category: string): string {
+    const responses: { [key: string]: string[] } = {
+      'Technical Problem': [
+        "I understand you're experiencing a technical issue. Can you please provide more details about the error message you're seeing?",
+        "Let me help you with that technical problem. Have you tried refreshing the page or logging out and back in?",
+        "For technical issues, I recommend clearing your browser cache and cookies. Would you like step-by-step instructions?",
+      ],
+      'Subscription Info': [
+        "I'd be happy to help you with subscription information. Our gym offers Basic (€49/month), Premium (€79/month), and Elite (€99/month) memberships.",
+        "Regarding subscriptions, you can upgrade or downgrade your plan at any time from your Membership page. What specific information do you need?",
+        "Your current subscription details are available in your dashboard under the Membership tab. Is there something specific you'd like to know?",
+      ],
+      'System Errors': [
+        "I'm sorry you're encountering a system error. Let me look into this for you. What were you trying to do when the error occurred?",
+        "System errors can sometimes be resolved by logging out and logging back in. Have you tried that yet?",
+        "I apologize for the inconvenience. Can you describe the error message you received? This will help me assist you better.",
+      ],
+      'Billing': [
+        "I can help you with billing questions. What would you like to know about your payments or invoices?",
+        "For billing inquiries, you can view all your transactions in the Membership section. Is there a specific charge you'd like to discuss?",
+        "Regarding billing, all payments are processed securely. What billing information do you need help with?",
+      ],
+      'Classes & Programs': [
+        "I'd be happy to help with information about our classes and training programs. What would you like to know?",
+        "You can browse all available classes in the Book Classes section. Are you looking for a specific type of class?",
+        "Our trainers offer personalized training programs. Would you like information about how to get started?",
+      ],
+      'General Inquiry': [
+        "Thank you for contacting FitHub support! How can I assist you today?",
+        "I'm here to help! What question do you have about our gym services?",
+        "Hello! I'm the FitHub AI assistant. What can I help you with?",
+      ]
+    };
+
+    const categoryResponses = responses[category] || responses['General Inquiry'];
+    const randomIndex = Math.floor(Math.random() * categoryResponses.length);
+
+    // Simulate occasional AI error (5% chance)
+    if (Math.random() < 0.05) {
+      throw new Error('AI System Error');
+    }
+
+    return categoryResponses[randomIndex];
+  }
+
+  deleteSupportTicket(id: string): boolean {
+    const tickets = this.getAllSupportTickets();
+    const filteredTickets = tickets.filter(t => t.id !== id);
+
+    if (filteredTickets.length === tickets.length) {
+      return false;
+    }
+
+    this.saveSupportTickets(filteredTickets);
+    return true;
+  }
+
   // Utility Methods
 
   generateId(): string {
@@ -1238,6 +1468,15 @@ export class MockDatabase {
 
   generateVerificationToken(): string {
     return Math.random().toString(36).substr(2, 32) + Date.now().toString(36);
+  }
+
+  sendEmail(emailData: { to: string; subject: string; body: string }): void {
+    // Mock email sending - log to console
+    console.log('📧 Email sent:', {
+      to: emailData.to,
+      subject: emailData.subject,
+      body: emailData.body,
+    });
   }
 
   clearAllData(): void {
@@ -1254,6 +1493,7 @@ export class MockDatabase {
     localStorage.removeItem(this.DISCOUNT_CODE_USAGE_KEY);
     localStorage.removeItem(this.CLIENT_PROGRESS_KEY);
     localStorage.removeItem(this.REVIEWS_KEY);
+    localStorage.removeItem(this.SUPPORT_TICKETS_KEY);
   }
 
   // Initialize demo data
@@ -2087,6 +2327,116 @@ export class MockDatabase {
 
         this.saveReviews(reviewsData);
         console.log('✅ Demo reviews initialized');
+      }
+    }
+
+    // Initialize demo support tickets
+    const supportTickets = this.getAllSupportTickets();
+    if (supportTickets.length === 0) {
+      const allUsers = this.getAllUsers();
+      const memberUser = allUsers.find(u => u.role === 'member');
+      const secretary = allUsers.find(u => u.role === 'secretary');
+
+      if (memberUser) {
+        // Open ticket with AI responding
+        const ticket1 = this.createSupportTicket({
+          userId: memberUser.id,
+          userName: memberUser.name,
+          userEmail: memberUser.email,
+          category: 'Technical Problem',
+          subject: 'Cannot access my training program',
+          description: 'I am trying to view my training program but the page keeps loading. Can you help?',
+          priority: 'Medium',
+        });
+
+        // Add AI message
+        this.addMessageToTicket(ticket1.id, {
+          senderId: 'ai',
+          senderName: 'FitHub AI Assistant',
+          senderType: 'ai',
+          message: "I understand you're having trouble accessing your training program. Let me help you with that. Have you tried refreshing the page or logging out and back in?",
+        });
+
+        // Add member response
+        this.addMessageToTicket(ticket1.id, {
+          senderId: memberUser.id,
+          senderName: memberUser.name,
+          senderType: 'member',
+          message: "I tried that but it's still not working. The page just shows a loading spinner.",
+        });
+
+        // Closed ticket - resolved by AI
+        const ticket2 = this.createSupportTicket({
+          userId: memberUser.id,
+          userName: memberUser.name,
+          userEmail: memberUser.email,
+          category: 'Subscription Info',
+          subject: 'Question about upgrading membership',
+          description: 'What are the benefits of upgrading from Basic to Premium?',
+          priority: 'Low',
+        });
+
+        this.addMessageToTicket(ticket2.id, {
+          senderId: 'ai',
+          senderName: 'FitHub AI Assistant',
+          senderType: 'ai',
+          message: "Great question! Premium membership (€79/month) offers additional benefits over Basic (€49/month) including: access to all classes, priority booking, 2 personal training sessions per month, and access to premium equipment. Would you like to know more about any specific benefit?",
+        });
+
+        this.addMessageToTicket(ticket2.id, {
+          senderId: memberUser.id,
+          senderName: memberUser.name,
+          senderType: 'member',
+          message: "That's perfect! Thank you for the information.",
+        });
+
+        this.closeTicket(ticket2.id, 'ai');
+
+        // Escalated ticket - secretary handling
+        if (secretary) {
+          const ticket3 = this.createSupportTicket({
+            userId: memberUser.id,
+            userName: memberUser.name,
+            userEmail: memberUser.email,
+            category: 'Billing',
+            subject: 'Incorrect charge on my account',
+            description: 'I was charged twice for my membership this month. Can someone help me resolve this?',
+            priority: 'High',
+          });
+
+          this.addMessageToTicket(ticket3.id, {
+            senderId: 'ai',
+            senderName: 'FitHub AI Assistant',
+            senderType: 'ai',
+            message: "I'm sorry to hear about the billing issue. Let me check your recent transactions. Can you confirm the dates of the two charges?",
+          });
+
+          this.addMessageToTicket(ticket3.id, {
+            senderId: memberUser.id,
+            senderName: memberUser.name,
+            senderType: 'member',
+            message: "Both charges were on May 15th, €49 each.",
+          });
+
+          this.addMessageToTicket(ticket3.id, {
+            senderId: 'ai',
+            senderName: 'FitHub AI Assistant',
+            senderType: 'ai',
+            message: "I understand this is urgent. Let me escalate this to our billing team for immediate assistance.",
+          });
+
+          // Escalate to secretary
+          this.escalateTicketToSecretary(ticket3.id, secretary.id, secretary.name);
+
+          this.addMessageToTicket(ticket3.id, {
+            senderId: secretary.id,
+            senderName: secretary.name,
+            senderType: 'secretary',
+            message: "Hello! I'm Maria from the FitHub team. I've reviewed your account and confirmed the duplicate charge. I've processed a refund for €49 which should appear in your account within 3-5 business days. My apologies for the inconvenience!",
+          });
+        }
+
+        console.log('✅ Demo support tickets initialized');
       }
     }
   }
