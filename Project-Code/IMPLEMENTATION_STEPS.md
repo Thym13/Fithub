@@ -4321,6 +4321,354 @@ A comprehensive trainer interface for creating and managing customized meal plan
 
 ---
 
+## ✅ STEP 23: Equipment Management & Maintenance Tracking (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: Additional Feature - Equipment and Maintenance Management  
+**Reference**: Facility management, equipment tracking, preventive maintenance
+
+### Overview:
+
+A comprehensive equipment management system that enables gym managers to track all equipment inventory, schedule maintenance, log repairs, monitor equipment status, and maintain detailed maintenance histories. This system helps ensure equipment safety, optimize maintenance schedules, and track equipment lifecycle costs.
+
+### Files Added:
+
+1. **`src/app/components/equipment-management.tsx`** - Manager equipment management interface
+   - ✅ 3-tab interface: Equipment, Maintenance, Overview
+   - ✅ Equipment inventory dashboard with 5 KPI cards
+   - ✅ Equipment list with filtering by status and category
+   - ✅ Add new equipment modal with comprehensive form
+   - ✅ Edit equipment modal
+   - ✅ Schedule maintenance modal
+   - ✅ Maintenance logs list with status tracking
+   - ✅ Overview tab with charts and statistics
+   - ✅ Equipment by category breakdown
+   - ✅ Equipment by condition breakdown
+   - ✅ Maintenance by type breakdown
+   - ✅ Key metrics display
+
+### Files Modified:
+
+1. **`src/app/services/database.ts`**
+   - ✅ Added `Equipment` interface with full equipment details
+   - ✅ Added `MaintenanceLog` interface for maintenance tracking
+   - ✅ Added `EQUIPMENT_KEY` and `MAINTENANCE_LOGS_KEY` storage constants
+   
+   **Equipment Operations**:
+   - ✅ `createEquipment()` - Add new equipment to inventory
+   - ✅ `getAllEquipment()` - Retrieve all equipment
+   - ✅ `getEquipmentById()` - Get specific equipment
+   - ✅ `getEquipmentByCategory()` - Filter by category
+   - ✅ `getEquipmentByStatus()` - Filter by status
+   - ✅ `getEquipmentByLocation()` - Filter by gym area
+   - ✅ `getEquipmentNeedingMaintenance()` - Get overdue items
+   - ✅ `updateEquipment()` - Update equipment details
+   - ✅ `deleteEquipment()` - Remove equipment
+   - ✅ `getEquipmentStats()` - Calculate comprehensive statistics
+   
+   **Maintenance Log Operations**:
+   - ✅ `createMaintenanceLog()` - Schedule/log maintenance
+   - ✅ `getAllMaintenanceLogs()` - Retrieve all logs
+   - ✅ `getMaintenanceLogById()` - Get specific log
+   - ✅ `getMaintenanceLogsByEquipment()` - Get history for equipment
+   - ✅ `getMaintenanceLogsByStatus()` - Filter by status
+   - ✅ `getUpcomingMaintenance()` - Get scheduled maintenance
+   - ✅ `getOverdueMaintenance()` - Get overdue items
+   - ✅ `updateMaintenanceLog()` - Update log (auto-updates equipment when completed)
+   - ✅ `deleteMaintenanceLog()` - Remove log
+   - ✅ `getMaintenanceStats()` - Calculate maintenance statistics
+   
+   **Demo Data**:
+   - ✅ 10 pieces of equipment across all categories
+   - ✅ Realistic equipment details (manufacturer, model, serial numbers)
+   - ✅ Various statuses (Operational, Under Maintenance, Out of Service)
+   - ✅ 6 maintenance logs (completed, in progress, scheduled, emergency)
+   - ✅ Cost tracking and downtime data
+
+2. **`src/app/components/manager-dashboard.tsx`**
+   - ✅ Added import for `EquipmentManagement` component
+   - ✅ Added "Equipment Management" tab to managerTabs array
+   - ✅ Added TabsContent section for equipment view
+
+### Features Implemented:
+
+**1. Equipment Inventory Management**:
+- 📦 Complete equipment catalog
+- 🏷️ Equipment categories: Cardio, Strength, Free Weights, Functional, Other
+- 🔍 Filter by status (All, Operational, Under Maintenance, Out of Service, Retired)
+- 🔍 Filter by category
+- ➕ Add new equipment with full details
+- ✏️ Edit existing equipment
+- 🗑️ Delete equipment
+- 📍 Location tracking (gym areas)
+- 📊 Equipment condition tracking (Excellent, Good, Fair, Poor)
+
+**2. Equipment Details Tracking**:
+- 🏭 Manufacturer and model information
+- 🔢 Serial number tracking
+- 💰 Purchase date and cost
+- 📅 Last maintenance date
+- 📅 Next maintenance due date
+- ⏱️ Maintenance interval configuration
+- 📝 Notes field
+- 🎨 Status badges with color coding
+
+**3. Maintenance Scheduling**:
+- 📅 Schedule maintenance for any equipment
+- 🔧 Maintenance types: Scheduled, Repair, Inspection, Emergency
+- ⚠️ Priority levels: Low, Medium, High, Critical
+- 📝 Description and notes
+- 👤 Performed by field
+- 💵 Cost tracking (parts + labor)
+- ⏱️ Downtime tracking (hours)
+- 📋 Parts replaced tracking
+
+**4. Maintenance Log Management**:
+- 📊 View all maintenance logs
+- 🔍 Filter by status (Scheduled, In Progress, Completed, Cancelled)
+- 📈 Track maintenance history per equipment
+- ✅ Mark maintenance as completed (auto-updates equipment)
+- 💰 Cost breakdown (parts cost, labor cost, total)
+- 📝 Issues found and actions taken
+- ⏱️ Equipment downtime tracking
+
+**5. Statistics & Analytics**:
+   
+   **Equipment Stats**:
+   - Total equipment count
+   - Operational equipment count
+   - Under maintenance count
+   - Equipment needing maintenance (overdue)
+   - Total equipment value
+   - Equipment by category distribution
+   - Equipment by condition distribution
+   - Average equipment age (days)
+   
+   **Maintenance Stats**:
+   - Total maintenance logs
+   - Scheduled maintenance count
+   - Overdue maintenance count
+   - Completed maintenance count
+   - In progress count
+   - Total maintenance cost (30 days)
+   - Average maintenance cost
+   - Average downtime per incident
+   - Maintenance by type distribution
+   - Maintenance by priority distribution
+
+**6. Data Models**:
+
+**Equipment Interface**:
+```typescript
+{
+  id: string;
+  name: string;
+  category: 'Cardio' | 'Strength' | 'Free Weights' | 'Functional' | 'Other';
+  manufacturer: string;
+  model: string;
+  serialNumber: string;
+  purchaseDate: string;
+  purchaseCost: number;
+  location: string;
+  status: 'Operational' | 'Under Maintenance' | 'Out of Service' | 'Retired';
+  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  lastMaintenanceDate?: string;
+  nextMaintenanceDate?: string;
+  maintenanceInterval: number; // days
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+**MaintenanceLog Interface**:
+```typescript
+{
+  id: string;
+  equipmentId: string;
+  equipmentName: string;
+  type: 'Scheduled' | 'Repair' | 'Inspection' | 'Emergency';
+  status: 'Scheduled' | 'In Progress' | 'Completed' | 'Cancelled';
+  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  scheduledDate: string;
+  completedDate?: string;
+  performedBy?: string;
+  description: string;
+  issuesFound?: string;
+  actionsTaken?: string;
+  partsCost?: number;
+  laborCost?: number;
+  totalCost?: number;
+  partsReplaced?: string[];
+  downtime?: number; // hours
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+### Business Value:
+
+1. **Equipment Safety**: Regular maintenance tracking ensures equipment is safe for members
+2. **Cost Management**: Track maintenance costs and identify expensive equipment
+3. **Preventive Maintenance**: Schedule regular maintenance to prevent breakdowns
+4. **Downtime Reduction**: Track and minimize equipment out-of-service time
+5. **Asset Management**: Complete inventory of all gym equipment and value
+6. **Lifecycle Planning**: Monitor equipment age and plan for replacements
+7. **Compliance**: Maintain records for safety inspections and regulations
+8. **Operational Efficiency**: Identify maintenance patterns and optimize schedules
+
+### User Experience:
+
+**Manager Workflow**:
+1. Manager navigates to "Equipment Management" tab
+2. Views dashboard with equipment statistics
+3. Filters equipment by status or category
+4. Adds new equipment when purchased
+5. Schedules maintenance for equipment
+6. Views maintenance logs and history
+7. Updates equipment status (e.g., Under Maintenance → Operational)
+8. Tracks total maintenance costs
+9. Reviews overview analytics
+
+**Add Equipment Flow**:
+1. Click "Add Equipment" button
+2. Enter equipment details (name, category, manufacturer, model, serial)
+3. Set location and purchase information
+4. Configure maintenance interval (default: 90 days)
+5. Set initial status and condition
+6. Add notes if needed
+7. Save equipment
+8. System calculates next maintenance date
+
+**Schedule Maintenance Flow**:
+1. Click "Schedule" button on equipment
+2. Select maintenance type (Scheduled, Repair, Inspection, Emergency)
+3. Set priority level
+4. Choose scheduled date
+5. Add description of work needed
+6. Add notes
+7. Save maintenance log
+8. Log appears in maintenance tab
+
+**Complete Maintenance Flow**:
+1. View maintenance log
+2. Update status to "Completed"
+3. Add completion date
+4. Record who performed the work
+5. Log issues found and actions taken
+6. Enter costs (parts + labor)
+7. Record downtime hours
+8. List parts replaced
+9. Save log
+10. System updates equipment's last/next maintenance dates
+
+**Visual Design**:
+- 3-tab interface (Equipment, Maintenance, Overview)
+- Color-coded status badges
+- Clean card-based layouts
+- Grid layouts for equipment/maintenance lists
+- Progress bars for distribution charts
+- Icon usage throughout
+- Responsive design
+- Modal forms for creating/editing
+
+### Technical Implementation:
+
+**Component Architecture**:
+- React functional component with hooks
+- Multiple useState hooks for state management
+- useEffect for data loading
+- Tabbed interface with Tabs component
+- Modal-based forms for create/edit operations
+- Conditional rendering for empty states
+
+**State Management**:
+- allEquipment: filtered equipment list
+- allMaintenanceLogs: all maintenance logs
+- filterStatus: equipment status filter
+- filterCategory: equipment category filter
+- selectedEquipment: equipment being edited/scheduled
+- equipmentForm: create/edit form state
+- maintenanceForm: schedule maintenance form state
+- activeTab: current tab selection
+
+**Database Operations**:
+- Full CRUD for equipment
+- Full CRUD for maintenance logs
+- Automatic next maintenance date calculation
+- Equipment status auto-update on maintenance completion
+- Statistics aggregation
+- Filtering and sorting
+
+**User Interface Components**:
+- KPI cards with statistics
+- Equipment cards with badges
+- Maintenance log cards
+- Filter dropdowns
+- Modal forms
+- Progress bars for distribution
+- Tabbed navigation
+- Icon buttons for actions
+
+**Data Persistence**:
+- localStorage-based storage
+- All changes persist immediately
+- Demo data initialization
+- Relationships maintained (equipment ↔ maintenance logs)
+
+### Integration Points:
+
+**With Manager Dashboard**:
+- New tab in manager navigation
+- Accessible from main manager interface
+- Part of manager workflow
+
+**Potential Future Integrations**:
+- Member check-in system (equipment usage tracking)
+- Class schedule (equipment allocation)
+- Inventory management (parts/supplies)
+- Notification system (maintenance reminders)
+
+### Future Enhancements:
+
+**Advanced Features**:
+- QR code labels for equipment
+- Mobile app for maintenance staff
+- Photo uploads for equipment/damage
+- Warranty tracking
+- Vendor management
+- Parts inventory system
+- Maintenance calendar view
+- Equipment usage analytics (hours of use)
+- Automated maintenance scheduling
+- Email/SMS maintenance reminders
+
+**Reporting**:
+- Monthly maintenance reports
+- Cost analysis reports
+- Equipment depreciation tracking
+- Maintenance efficiency metrics
+- Compliance reports
+- Equipment utilization reports
+- Failure rate analysis
+
+**Integration**:
+- IoT equipment monitoring (treadmill hours, etc.)
+- Third-party maintenance service integration
+- Accounting system integration
+- Member usage tracking
+- Automatic alerts for overdue maintenance
+
+**Analytics**:
+- Predictive maintenance (ML-based failure prediction)
+- Cost trends over time
+- Equipment replacement recommendations
+- Maintenance staff performance
+- Parts consumption patterns
+
+---
+
 ## 📋 Upcoming Steps:
 
 ... and more!
@@ -4353,8 +4701,9 @@ A comprehensive trainer interface for creating and managing customized meal plan
 | 20 | ✅ | Additional | Manager Analytics Dashboard |
 | 21 | ✅ | Additional | Nutrition & Meal Planning System |
 | 22 | ✅ | Additional | Trainer Meal Planning Interface |
+| 23 | ✅ | Additional | Equipment Management & Maintenance Tracking |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 22 (88%)  
-**Steps Remaining**: 3
+**Steps Completed**: 23 (92%)  
+**Steps Remaining**: 2

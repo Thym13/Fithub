@@ -361,6 +361,50 @@ export interface NutritionLog {
   createdAt: string;
 }
 
+export interface Equipment {
+  id: string;
+  name: string;
+  category: 'Cardio' | 'Strength' | 'Free Weights' | 'Functional' | 'Other';
+  manufacturer: string;
+  model: string;
+  serialNumber: string;
+  purchaseDate: string;
+  purchaseCost: number;
+  location: string; // Area in gym (e.g., "Main Floor", "Weight Room")
+  status: 'Operational' | 'Under Maintenance' | 'Out of Service' | 'Retired';
+  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  lastMaintenanceDate?: string;
+  nextMaintenanceDate?: string;
+  maintenanceInterval: number; // days
+  notes?: string;
+  imageUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MaintenanceLog {
+  id: string;
+  equipmentId: string;
+  equipmentName: string;
+  type: 'Scheduled' | 'Repair' | 'Inspection' | 'Emergency';
+  status: 'Scheduled' | 'In Progress' | 'Completed' | 'Cancelled';
+  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  scheduledDate: string;
+  completedDate?: string;
+  performedBy?: string; // User name or technician
+  description: string;
+  issuesFound?: string;
+  actionsTaken?: string;
+  partsCost?: number;
+  laborCost?: number;
+  totalCost?: number;
+  partsReplaced?: string[];
+  downtime?: number; // hours
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export class MockDatabase {
   private static instance: MockDatabase;
 
@@ -381,6 +425,8 @@ export class MockDatabase {
   private CHECKINS_KEY = 'fithub_checkins';
   private MEAL_PLANS_KEY = 'fithub_meal_plans';
   private NUTRITION_LOGS_KEY = 'fithub_nutrition_logs';
+  private EQUIPMENT_KEY = 'fithub_equipment';
+  private MAINTENANCE_LOGS_KEY = 'fithub_maintenance_logs';
 
   static getInstance(): MockDatabase {
     if (!MockDatabase.instance) {
@@ -2139,6 +2185,269 @@ export class MockDatabase {
     });
   }
 
+  // ==================== Equipment Management ====================
+
+  createEquipment(data: Omit<Equipment, 'id' | 'createdAt' | 'updatedAt'>): Equipment {
+    const equipment: Equipment = {
+      ...data,
+      id: `equipment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const allEquipment = this.getAllEquipment();
+    allEquipment.push(equipment);
+    localStorage.setItem(this.EQUIPMENT_KEY, JSON.stringify(allEquipment));
+
+    return equipment;
+  }
+
+  getAllEquipment(): Equipment[] {
+    const data = localStorage.getItem(this.EQUIPMENT_KEY);
+    return data ? JSON.parse(data) : [];
+  }
+
+  getEquipmentById(id: string): Equipment | undefined {
+    return this.getAllEquipment().find(e => e.id === id);
+  }
+
+  getEquipmentByCategory(category: Equipment['category']): Equipment[] {
+    return this.getAllEquipment().filter(e => e.category === category);
+  }
+
+  getEquipmentByStatus(status: Equipment['status']): Equipment[] {
+    return this.getAllEquipment().filter(e => e.status === status);
+  }
+
+  getEquipmentByLocation(location: string): Equipment[] {
+    return this.getAllEquipment().filter(e => e.location === location);
+  }
+
+  getEquipmentNeedingMaintenance(): Equipment[] {
+    const today = new Date().toISOString().split('T')[0];
+    return this.getAllEquipment().filter(e =>
+      e.nextMaintenanceDate && e.nextMaintenanceDate <= today && e.status === 'Operational'
+    );
+  }
+
+  updateEquipment(id: string, updates: Partial<Equipment>): Equipment | null {
+    const allEquipment = this.getAllEquipment();
+    const index = allEquipment.findIndex(e => e.id === id);
+
+    if (index === -1) return null;
+
+    allEquipment[index] = {
+      ...allEquipment[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+
+    localStorage.setItem(this.EQUIPMENT_KEY, JSON.stringify(allEquipment));
+    return allEquipment[index];
+  }
+
+  deleteEquipment(id: string): boolean {
+    const allEquipment = this.getAllEquipment();
+    const filtered = allEquipment.filter(e => e.id !== id);
+
+    if (filtered.length === allEquipment.length) return false;
+
+    localStorage.setItem(this.EQUIPMENT_KEY, JSON.stringify(filtered));
+    return true;
+  }
+
+  getEquipmentStats(): {
+    total: number;
+    operational: number;
+    underMaintenance: number;
+    outOfService: number;
+    needingMaintenance: number;
+    byCategory: { [key: string]: number };
+    byCondition: { [key: string]: number };
+    averageAge: number; // in days
+    totalValue: number;
+  } {
+    const equipment = this.getAllEquipment();
+    const today = new Date();
+
+    const stats = {
+      total: equipment.length,
+      operational: equipment.filter(e => e.status === 'Operational').length,
+      underMaintenance: equipment.filter(e => e.status === 'Under Maintenance').length,
+      outOfService: equipment.filter(e => e.status === 'Out of Service').length,
+      needingMaintenance: this.getEquipmentNeedingMaintenance().length,
+      byCategory: {} as { [key: string]: number },
+      byCondition: {} as { [key: string]: number },
+      averageAge: 0,
+      totalValue: 0
+    };
+
+    equipment.forEach(e => {
+      stats.byCategory[e.category] = (stats.byCategory[e.category] || 0) + 1;
+      stats.byCondition[e.condition] = (stats.byCondition[e.condition] || 0) + 1;
+      stats.totalValue += e.purchaseCost;
+    });
+
+    if (equipment.length > 0) {
+      const totalDays = equipment.reduce((sum, e) => {
+        const purchaseDate = new Date(e.purchaseDate);
+        const days = Math.floor((today.getTime() - purchaseDate.getTime()) / (1000 * 60 * 60 * 24));
+        return sum + days;
+      }, 0);
+      stats.averageAge = Math.floor(totalDays / equipment.length);
+    }
+
+    return stats;
+  }
+
+  // ==================== Maintenance Logs ====================
+
+  createMaintenanceLog(data: Omit<MaintenanceLog, 'id' | 'createdAt' | 'updatedAt'>): MaintenanceLog {
+    const log: MaintenanceLog = {
+      ...data,
+      id: `maint-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const allLogs = this.getAllMaintenanceLogs();
+    allLogs.push(log);
+    localStorage.setItem(this.MAINTENANCE_LOGS_KEY, JSON.stringify(allLogs));
+
+    return log;
+  }
+
+  getAllMaintenanceLogs(): MaintenanceLog[] {
+    const data = localStorage.getItem(this.MAINTENANCE_LOGS_KEY);
+    return data ? JSON.parse(data) : [];
+  }
+
+  getMaintenanceLogById(id: string): MaintenanceLog | undefined {
+    return this.getAllMaintenanceLogs().find(l => l.id === id);
+  }
+
+  getMaintenanceLogsByEquipment(equipmentId: string): MaintenanceLog[] {
+    return this.getAllMaintenanceLogs()
+      .filter(l => l.equipmentId === equipmentId)
+      .sort((a, b) => new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime());
+  }
+
+  getMaintenanceLogsByStatus(status: MaintenanceLog['status']): MaintenanceLog[] {
+    return this.getAllMaintenanceLogs()
+      .filter(l => l.status === status)
+      .sort((a, b) => new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime());
+  }
+
+  getUpcomingMaintenance(): MaintenanceLog[] {
+    const today = new Date().toISOString().split('T')[0];
+    return this.getAllMaintenanceLogs()
+      .filter(l => l.status === 'Scheduled' && l.scheduledDate >= today)
+      .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
+  }
+
+  getOverdueMaintenance(): MaintenanceLog[] {
+    const today = new Date().toISOString().split('T')[0];
+    return this.getAllMaintenanceLogs()
+      .filter(l => l.status === 'Scheduled' && l.scheduledDate < today);
+  }
+
+  updateMaintenanceLog(id: string, updates: Partial<MaintenanceLog>): MaintenanceLog | null {
+    const allLogs = this.getAllMaintenanceLogs();
+    const index = allLogs.findIndex(l => l.id === id);
+
+    if (index === -1) return null;
+
+    allLogs[index] = {
+      ...allLogs[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+
+    localStorage.setItem(this.MAINTENANCE_LOGS_KEY, JSON.stringify(allLogs));
+
+    // If maintenance is completed, update equipment status and dates
+    if (updates.status === 'Completed' && updates.completedDate) {
+      const log = allLogs[index];
+      const equipment = this.getEquipmentById(log.equipmentId);
+
+      if (equipment) {
+        const completedDate = new Date(updates.completedDate);
+        const nextDate = new Date(completedDate);
+        nextDate.setDate(nextDate.getDate() + equipment.maintenanceInterval);
+
+        this.updateEquipment(equipment.id, {
+          status: 'Operational',
+          lastMaintenanceDate: updates.completedDate,
+          nextMaintenanceDate: nextDate.toISOString().split('T')[0]
+        });
+      }
+    }
+
+    return allLogs[index];
+  }
+
+  deleteMaintenanceLog(id: string): boolean {
+    const allLogs = this.getAllMaintenanceLogs();
+    const filtered = allLogs.filter(l => l.id !== id);
+
+    if (filtered.length === allLogs.length) return false;
+
+    localStorage.setItem(this.MAINTENANCE_LOGS_KEY, JSON.stringify(filtered));
+    return true;
+  }
+
+  getMaintenanceStats(days: number = 30): {
+    total: number;
+    scheduled: number;
+    inProgress: number;
+    completed: number;
+    overdue: number;
+    totalCost: number;
+    averageCost: number;
+    averageDowntime: number;
+    byType: { [key: string]: number };
+    byPriority: { [key: string]: number };
+  } {
+    const allLogs = this.getAllMaintenanceLogs();
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    const recentLogs = allLogs.filter(l => new Date(l.createdAt) >= cutoffDate);
+
+    const stats = {
+      total: allLogs.length,
+      scheduled: allLogs.filter(l => l.status === 'Scheduled').length,
+      inProgress: allLogs.filter(l => l.status === 'In Progress').length,
+      completed: allLogs.filter(l => l.status === 'Completed').length,
+      overdue: this.getOverdueMaintenance().length,
+      totalCost: 0,
+      averageCost: 0,
+      averageDowntime: 0,
+      byType: {} as { [key: string]: number },
+      byPriority: {} as { [key: string]: number }
+    };
+
+    let costCount = 0;
+    let downtimeCount = 0;
+
+    recentLogs.forEach(l => {
+      if (l.totalCost) {
+        stats.totalCost += l.totalCost;
+        costCount++;
+      }
+      if (l.downtime) {
+        stats.averageDowntime += l.downtime;
+        downtimeCount++;
+      }
+      stats.byType[l.type] = (stats.byType[l.type] || 0) + 1;
+      stats.byPriority[l.priority] = (stats.byPriority[l.priority] || 0) + 1;
+    });
+
+    stats.averageCost = costCount > 0 ? stats.totalCost / costCount : 0;
+    stats.averageDowntime = downtimeCount > 0 ? stats.averageDowntime / downtimeCount : 0;
+
+    return stats;
+  }
+
   clearAllData(): void {
     localStorage.removeItem(this.USERS_KEY);
     localStorage.removeItem(this.MEMBERSHIPS_KEY);
@@ -2157,6 +2466,8 @@ export class MockDatabase {
     localStorage.removeItem(this.CHECKINS_KEY);
     localStorage.removeItem(this.MEAL_PLANS_KEY);
     localStorage.removeItem(this.NUTRITION_LOGS_KEY);
+    localStorage.removeItem(this.EQUIPMENT_KEY);
+    localStorage.removeItem(this.MAINTENANCE_LOGS_KEY);
   }
 
   // Initialize demo data
@@ -3364,6 +3675,283 @@ export class MockDatabase {
         }
 
         console.log('✅ Demo meal plans and nutrition logs initialized');
+      }
+
+      // Create demo equipment
+      const equipment = this.getAllEquipment();
+      if (equipment.length === 0) {
+        // Cardio Equipment
+        const treadmill1 = this.createEquipment({
+          name: 'Treadmill Pro X1',
+          category: 'Cardio',
+          manufacturer: 'Life Fitness',
+          model: 'T3',
+          serialNumber: 'LF-T3-2023-001',
+          purchaseDate: '2023-01-15',
+          purchaseCost: 3500,
+          location: 'Main Floor - Cardio Zone',
+          status: 'Operational',
+          condition: 'Excellent',
+          lastMaintenanceDate: '2026-04-15',
+          nextMaintenanceDate: '2026-07-15',
+          maintenanceInterval: 90,
+          notes: 'Popular equipment, high usage'
+        });
+
+        const elliptical = this.createEquipment({
+          name: 'Elliptical Trainer E5',
+          category: 'Cardio',
+          manufacturer: 'Precor',
+          model: 'EFX 885',
+          serialNumber: 'PR-EFX-2023-002',
+          purchaseDate: '2023-02-20',
+          purchaseCost: 4200,
+          location: 'Main Floor - Cardio Zone',
+          status: 'Under Maintenance',
+          condition: 'Good',
+          lastMaintenanceDate: '2026-05-10',
+          nextMaintenanceDate: '2026-06-10',
+          maintenanceInterval: 90,
+          notes: 'Belt replacement scheduled'
+        });
+
+        const bike = this.createEquipment({
+          name: 'Stationary Bike SB200',
+          category: 'Cardio',
+          manufacturer: 'Schwinn',
+          model: 'IC8',
+          serialNumber: 'SW-IC8-2024-003',
+          purchaseDate: '2024-03-10',
+          purchaseCost: 1800,
+          location: 'Main Floor - Cardio Zone',
+          status: 'Operational',
+          condition: 'Excellent',
+          lastMaintenanceDate: '2026-04-20',
+          nextMaintenanceDate: '2026-07-20',
+          maintenanceInterval: 90
+        });
+
+        // Strength Equipment
+        const legPress = this.createEquipment({
+          name: 'Leg Press Machine',
+          category: 'Strength',
+          manufacturer: 'Hammer Strength',
+          model: 'Plate Loaded',
+          serialNumber: 'HS-LP-2022-004',
+          purchaseDate: '2022-06-15',
+          purchaseCost: 5500,
+          location: 'Weight Room - Lower Body',
+          status: 'Operational',
+          condition: 'Good',
+          lastMaintenanceDate: '2026-03-15',
+          nextMaintenanceDate: '2026-06-15',
+          maintenanceInterval: 90,
+          notes: 'Cable replaced in last maintenance'
+        });
+
+        const chestPress = this.createEquipment({
+          name: 'Chest Press Machine',
+          category: 'Strength',
+          manufacturer: 'Life Fitness',
+          model: 'Signature Series',
+          serialNumber: 'LF-CP-2023-005',
+          purchaseDate: '2023-04-20',
+          purchaseCost: 4800,
+          location: 'Weight Room - Upper Body',
+          status: 'Operational',
+          condition: 'Excellent',
+          lastMaintenanceDate: '2026-05-01',
+          nextMaintenanceDate: '2026-08-01',
+          maintenanceInterval: 90
+        });
+
+        const cableStation = this.createEquipment({
+          name: 'Cable Crossover Station',
+          category: 'Strength',
+          manufacturer: 'Hoist Fitness',
+          model: 'Dual Pulley',
+          serialNumber: 'HF-DCS-2023-006',
+          purchaseDate: '2023-07-10',
+          purchaseCost: 6200,
+          location: 'Weight Room - Functional Area',
+          status: 'Out of Service',
+          condition: 'Fair',
+          lastMaintenanceDate: '2026-04-05',
+          notes: 'Pulley system needs major repair - parts on order'
+        });
+
+        // Free Weights
+        const dumbellRack = this.createEquipment({
+          name: 'Dumbbell Rack Set (5-50 lbs)',
+          category: 'Free Weights',
+          manufacturer: 'Rogue Fitness',
+          model: 'Hex Dumbbell Set',
+          serialNumber: 'RF-HDB-2022-007',
+          purchaseDate: '2022-08-01',
+          purchaseCost: 3200,
+          location: 'Free Weight Area',
+          status: 'Operational',
+          condition: 'Good',
+          lastMaintenanceDate: '2026-01-15',
+          nextMaintenanceDate: '2026-07-15',
+          maintenanceInterval: 180,
+          notes: 'Missing 35 lb pair - replacement ordered'
+        });
+
+        const barbellSet = this.createEquipment({
+          name: 'Olympic Barbell Set',
+          category: 'Free Weights',
+          manufacturer: 'Eleiko',
+          model: 'Training Bar 20kg',
+          serialNumber: 'EL-TB-2023-008',
+          purchaseDate: '2023-01-20',
+          purchaseCost: 2500,
+          location: 'Free Weight Area',
+          status: 'Operational',
+          condition: 'Excellent',
+          lastMaintenanceDate: '2026-04-10',
+          nextMaintenanceDate: '2026-10-10',
+          maintenanceInterval: 180
+        });
+
+        // Functional Equipment
+        const benchSet = this.createEquipment({
+          name: 'Adjustable Bench Set (6 units)',
+          category: 'Functional',
+          manufacturer: 'Rogue Fitness',
+          model: 'AB-3',
+          serialNumber: 'RF-AB3-2023-009',
+          purchaseDate: '2023-03-15',
+          purchaseCost: 1800,
+          location: 'Free Weight Area',
+          status: 'Operational',
+          condition: 'Good',
+          lastMaintenanceDate: '2026-02-20',
+          nextMaintenanceDate: '2026-08-20',
+          maintenanceInterval: 180,
+          notes: 'One bench pad needs replacement'
+        });
+
+        const kettlebells = this.createEquipment({
+          name: 'Kettlebell Set (8-48 kg)',
+          category: 'Functional',
+          manufacturer: 'Rogue Fitness',
+          model: 'E-Coat',
+          serialNumber: 'RF-KB-2024-010',
+          purchaseDate: '2024-01-10',
+          purchaseCost: 1500,
+          location: 'Functional Training Zone',
+          status: 'Operational',
+          condition: 'Excellent',
+          nextMaintenanceDate: '2026-07-10',
+          maintenanceInterval: 180
+        });
+
+        console.log('✅ Demo equipment initialized');
+
+        // Create demo maintenance logs
+        const maintenanceLogs = this.getAllMaintenanceLogs();
+        if (maintenanceLogs.length === 0) {
+          // Completed maintenance
+          this.createMaintenanceLog({
+            equipmentId: treadmill1.id,
+            equipmentName: treadmill1.name,
+            type: 'Scheduled',
+            status: 'Completed',
+            priority: 'Medium',
+            scheduledDate: '2026-05-15',
+            completedDate: '2026-05-15',
+            performedBy: 'John Smith - Technician',
+            description: 'Quarterly maintenance check',
+            issuesFound: 'Belt showing minor wear, motor running smoothly',
+            actionsTaken: 'Lubricated belt, tightened bolts, cleaned motor housing',
+            partsCost: 25,
+            laborCost: 75,
+            totalCost: 100,
+            partsReplaced: ['Lubricant'],
+            downtime: 2,
+            notes: 'Equipment in good condition, no major issues'
+          });
+
+          // In Progress maintenance
+          this.createMaintenanceLog({
+            equipmentId: elliptical.id,
+            equipmentName: elliptical.name,
+            type: 'Repair',
+            status: 'In Progress',
+            priority: 'High',
+            scheduledDate: '2026-05-25',
+            performedBy: 'Sarah Johnson - Maintenance Staff',
+            description: 'Belt replacement and calibration',
+            issuesFound: 'Belt worn out, needs replacement',
+            actionsTaken: 'Ordered new belt, awaiting delivery',
+            partsCost: 180,
+            laborCost: 120,
+            totalCost: 300,
+            partsReplaced: ['Drive Belt'],
+            notes: 'Parts expected to arrive in 2-3 days'
+          });
+
+          // Scheduled future maintenance
+          this.createMaintenanceLog({
+            equipmentId: bike.id,
+            equipmentName: bike.name,
+            type: 'Scheduled',
+            status: 'Scheduled',
+            priority: 'Low',
+            scheduledDate: '2026-06-01',
+            description: 'Quarterly inspection and cleaning',
+            notes: 'Standard maintenance check'
+          });
+
+          this.createMaintenanceLog({
+            equipmentId: legPress.id,
+            equipmentName: legPress.name,
+            type: 'Scheduled',
+            status: 'Scheduled',
+            priority: 'Medium',
+            scheduledDate: '2026-06-05',
+            description: 'Cable and pulley inspection',
+            notes: 'Check cable wear and lubricate pulleys'
+          });
+
+          // Emergency repair for cable station
+          this.createMaintenanceLog({
+            equipmentId: cableStation.id,
+            equipmentName: cableStation.name,
+            type: 'Emergency',
+            status: 'Scheduled',
+            priority: 'Critical',
+            scheduledDate: '2026-05-28',
+            description: 'Major pulley system repair',
+            issuesFound: 'Pulley system jammed, cable frayed',
+            actionsTaken: 'Equipment taken out of service, parts ordered',
+            partsCost: 450,
+            laborCost: 300,
+            totalCost: 750,
+            partsReplaced: ['Pulley Assembly', 'Cable'],
+            notes: 'Critical repair needed before equipment can be used'
+          });
+
+          // Inspection log
+          this.createMaintenanceLog({
+            equipmentId: chestPress.id,
+            equipmentName: chestPress.name,
+            type: 'Inspection',
+            status: 'Completed',
+            priority: 'Low',
+            scheduledDate: '2026-05-01',
+            completedDate: '2026-05-01',
+            performedBy: 'Mike Chen - Fitness Manager',
+            description: 'Monthly safety inspection',
+            issuesFound: 'No issues found',
+            actionsTaken: 'Visual inspection, tested all movements',
+            downtime: 0.5,
+            notes: 'Equipment in excellent condition'
+          });
+
+          console.log('✅ Demo maintenance logs initialized');
+        }
       }
     }
   }

@@ -20,6 +20,7 @@ import { DiscountCodeManagement } from './discount-code-management';
 import { ReviewManagement } from './review-management';
 import { AnalyticsDashboard } from './analytics-dashboard';
 import { ManagerAnalytics } from './manager-analytics';
+import { EquipmentManagement } from './equipment-management';
 import {
   Users,
   Calendar,
@@ -47,6 +48,7 @@ import { cn } from './ui/utils';
 const managerTabs = [
   { id: 'registrations', label: 'Pending Registrations', path: '#registrations' },
   { id: 'class-management', label: 'Class Management', path: '#class-management' },
+  { id: 'equipment', label: 'Equipment Management', path: '#equipment' },
   { id: 'analytics', label: 'Analytics & Reports', path: '#analytics' },
   { id: 'advanced-analytics', label: 'Advanced Analytics', path: '#advanced-analytics' },
   { id: 'members', label: 'Member Profiles', path: '#members' },
@@ -493,6 +495,10 @@ export function ManagerDashboard() {
 
         <TabsContent value="class-management" className="space-y-6">
           <ClassManagement onRefresh={() => {}} />
+        </TabsContent>
+
+        <TabsContent value="equipment" className="space-y-6">
+          <EquipmentManagement />
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">

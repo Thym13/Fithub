@@ -7003,6 +7003,502 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 
 ---
 
+## STEP 23: Equipment Management & Maintenance Tracking (30 Test Cases)
+
+### Test Case 23.1: View Equipment Dashboard
+
+**Steps**:
+1. Login as manager
+2. Navigate to "Equipment Management" tab
+3. View equipment inventory
+
+**Expected Result**:
+- ✅ 5 KPI cards displayed (Total, Operational, Under Maintenance, Needs Maintenance, Total Value)
+- ✅ Equipment list shown
+- ✅ Filter dropdowns present
+- ✅ Add Equipment button visible
+- ✅ Stats calculated correctly
+
+### Test Case 23.2: View Equipment Stats
+
+**Steps**:
+1. 10 equipment items in system
+2. 7 operational, 2 under maintenance, 1 out of service
+3. View stats cards
+
+**Expected Result**:
+- ✅ Total Equipment: 10
+- ✅ Operational: 7
+- ✅ Under Maintenance: 2
+- ✅ Out of Service: 1
+- ✅ Total Value: Sum of all purchase costs
+- ✅ Icons displayed correctly
+
+### Test Case 23.3: Filter Equipment by Status
+
+**Steps**:
+1. View all equipment
+2. Filter by "Operational"
+3. Filter by "Under Maintenance"
+4. Filter by "Out of Service"
+
+**Expected Result**:
+- ✅ All: Shows all equipment
+- ✅ Operational: Shows only operational items
+- ✅ Under Maintenance: Shows only items in maintenance
+- ✅ Out of Service: Shows only out of service items
+- ✅ Filter applies immediately
+
+### Test Case 23.4: Filter Equipment by Category
+
+**Steps**:
+1. View all equipment
+2. Filter by "Cardio"
+3. Filter by "Strength"
+4. Filter by "Free Weights"
+
+**Expected Result**:
+- ✅ All: Shows all categories
+- ✅ Cardio: Shows only cardio equipment
+- ✅ Strength: Shows only strength equipment
+- ✅ Free Weights: Shows only free weights
+- ✅ Filters work independently
+
+### Test Case 23.5: Open Add Equipment Modal
+
+**Steps**:
+1. Click "Add Equipment" button
+2. Modal should open
+3. Check form fields
+
+**Expected Result**:
+- ✅ Modal opens successfully
+- ✅ "Add New Equipment" title shown
+- ✅ All form fields present (name, category, manufacturer, model, serial, etc.)
+- ✅ Cancel and Add Equipment buttons visible
+- ✅ Form fields empty/default values
+
+### Test Case 23.6: Create New Equipment
+
+**Steps**:
+1. Open add equipment modal
+2. Fill in equipment name "Treadmill Pro"
+3. Set category to "Cardio"
+4. Fill in manufacturer, model, serial number
+5. Set purchase date and cost
+6. Set location
+7. Click "Add Equipment"
+
+**Expected Result**:
+- ✅ Equipment created successfully
+- ✅ Modal closes
+- ✅ Equipment appears in list
+- ✅ Status: Operational (default)
+- ✅ All details saved correctly
+- ✅ Next maintenance date calculated
+- ✅ Stats updated
+
+### Test Case 23.7: Create Equipment - Validation
+
+**Steps**:
+1. Open add equipment modal
+2. Leave name blank
+3. Leave serial number blank
+4. Click "Add Equipment"
+
+**Expected Result**:
+- ✅ Alert shown: "Please fill in required fields"
+- ✅ Equipment not created
+- ✅ Modal remains open
+- ✅ No data saved
+
+### Test Case 23.8: View Equipment Details
+
+**Steps**:
+1. Create equipment
+2. View equipment card in list
+3. Check displayed information
+
+**Expected Result**:
+- ✅ Equipment name displayed
+- ✅ Status badge shown (color-coded)
+- ✅ Category badge shown
+- ✅ Condition badge shown
+- ✅ Manufacturer and model visible
+- ✅ Location visible
+- ✅ Purchase date shown
+- ✅ Next maintenance date shown
+- ✅ Action buttons (Schedule, Edit, Delete) visible
+
+### Test Case 23.9: Edit Equipment
+
+**Steps**:
+1. Click "Edit" on equipment
+2. Modal should open
+3. Change status to "Under Maintenance"
+4. Change condition to "Fair"
+5. Update notes
+6. Click "Update Equipment"
+
+**Expected Result**:
+- ✅ Edit modal opens with current data
+- ✅ Changes saved successfully
+- ✅ Modal closes
+- ✅ Equipment list updates
+- ✅ New status/condition displayed
+- ✅ Stats recalculated
+
+### Test Case 23.10: Delete Equipment
+
+**Steps**:
+1. Click "Delete" on equipment
+2. Confirmation dialog appears
+3. Confirm deletion
+
+**Expected Result**:
+- ✅ Confirmation prompt shown
+- ✅ Equipment deleted from database
+- ✅ Equipment removed from list
+- ✅ Stats updated (Total -1)
+- ✅ No errors thrown
+
+### Test Case 23.11: Open Schedule Maintenance Modal
+
+**Steps**:
+1. Click "Schedule" on equipment
+2. Modal should open
+3. Check modal contents
+
+**Expected Result**:
+- ✅ Modal opens successfully
+- ✅ "Schedule Maintenance" title shown
+- ✅ Equipment name displayed
+- ✅ Type and Priority dropdowns present
+- ✅ Scheduled Date field present
+- ✅ Description and Notes fields present
+- ✅ Cancel and Schedule buttons visible
+
+### Test Case 23.12: Schedule Maintenance
+
+**Steps**:
+1. Open schedule maintenance modal
+2. Select type "Scheduled"
+3. Select priority "Medium"
+4. Choose scheduled date (future)
+5. Add description "Quarterly maintenance check"
+6. Click "Schedule"
+
+**Expected Result**:
+- ✅ Maintenance log created
+- ✅ Modal closes
+- ✅ Log appears in Maintenance tab
+- ✅ Status: Scheduled
+- ✅ All details saved
+- ✅ Form resets
+
+### Test Case 23.13: View Maintenance Tab
+
+**Steps**:
+1. Click "Maintenance" tab
+2. View maintenance dashboard
+3. Check stats and logs
+
+**Expected Result**:
+- ✅ 5 KPI cards displayed (Total Logs, Scheduled, Overdue, Total Cost, Avg Downtime)
+- ✅ Maintenance logs list shown
+- ✅ Stats calculated correctly
+- ✅ Logs sorted by scheduled date
+
+### Test Case 23.14: View Maintenance Stats
+
+**Steps**:
+1. 10 maintenance logs in system
+2. 3 scheduled, 2 in progress, 4 completed, 1 overdue
+3. View stats cards
+
+**Expected Result**:
+- ✅ Total Logs: 10
+- ✅ Scheduled: 3
+- ✅ Overdue: 1
+- ✅ Total Cost (30d): Sum of completed logs' costs
+- ✅ Avg Downtime: Average of downtime values
+- ✅ Icons displayed correctly
+
+### Test Case 23.15: View Maintenance Log Details
+
+**Steps**:
+1. View maintenance log in list
+2. Check displayed information
+
+**Expected Result**:
+- ✅ Equipment name displayed
+- ✅ Status badge shown (color-coded)
+- ✅ Priority badge shown (color-coded)
+- ✅ Type badge shown
+- ✅ Description visible
+- ✅ Scheduled date shown
+- ✅ Completed date shown (if completed)
+- ✅ Performed by shown (if available)
+- ✅ Cost shown (if available)
+
+### Test Case 23.16: Complete Maintenance Log
+
+**Steps**:
+1. Scheduled maintenance exists
+2. Update status to "Completed"
+3. Add completion date
+4. Add performed by "John Smith"
+5. Record costs (parts: $50, labor: $100)
+6. Record downtime: 2 hours
+7. Save changes
+
+**Expected Result**:
+- ✅ Log updated to Completed status
+- ✅ All completion data saved
+- ✅ Total cost calculated ($150)
+- ✅ Equipment's last maintenance date updated
+- ✅ Equipment's next maintenance date updated
+- ✅ Equipment status updated to Operational (if was under maintenance)
+
+### Test Case 23.17: View Overview Tab
+
+**Steps**:
+1. Click "Overview" tab
+2. View charts and statistics
+3. Check all sections
+
+**Expected Result**:
+- ✅ Equipment by Category chart shown
+- ✅ Equipment by Condition chart shown
+- ✅ Maintenance by Type chart shown
+- ✅ Key Metrics card shown
+- ✅ Progress bars functional
+- ✅ Percentages calculated correctly
+
+### Test Case 23.18: Equipment by Category Chart
+
+**Steps**:
+1. 3 Cardio, 2 Strength, 2 Free Weights, 2 Functional
+2. View category breakdown
+
+**Expected Result**:
+- ✅ Cardio: 3 items (33% bar)
+- ✅ Strength: 2 items (22% bar)
+- ✅ Free Weights: 2 items (22% bar)
+- ✅ Functional: 2 items (22% bar)
+- ✅ Counts correct
+- ✅ Bars sized appropriately
+
+### Test Case 23.19: Equipment by Condition Chart
+
+**Steps**:
+1. 5 Excellent, 3 Good, 1 Fair, 1 Poor
+2. View condition breakdown
+
+**Expected Result**:
+- ✅ Excellent: 5 items (50% bar)
+- ✅ Good: 3 items (30% bar)
+- ✅ Fair: 1 item (10% bar)
+- ✅ Poor: 1 item (10% bar)
+- ✅ Percentages add up to 100%
+- ✅ Visual representation accurate
+
+### Test Case 23.20: Maintenance by Type Chart
+
+**Steps**:
+1. 4 Scheduled, 3 Repair, 2 Inspection, 1 Emergency
+2. View type breakdown
+
+**Expected Result**:
+- ✅ Scheduled: 4 logs
+- ✅ Repair: 3 logs
+- ✅ Inspection: 2 logs
+- ✅ Emergency: 1 log
+- ✅ All types shown
+- ✅ Counts accurate
+
+### Test Case 23.21: Key Metrics Display
+
+**Steps**:
+1. View Key Metrics card
+2. Check all metrics
+
+**Expected Result**:
+- ✅ Average Equipment Age displayed (in days)
+- ✅ Avg Maintenance Cost displayed
+- ✅ Completed Maintenance count shown
+- ✅ In Progress count shown
+- ✅ All values calculated correctly
+- ✅ Clean layout
+
+### Test Case 23.22: Equipment Needing Maintenance
+
+**Steps**:
+1. Equipment with next maintenance date in past
+2. Equipment still operational
+3. Check "Needs Maintenance" stat
+
+**Expected Result**:
+- ✅ Equipment identified as needing maintenance
+- ✅ Count shown in KPI card
+- ✅ Highlighted appropriately
+- ✅ Only operational equipment counted
+- ✅ Calculation based on next maintenance date vs today
+
+### Test Case 23.23: Automatic Maintenance Date Calculation
+
+**Steps**:
+1. Create equipment with purchase date 2024-01-01
+2. Set maintenance interval to 90 days
+3. Check next maintenance date
+
+**Expected Result**:
+- ✅ Next maintenance date: 2024-04-01 (90 days after purchase)
+- ✅ Calculation automatic
+- ✅ Date stored in equipment record
+- ✅ Updates when maintenance completed
+
+### Test Case 23.24: Status Badge Color Coding
+
+**Steps**:
+1. View equipment with different statuses
+2. Check badge colors
+
+**Expected Result**:
+- ✅ Operational: Green badge
+- ✅ Under Maintenance: Yellow badge
+- ✅ Out of Service: Red badge
+- ✅ Retired: Gray badge
+- ✅ Colors consistent
+- ✅ Text readable
+
+### Test Case 23.25: Maintenance Priority Color Coding
+
+**Steps**:
+1. View maintenance logs with different priorities
+2. Check priority badge colors
+
+**Expected Result**:
+- ✅ Critical: Red badge
+- ✅ High: Orange badge
+- ✅ Medium: Yellow badge
+- ✅ Low: Green badge
+- ✅ Colors indicate urgency
+- ✅ Consistent styling
+
+### Test Case 23.26: Demo Data - Equipment
+
+**Steps**:
+1. Clear database
+2. Initialize demo data
+3. Check equipment
+
+**Expected Result**:
+- ✅ 10 equipment items created
+- ✅ Mix of categories (Cardio, Strength, Free Weights, Functional)
+- ✅ Realistic manufacturers (Life Fitness, Precor, Schwinn, etc.)
+- ✅ Serial numbers present
+- ✅ Purchase dates and costs realistic
+- ✅ Various statuses represented
+- ✅ Locations specified
+
+### Test Case 23.27: Demo Data - Maintenance Logs
+
+**Steps**:
+1. Initialize demo data
+2. Check maintenance logs
+3. Verify variety
+
+**Expected Result**:
+- ✅ 6 maintenance logs created
+- ✅ Completed maintenance present
+- ✅ In Progress maintenance present
+- ✅ Scheduled future maintenance present
+- ✅ Emergency repair present
+- ✅ Costs and downtime data included
+- ✅ Realistic descriptions
+
+### Test Case 23.28: Integration - Manager Dashboard
+
+**Steps**:
+1. Login as manager
+2. Navigate to manager dashboard
+3. Check for Equipment Management tab
+
+**Expected Result**:
+- ✅ "Equipment Management" tab visible
+- ✅ Tab in correct position (after Class Management)
+- ✅ Tab clickable
+- ✅ Component loads correctly
+- ✅ Data displays
+- ✅ No navigation errors
+
+### Test Case 23.29: Data Persistence
+
+**Steps**:
+1. Create equipment and maintenance logs
+2. Refresh browser
+3. Check data still exists
+
+**Expected Result**:
+- ✅ Equipment persists
+- ✅ Maintenance logs persist
+- ✅ All data intact
+- ✅ localStorage working
+- ✅ No data loss
+- ✅ Relationships preserved (equipment ↔ logs)
+
+### Test Case 23.30: Overdue Maintenance Identification
+
+**Steps**:
+1. Create maintenance log with scheduled date in past
+2. Status still "Scheduled"
+3. Check overdue stats
+
+**Expected Result**:
+- ✅ Log identified as overdue
+- ✅ Shown in Overdue stat
+- ✅ Count accurate
+- ✅ Only scheduled logs counted
+- ✅ Calculation based on scheduled date vs today
+
+### Quick Checklist for Step 23:
+
+- [x] Equipment dashboard with 5 KPI cards
+- [x] Stats calculated correctly
+- [x] View all equipment
+- [x] Filter by status (All/Operational/Under Maintenance/Out of Service/Retired)
+- [x] Filter by category (All/Cardio/Strength/Free Weights/Functional/Other)
+- [x] Add equipment modal opens
+- [x] Form validation works
+- [x] Create equipment successful
+- [x] Equipment details displayed correctly
+- [x] Edit equipment modal opens
+- [x] Update equipment successful
+- [x] Delete equipment with confirmation
+- [x] Schedule maintenance modal opens
+- [x] Create maintenance log successful
+- [x] Maintenance tab with 5 KPI cards
+- [x] Maintenance stats calculated
+- [x] View maintenance logs
+- [x] Maintenance log details shown
+- [x] Complete maintenance updates equipment
+- [x] Overview tab with charts
+- [x] Equipment by category chart
+- [x] Equipment by condition chart
+- [x] Maintenance by type chart
+- [x] Key metrics displayed
+- [x] Equipment needing maintenance identified
+- [x] Automatic maintenance date calculation
+- [x] Status badge color coding
+- [x] Priority badge color coding
+- [x] Demo data created correctly
+- [x] Integration with manager dashboard
+- [x] Data persists in localStorage
+- [x] Overdue maintenance identified
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-22  
-**Total Test Cases**: 470+
+**Steps Tested**: 1-23  
+**Total Test Cases**: 500+
