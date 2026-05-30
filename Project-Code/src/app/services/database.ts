@@ -2730,6 +2730,19 @@ export class MockDatabase {
       const secretary = users.find(u => u.role === 'secretary');
 
       if (memberUser && secretary) {
+        // Ensure member has active membership
+        let membership = this.getMembershipByUserId(memberUser.id);
+        if (!membership || membership.status !== 'Active') {
+          this.createMembership({
+            userId: memberUser.id,
+            type: 'Premium',
+            monthlyCost: 79,
+            status: 'Active',
+            startDate: '2026-01-01',
+            endDate: '2027-01-01',
+          });
+        }
+
         // Active check-in (member currently in gym)
         const activeCheckIn = this.createCheckIn({
           userId: memberUser.id,
