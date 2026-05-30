@@ -345,19 +345,162 @@ To test payment failure:
 
 ---
 
+## ✅ STEP 4: Admin Approval Workflow (Secretary/Manager Dashboard) (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: UC-1 Εγγραφή και Οδηγός Ενεργοποίησης (Registration)  
+**Reference**: UC-1 βήματα 13-14 (Admin review and approval)
+
+### Files Added:
+
+1. **`src/app/components/pending-registrations.tsx`** - Admin approval component
+   - ✅ Lists all pending user registrations (accountStatus === 'Pending')
+   - ✅ Displays user details, contact info, membership, payment status
+   - ✅ Role-based UI (member/trainer/secretary icons and badges)
+   - ✅ Approve functionality with confirmation modal
+   - ✅ Reject functionality with required rejection reason
+   - ✅ Email notifications on approve/reject
+   - ✅ In-app notifications
+   - ✅ Membership activation on approval
+   - ✅ Real-time list refresh after actions
+
+### Files Modified:
+
+1. **`src/app/components/manager-dashboard.tsx`**
+   - ✅ Added "Pending Registrations" tab (first tab)
+   - ✅ Imported PendingRegistrations component
+   - ✅ Integrated into manager workflow
+   - ✅ Set as default tab
+
+2. **`src/app/components/receptionist-dashboard.tsx`**
+   - ✅ Added "Pending Registrations" tab (first tab)
+   - ✅ Imported PendingRegistrations component
+   - ✅ Integrated into receptionist workflow
+   - ✅ Set as default tab
+
+### Features Implemented:
+
+**UC-1 Βήμα 13**: Γραμματέας/Manager ελέγχει και εγκρίνει εγγραφές
+- 📋 Pending registrations list view
+- 👀 Detailed user information display
+- 💳 Payment transaction status
+- 📅 Registration date and time
+- ✉️ Email verification status
+- 🏋️ Membership plan details
+
+**Approve Flow**:
+- ✅ Confirmation modal with user details
+- ✅ Updates user accountStatus → "Active"
+- ✅ Activates membership (status → "Active")
+- ✅ Sends welcome email
+- ✅ Sends approval email
+- ✅ Creates success notification
+- ✅ Refreshes pending list
+
+**Reject Flow**:
+- ❌ Rejection reason required (textarea input)
+- ❌ Updates user accountStatus → "Rejected"
+- ❌ Cancels membership (status → "Cancelled")
+- ❌ Sends rejection email with reason
+- ❌ Creates notification with reason
+- ❌ Refreshes pending list
+
+**UC-1 Βήμα 14**: Welcome email μετά την έγκριση
+- 📧 Welcome email sent automatically
+- 📧 Approval confirmation email
+- 🔔 In-app notification created
+- 🎉 User gains access to platform
+
+### UI/UX Features:
+
+**Pending Users Display**:
+- Role-based icons (member: UserPlus, trainer: Dumbbell, secretary: UserCog)
+- Color-coded badges (blue: member, green: trainer, purple: secretary)
+- Contact information section (email, phone, DOB)
+- Registration details (date, membership plan, payment status)
+- Special alerts for trainer applications
+
+**Empty State**:
+- Green checkmark icon
+- "All Clear! ✅" message
+- No pending registrations message
+
+**Modals**:
+- Approve confirmation modal with action details
+- Reject modal with required reason field
+- Processing states with loading spinners
+- Success/error feedback
+
+### Email Templates Used:
+
+1. ✅ **Welcome Email** (via emailService.sendWelcomeEmail)
+   - Role-specific quick start guide
+   - Platform features overview
+   - Support contact information
+
+2. ✅ **Approval Email** (via emailService.sendApprovalEmail)
+   - Account activation confirmation
+   - Login link
+
+3. ✅ **Rejection Email** (via emailService.sendRejectionEmail)
+   - Rejection reason included
+   - Support contact for questions
+
+### Access Control:
+
+- **Manager**: Full access to pending registrations tab
+- **Secretary/Receptionist**: Full access to pending registrations tab
+- Both roles can approve/reject registrations
+- Both roles receive admin notification emails
+
+### Testing:
+
+To test admin approval workflow:
+1. Register a new user (member/trainer/secretary)
+2. Complete registration including payment
+3. Login as manager (manager@fithub.gr / Manager123!)
+4. Navigate to "Pending Registrations" tab (default tab)
+5. Review pending registration details
+6. Click "Approve":
+   - Confirm in modal
+   - User status → Active
+   - Membership activated
+   - Welcome + approval emails sent
+   - User receives success notification
+7. Or click "Reject":
+   - Enter rejection reason
+   - Confirm rejection
+   - User status → Rejected
+   - Rejection email sent with reason
+   - Membership cancelled
+
+To test as secretary:
+1. Login as secretary (secretary@fithub.gr / Admin123!)
+2. Same workflow as manager
+
+### Database Changes:
+
+User status flow:
+```
+Pending → Active (on approval)
+Pending → Rejected (on rejection)
+```
+
+Membership status flow:
+```
+Pending → Active (on approval)
+Pending → Cancelled (on rejection)
+```
+
+---
+
 ## 📋 Upcoming Steps:
 
-### STEP 4: Admin Approval Workflow (Secretary/Manager Dashboard)
-- Goal selection interface
-- Fitness level assessment
-- Weight tracking setup
-- Weekly workout preferences
-
-### STEP 5: Admin Approval Workflow
-- Secretary/Manager dashboard
-- Pending registrations view
-- Approve/Reject functionality
-- Welcome email on approval
+### STEP 5: Login System & Authentication
+- Login page creation
+- Authentication flow
+- Role-based routing
+- Session management
 
 ### STEP 6: Member Dashboard (UC-2 Book Class)
 - Class browsing
@@ -376,13 +519,13 @@ To test payment failure:
 | 1 | ✅ | UC-1 | Form Validation & Password Security |
 | 2 | ✅ | UC-1 | Email Verification & Duplicate Check |
 | 3 | ✅ | UC-1 | Payment Integration & Transaction Management |
-| 4 | 🔜 | UC-1 | Admin Approval Workflow |
-| 5 | 🔜 | UC-1 | Welcome Email & Activation |
+| 4 | ✅ | UC-1 | Admin Approval Workflow (Secretary/Manager Dashboard) |
+| 5 | 🔜 | UC-1 | Login System & Authentication |
 | 6 | 🔜 | UC-2 | Class Browsing & Filtering |
 | 7 | 🔜 | UC-2 | Class Booking System |
 | 8 | 🔜 | UC-2 | Waitlist Management |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 3 (12%)  
-**Steps Remaining**: 22
+**Steps Completed**: 4 (16%)  
+**Steps Remaining**: 21

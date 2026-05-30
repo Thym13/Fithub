@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { PendingRegistrations } from './pending-registrations';
 import {
   UserCheck,
   Calendar,
@@ -29,6 +30,7 @@ import { mockMembers, mockCheckIns, mockClasses, mockPayments } from '../utils/m
 import { useEffect, useState } from 'react';
 
 const receptionistTabs = [
+  { id: 'registrations', label: 'Pending Registrations', path: '#registrations' },
   { id: 'checkin', label: 'Check-Ins', path: '#checkin' },
   { id: 'booking', label: 'Class Bookings', path: '#booking' },
   { id: 'payments', label: 'Payments', path: '#payments' },
@@ -38,7 +40,7 @@ const receptionistTabs = [
 ];
 
 export function ReceptionistDashboard() {
-  const [activeTab, setActiveTab] = useState('checkin');
+  const [activeTab, setActiveTab] = useState('registrations');
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
 
@@ -116,11 +118,11 @@ export function ReceptionistDashboard() {
   ]);
 
   useEffect(() => {
-    const hash = window.location.hash.slice(1) || 'checkin';
+    const hash = window.location.hash.slice(1) || 'registrations';
     setActiveTab(hash);
 
     const handleHashChange = () => {
-      const newHash = window.location.hash.slice(1) || 'checkin';
+      const newHash = window.location.hash.slice(1) || 'registrations';
       setActiveTab(newHash);
     };
 
@@ -136,6 +138,10 @@ export function ReceptionistDashboard() {
       newTaskCount={myTasks.filter(t => t.isNew).length}
     >
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsContent value="registrations" className="space-y-6">
+          <PendingRegistrations onRefresh={() => {}} />
+        </TabsContent>
+
         <TabsContent value="checkin" className="space-y-6">
           {/* Quick Check-In */}
           <Card>

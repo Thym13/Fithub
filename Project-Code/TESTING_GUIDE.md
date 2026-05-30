@@ -337,6 +337,230 @@ After completing all test cases:
 
 ---
 
+## ✅ STEP 4: Admin Approval Workflow
+
+### Test Case: Admin Login (Manager)
+1. Navigate to http://localhost:5173/manager
+2. The manager dashboard should load
+3. Default tab: "Pending Registrations"
+
+**Expected Result**: ✅ Pending Registrations tab loads by default
+
+### Test Case: View Pending Registrations
+1. Login as manager or secretary
+2. Navigate to "Pending Registrations" tab
+3. See list of users with accountStatus === 'Pending'
+
+**Expected Result**: 
+- ✅ All pending users displayed in cards
+- ✅ Shows user name, email, phone, DOB
+- ✅ Shows role badge with color coding
+- ✅ Shows membership plan and cost
+- ✅ Shows payment status with transaction details
+- ✅ Shows registration date/time
+- ✅ Different UI for member vs trainer applications
+
+### Test Case: No Pending Registrations
+1. When no users are pending
+2. View "Pending Registrations" tab
+
+**Expected Result**:
+- ✅ Shows green checkmark icon
+- ✅ "All Clear! ✅" message
+- ✅ "No pending registrations at the moment"
+
+### Test Case: Approve User Registration
+1. Register new member (complete full flow with payment)
+2. Login as manager (manager@fithub.gr / Manager123!)
+3. Go to "Pending Registrations" tab
+4. Click "Approve" button on pending user
+5. Review details in confirmation modal
+6. Click "Confirm Approval"
+
+**Expected Result**:
+- ✅ Modal shows user details
+- ✅ Lists what happens on approval
+- ✅ Processing state shown (spinning icon)
+- ✅ User accountStatus → "Active"
+- ✅ Membership status → "Active"
+- ✅ Welcome email sent
+- ✅ Approval email sent
+- ✅ Success notification created
+- ✅ User removed from pending list
+- ✅ Modal closes
+
+**Check localStorage**:
+```javascript
+JSON.parse(localStorage.getItem('fithub_users'))
+// User should have accountStatus: 'Active'
+
+JSON.parse(localStorage.getItem('fithub_memberships'))
+// Membership should have status: 'Active'
+
+JSON.parse(localStorage.getItem('fithub_sent_emails'))
+// Should see welcome and approval emails
+
+JSON.parse(localStorage.getItem('fithub_notifications'))
+// Should see success notification
+```
+
+### Test Case: Reject User Registration
+1. Register new member (complete full flow)
+2. Login as manager
+3. Go to "Pending Registrations" tab
+4. Click "Reject" button
+5. Enter rejection reason: "Incomplete documentation"
+6. Click "Confirm Rejection"
+
+**Expected Result**:
+- ✅ Modal prompts for rejection reason
+- ✅ Rejection reason is required (button disabled if empty)
+- ✅ Processing state shown
+- ✅ User accountStatus → "Rejected"
+- ✅ Membership status → "Cancelled"
+- ✅ Rejection email sent with reason
+- ✅ Notification created with reason
+- ✅ User removed from pending list
+- ✅ Modal closes
+
+**Check localStorage**:
+```javascript
+JSON.parse(localStorage.getItem('fithub_users'))
+// User should have accountStatus: 'Rejected'
+
+JSON.parse(localStorage.getItem('fithub_memberships'))
+// Membership should have status: 'Cancelled'
+
+JSON.parse(localStorage.getItem('fithub_sent_emails'))
+// Should see rejection email with reason
+```
+
+### Test Case: Reject Without Reason
+1. Click "Reject" button
+2. Leave rejection reason empty
+3. Try to click "Confirm Rejection"
+
+**Expected Result**:
+- ❌ Button is disabled
+- ❌ Cannot submit without reason
+- ✅ Alert: "Please provide a rejection reason"
+
+### Test Case: Secretary Access
+1. Login as secretary (secretary@fithub.gr / Admin123!)
+2. Navigate to dashboard
+3. Access "Pending Registrations" tab
+
+**Expected Result**:
+- ✅ Secretary has full access
+- ✅ Can approve registrations
+- ✅ Can reject registrations
+- ✅ Same functionality as manager
+
+### Test Case: Trainer Application Review
+1. Register as trainer (complete flow)
+2. Login as manager
+3. View pending registration for trainer
+4. See special "Trainer Application" alert
+
+**Expected Result**:
+- ✅ Shows Dumbbell icon
+- ✅ Green badge for trainer role
+- ✅ Special alert: "Trainer Application - Documents and certifications have been uploaded"
+- ✅ Approve/Reject functionality works same as members
+
+### Test Case: Multiple Pending Users
+1. Register 3 different users (member, trainer, secretary)
+2. Login as manager
+3. View pending registrations
+
+**Expected Result**:
+- ✅ All 3 users listed
+- ✅ Different role icons and colors
+- ✅ Alert shows: "3 registrations waiting for approval"
+- ✅ Can approve/reject each independently
+- ✅ List refreshes after each action
+
+### Test Case: Refresh After Action
+1. Approve a user
+2. Check pending list
+
+**Expected Result**:
+- ✅ Approved user removed from list
+- ✅ List automatically refreshes
+- ✅ Count updated in alert
+
+---
+
+## 🔍 Testing Checklist (Updated)
+
+### Registration Flow (Member)
+- [x] Form validation works
+- [x] Password strength indicator appears
+- [x] Email verification sent
+- [x] Duplicate email blocked
+- [x] Subscription selection works
+- [x] Payment processing works
+- [x] Transaction recorded
+- [x] Membership activated
+- [x] Emails sent (verification, payment confirmation)
+
+### Admin Approval Workflow (NEW)
+- [ ] Pending registrations displayed
+- [ ] User details shown correctly
+- [ ] Payment status visible
+- [ ] Approve functionality works
+- [ ] Reject functionality requires reason
+- [ ] Welcome email sent on approval
+- [ ] Rejection email sent with reason
+- [ ] User status updated to Active/Rejected
+- [ ] Membership status updated
+- [ ] Notifications created
+- [ ] List refreshes after action
+- [ ] Both manager and secretary can approve/reject
+
+### Payment Features
+- [x] Card auto-formatting works
+- [x] Card type detected
+- [x] CVV masked (password field)
+- [x] Expiry auto-formatted (MM/YY)
+- [x] Luhn validation works
+- [x] Payment success flow
+- [x] Payment declined flow
+- [x] Transaction summary displayed
+
+### Data Persistence
+- [x] User saved in localStorage
+- [x] Membership saved
+- [x] Transaction saved
+- [x] Emails logged
+- [x] Data persists after page reload
+- [x] Notifications saved
+
+---
+
+## 🐛 Common Issues (Updated)
+
+### Issue: Can't access admin dashboard
+**Solution**: Use demo accounts:
+- Manager: manager@fithub.gr / Manager123!
+- Secretary: secretary@fithub.gr / Admin123!
+
+### Issue: No pending registrations showing
+**Solution**: 
+1. Register a new user first
+2. Complete the full registration flow including payment
+3. User must be in "Pending" status
+4. Check localStorage: `JSON.parse(localStorage.getItem('fithub_users'))`
+
+### Issue: Approval/rejection not working
+**Solution**: 
+- Check browser console for errors
+- Verify localStorage is enabled
+- Ensure emails are being logged
+- Check that user and membership exist in database
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-3  
-**Total Test Cases**: 25+
+**Steps Tested**: 1-4  
+**Total Test Cases**: 40+

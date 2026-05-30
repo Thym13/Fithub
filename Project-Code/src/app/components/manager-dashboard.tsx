@@ -12,6 +12,7 @@ import { Textarea } from './ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar as CalendarComponent } from './ui/calendar';
 import { PromotionAnalytics } from './promotion-analytics';
+import { PendingRegistrations } from './pending-registrations';
 import {
   Users,
   Calendar,
@@ -37,6 +38,7 @@ import { format } from 'date-fns';
 import { cn } from './ui/utils';
 
 const managerTabs = [
+  { id: 'registrations', label: 'Pending Registrations', path: '#registrations' },
   { id: 'members', label: 'Member Profiles', path: '#members' },
   { id: 'schedules', label: 'Employee Schedules', path: '#schedules' },
   { id: 'classes', label: 'Class Management', path: '#classes' },
@@ -48,7 +50,7 @@ const managerTabs = [
 ];
 
 export function ManagerDashboard() {
-  const [activeTab, setActiveTab] = useState('members');
+  const [activeTab, setActiveTab] = useState('registrations');
 
   // Task Assignment States
   const [showCreateTask, setShowCreateTask] = useState(false);
@@ -194,11 +196,11 @@ export function ManagerDashboard() {
   ]);
 
   useEffect(() => {
-    const hash = window.location.hash.slice(1) || 'members';
+    const hash = window.location.hash.slice(1) || 'registrations';
     setActiveTab(hash);
 
     const handleHashChange = () => {
-      const newHash = window.location.hash.slice(1) || 'members';
+      const newHash = window.location.hash.slice(1) || 'registrations';
       setActiveTab(newHash);
     };
 
@@ -473,6 +475,10 @@ export function ManagerDashboard() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsContent value="registrations" className="space-y-6">
+          <PendingRegistrations onRefresh={() => {}} />
+        </TabsContent>
+
         <TabsContent value="members" className="space-y-6">
           <Card>
             <CardHeader>
