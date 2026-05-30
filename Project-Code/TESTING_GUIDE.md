@@ -7958,6 +7958,523 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 - ✅ No data loss
 - ✅ All relationships preserved
 
+---
+
+## STEP 25: Workout Session Logging & Exercise Library System
+
+### Test Case 25.1: View Workout Log Dashboard
+
+**Steps**:
+1. Login as member
+2. Navigate to "Workout Log" tab
+3. View the dashboard
+
+**Expected Result**:
+- ✅ 4 KPI cards displayed (Total Workouts, Total Volume, Avg Duration, Completion Rate)
+- ✅ Statistics calculated correctly
+- ✅ Time range selector visible (7/30/90 days)
+- ✅ Workout history section displayed
+- ✅ "Log Workout" button visible
+- ✅ Demo data loaded
+
+### Test Case 25.2: View Workout Statistics
+
+**Steps**:
+1. View workout log dashboard
+2. Check each KPI card
+
+**Expected Result**:
+- ✅ Total workouts count accurate
+- ✅ Total volume calculation correct (kg)
+- ✅ Average duration calculated (minutes)
+- ✅ Completion rate percentage displayed
+- ✅ Icons displayed correctly
+- ✅ Values formatted properly
+
+### Test Case 25.3: Time Range Filtering
+
+**Steps**:
+1. View workout log dashboard
+2. Select "7 days" time range
+3. Check statistics update
+4. Select "30 days"
+5. Select "90 days"
+
+**Expected Result**:
+- ✅ Time range selector responsive
+- ✅ Statistics recalculated for range
+- ✅ Workout history filtered
+- ✅ KPI cards update immediately
+- ✅ Correct workouts displayed
+- ✅ No calculation errors
+
+### Test Case 25.4: View Workout History
+
+**Steps**:
+1. View workout log tab
+2. Scroll through workout history
+3. Check workout details
+
+**Expected Result**:
+- ✅ All workouts listed
+- ✅ Date and title displayed
+- ✅ Workout type badge shown
+- ✅ Duration displayed
+- ✅ Exercise count shown
+- ✅ Completion status visible
+- ✅ Expandable details work
+
+### Test Case 25.5: View Exercise Details in Workout
+
+**Steps**:
+1. View a workout in history
+2. Expand workout details
+3. View exercises and sets
+
+**Expected Result**:
+- ✅ All exercises listed
+- ✅ Exercise names correct
+- ✅ Sets displayed (reps/weight)
+- ✅ Set completion checkmarks visible
+- ✅ Total volume per exercise shown
+- ✅ Exercise notes displayed
+- ✅ Category badges shown
+
+### Test Case 25.6: Open Log Workout Modal
+
+**Steps**:
+1. Click "Log Workout" button
+2. View modal
+
+**Expected Result**:
+- ✅ Modal opens smoothly
+- ✅ Form fields visible
+- ✅ Date selector (default: today)
+- ✅ Title input field
+- ✅ Workout type selector
+- ✅ Exercise selection area
+- ✅ Session details section
+- ✅ Save and cancel buttons
+
+### Test Case 25.7: Select Workout Date
+
+**Steps**:
+1. Open log workout modal
+2. Click date selector
+3. Select a past date
+4. Select future date
+
+**Expected Result**:
+- ✅ Date picker opens
+- ✅ Can select past dates
+- ✅ Cannot select future dates
+- ✅ Date displays correctly
+- ✅ Format correct (YYYY-MM-DD)
+
+### Test Case 25.8: Enter Workout Title and Type
+
+**Steps**:
+1. Open log workout modal
+2. Enter title "Morning Strength Session"
+3. Select workout type "Strength"
+
+**Expected Result**:
+- ✅ Title input works
+- ✅ Workout type dropdown opens
+- ✅ All types available (Strength, Cardio, HIIT, Flexibility, Sports, Mixed)
+- ✅ Selected type displayed
+- ✅ Form updates correctly
+
+### Test Case 25.9: Add Exercise from Library
+
+**Steps**:
+1. In log workout modal
+2. Click "Add Exercise" or select from dropdown
+3. Choose "Bench Press"
+4. Verify exercise added
+
+**Expected Result**:
+- ✅ Exercise dropdown opens
+- ✅ All library exercises listed
+- ✅ Exercises categorized
+- ✅ Selected exercise added to workout
+- ✅ Default 3 sets created
+- ✅ Exercise details visible
+- ✅ Can add multiple exercises
+
+### Test Case 25.10: Log Sets (Reps and Weight)
+
+**Steps**:
+1. Add exercise to workout
+2. View the 3 default sets
+3. Enter reps for Set 1: 10
+4. Enter weight for Set 1: 60kg
+5. Mark Set 1 as completed
+6. Repeat for Sets 2 and 3
+
+**Expected Result**:
+- ✅ Set fields editable
+- ✅ Reps input accepts numbers
+- ✅ Weight input accepts numbers/decimals
+- ✅ Completion checkbox works
+- ✅ Set data saved
+- ✅ Visual feedback on completion
+
+### Test Case 25.11: Add and Remove Sets
+
+**Steps**:
+1. Add exercise to workout
+2. Click "Add Set" button
+3. Verify 4th set added
+4. Click "Remove" on a set
+5. Verify set removed
+
+**Expected Result**:
+- ✅ "Add Set" button visible
+- ✅ New set added with incremented number
+- ✅ Set number correct (Set 4)
+- ✅ Remove button works
+- ✅ Set numbers renumber correctly
+- ✅ Can add multiple sets
+- ✅ Can remove any set
+
+### Test Case 25.12: Add Exercise Notes
+
+**Steps**:
+1. Add exercise to workout
+2. Locate exercise notes field
+3. Enter "Felt strong today, increased weight"
+
+**Expected Result**:
+- ✅ Notes field visible
+- ✅ Text input works
+- ✅ Notes saved with exercise
+- ✅ Notes displayed in workout history
+- ✅ Multi-line text supported
+
+### Test Case 25.13: Add Session Notes
+
+**Steps**:
+1. In log workout modal
+2. Scroll to session details
+3. Enter mood, energy level
+4. Enter session notes
+
+**Expected Result**:
+- ✅ Mood selector works (Excellent/Good/Neutral/Tired/Poor)
+- ✅ Energy level slider (1-10)
+- ✅ Session notes textarea
+- ✅ All fields optional
+- ✅ Values saved correctly
+
+### Test Case 25.14: Log Complete Workout
+
+**Steps**:
+1. Open log workout modal
+2. Enter title "Push Day"
+3. Select workout type "Strength"
+4. Add 3 exercises (Bench Press, Shoulder Press, Tricep Dips)
+5. Log sets for each exercise
+6. Add session notes
+7. Click "Save Workout"
+
+**Expected Result**:
+- ✅ Workout saves successfully
+- ✅ Modal closes
+- ✅ Workout appears in history
+- ✅ All exercises saved
+- ✅ All sets saved
+- ✅ Statistics updated
+- ✅ Success feedback shown
+
+### Test Case 25.15: Form Validation
+
+**Steps**:
+1. Open log workout modal
+2. Try to save without title
+3. Try to save without workout type
+4. Try to save without exercises
+5. Try to save exercise without sets
+
+**Expected Result**:
+- ✅ Title required validation
+- ✅ Workout type required validation
+- ✅ At least one exercise required
+- ✅ Error messages displayed
+- ✅ Cannot save invalid workout
+- ✅ Form highlights errors
+
+### Test Case 25.16: Calculate Total Volume
+
+**Steps**:
+1. Log workout with multiple exercises
+2. Enter sets with reps and weights
+3. View total volume calculation
+
+**Expected Result**:
+- ✅ Volume calculated per set (reps × weight)
+- ✅ Volume calculated per exercise (sum of sets)
+- ✅ Total session volume calculated
+- ✅ Volume displayed in kg
+- ✅ Statistics updated
+- ✅ Calculation accurate
+
+### Test Case 25.17: View Exercise Library Tab
+
+**Steps**:
+1. Navigate to "Workout Log" tab
+2. Click "Exercise Library" sub-tab
+3. View library
+
+**Expected Result**:
+- ✅ Tab switches to Exercise Library
+- ✅ Exercise grid displayed
+- ✅ All exercises shown
+- ✅ Exercise cards with details
+- ✅ Categories visible
+- ✅ Equipment types shown
+- ✅ Difficulty levels displayed
+
+### Test Case 25.18: Browse Exercises by Category
+
+**Steps**:
+1. View Exercise Library
+2. Look for category badges
+3. Identify exercises by category (Chest, Back, Legs, etc.)
+
+**Expected Result**:
+- ✅ Category badges displayed
+- ✅ Color-coded badges
+- ✅ All categories represented (Chest, Back, Legs, Shoulders, Arms, Core, Cardio, Full Body)
+- ✅ Exercises grouped logically
+- ✅ Category names clear
+
+### Test Case 25.19: View Exercise Details
+
+**Steps**:
+1. View Exercise Library
+2. Select an exercise card
+3. View details
+
+**Expected Result**:
+- ✅ Exercise name displayed
+- ✅ Muscle group shown
+- ✅ Equipment type visible
+- ✅ Difficulty level displayed
+- ✅ Description shown (if available)
+- ✅ Category badge visible
+- ✅ Card formatting clean
+
+### Test Case 25.20: Most Used Exercises Section
+
+**Steps**:
+1. View Workout Log tab
+2. Locate "Most Used Exercises" section
+3. Check exercises listed
+
+**Expected Result**:
+- ✅ Section visible
+- ✅ Shows frequently used exercises
+- ✅ Usage count displayed
+- ✅ Top 5-10 exercises shown
+- ✅ Sorted by frequency
+- ✅ Updates based on workout history
+
+### Test Case 25.21: Demo Data Verification
+
+**Steps**:
+1. Fresh installation
+2. Navigate to Workout Log
+3. View demo workouts
+
+**Expected Result**:
+- ✅ 4 demo workout sessions loaded
+- ✅ Variety of workout types
+- ✅ Realistic data (sets, reps, weights)
+- ✅ Different dates
+- ✅ Complete sessions
+- ✅ All exercises from library
+
+### Test Case 25.22: Exercise Library Demo Data
+
+**Steps**:
+1. View Exercise Library
+2. Count exercises
+3. Check variety
+
+**Expected Result**:
+- ✅ 12 exercises in library
+- ✅ All major muscle groups covered
+- ✅ Variety of equipment types
+- ✅ Mix of difficulty levels
+- ✅ Complete exercise details
+- ✅ Realistic exercise selection
+
+### Test Case 25.23: Completion Rate Calculation
+
+**Steps**:
+1. Log multiple workouts
+2. Mark some as completed
+3. Leave some incomplete
+4. Check completion rate KPI
+
+**Expected Result**:
+- ✅ Completion rate calculated correctly
+- ✅ Percentage displayed
+- ✅ Updates in real-time
+- ✅ Accounts for all workouts
+- ✅ Accurate calculation (completed/total × 100)
+
+### Test Case 25.24: Delete Workout Session
+
+**Steps**:
+1. View workout history
+2. Select a workout
+3. Click delete button
+4. Confirm deletion
+
+**Expected Result**:
+- ✅ Delete button visible
+- ✅ Confirmation dialog appears
+- ✅ Workout deleted on confirm
+- ✅ Removed from history
+- ✅ Statistics updated
+- ✅ Can cancel deletion
+
+### Test Case 25.25: Edit Workout Session
+
+**Steps**:
+1. View workout history
+2. Select a workout
+3. Click edit button
+4. Modify workout details
+5. Save changes
+
+**Expected Result**:
+- ✅ Edit button visible
+- ✅ Modal opens with existing data
+- ✅ All fields editable
+- ✅ Can modify sets
+- ✅ Changes saved correctly
+- ✅ History updated
+
+### Test Case 25.26: Workout Type Filtering
+
+**Steps**:
+1. View workout history
+2. Check workout type badges
+3. Verify variety
+
+**Expected Result**:
+- ✅ Workout types displayed
+- ✅ Color-coded badges
+- ✅ Multiple types present (Strength, Cardio, Mixed)
+- ✅ Badge colors distinct
+- ✅ Type name clear
+
+### Test Case 25.27: Empty State Handling
+
+**Steps**:
+1. Clear all workout data
+2. View Workout Log tab
+3. Check empty state
+
+**Expected Result**:
+- ✅ Empty state message displayed
+- ✅ "Log Workout" button still visible
+- ✅ No errors shown
+- ✅ KPI cards show 0 values
+- ✅ Charts handle no data gracefully
+- ✅ Exercise library still accessible
+
+### Test Case 25.28: Responsive Layout
+
+**Steps**:
+1. View Workout Log on different screen sizes
+2. Check mobile view
+3. Check tablet view
+4. Check desktop view
+
+**Expected Result**:
+- ✅ Layout responsive
+- ✅ KPI cards stack on mobile
+- ✅ Modal scrollable on small screens
+- ✅ Exercise library grid adjusts
+- ✅ All buttons accessible
+- ✅ Text readable on all sizes
+
+### Test Case 25.29: Integration with Member Dashboard
+
+**Steps**:
+1. Login as member
+2. Navigate to member dashboard
+3. Check for "Workout Log" tab
+4. Switch between tabs
+
+**Expected Result**:
+- ✅ "Workout Log" tab visible
+- ✅ Tab positioned correctly (after Body Composition)
+- ✅ Tab clickable
+- ✅ Component loads correctly
+- ✅ Data displays
+- ✅ No navigation errors
+- ✅ Tab switching smooth
+
+### Test Case 25.30: Data Persistence
+
+**Steps**:
+1. Log multiple workouts
+2. Add exercises and sets
+3. Refresh browser
+4. Check data still exists
+
+**Expected Result**:
+- ✅ All workouts persist
+- ✅ Exercises preserved
+- ✅ Sets and reps intact
+- ✅ Statistics still calculated
+- ✅ localStorage working
+- ✅ No data loss
+- ✅ Exercise library intact
+- ✅ All relationships preserved
+
+### Quick Checklist for Step 25:
+
+- [x] Dashboard with 4 KPI cards
+- [x] Total workouts stat
+- [x] Total volume stat
+- [x] Average duration stat
+- [x] Completion rate stat
+- [x] Time range selector (7/30/90 days)
+- [x] Workout history display
+- [x] Exercise details in workouts
+- [x] Log workout modal opens
+- [x] Date selection works
+- [x] Title and type fields
+- [x] Exercise selection from library
+- [x] Add/remove sets dynamically
+- [x] Reps and weight inputs
+- [x] Set completion checkboxes
+- [x] Exercise notes field
+- [x] Session notes and feedback
+- [x] Mood and energy level
+- [x] Form validation works
+- [x] Workout creation successful
+- [x] Volume calculation accurate
+- [x] Exercise Library tab
+- [x] Exercise grid view
+- [x] Category badges
+- [x] Equipment and difficulty shown
+- [x] Most used exercises section
+- [x] Delete workout functionality
+- [x] Demo data realistic (12 exercises, 4 workouts)
+- [x] Empty state handled
+- [x] Responsive layout
+- [x] Integration with member dashboard
+- [x] Data persists in localStorage
+
+---
+
 ### Quick Checklist for Step 24:
 
 - [x] Dashboard with 4 KPI cards
@@ -7995,5 +8512,5 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 ---
 
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-24  
-**Total Test Cases**: 530+
+**Steps Tested**: 1-25  
+**Total Test Cases**: 560+

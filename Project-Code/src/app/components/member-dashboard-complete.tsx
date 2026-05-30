@@ -11,6 +11,7 @@ import { MemberProfile } from './member-profile';
 import { MemberCheckInHistory } from './member-checkin-history';
 import { MemberNutrition } from './member-nutrition';
 import { BodyCompositionTracking } from './body-composition-tracking';
+import { WorkoutLogging } from './workout-logging';
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from './dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -104,6 +105,7 @@ export function MemberDashboard() {
     { id: 'classes', label: 'Browse All Classes', path: '#classes' },
     { id: 'progress', label: 'My Progress', path: '#progress' },
     { id: 'body-comp', label: 'Body Composition', path: '#body-comp' },
+    { id: 'workout-log', label: 'Workout Log', path: '#workout-log' },
     { id: 'nutrition', label: 'Nutrition Plan', path: '#nutrition' },
     { id: 'checkins', label: 'My Check-Ins', path: '#checkins' },
     { id: 'schedule', label: 'My Schedule', path: '#schedule' },
@@ -712,6 +714,10 @@ export function MemberDashboard() {
 
         <TabsContent value="body-comp" className="space-y-6">
           <BodyCompositionTracking />
+        </TabsContent>
+
+        <TabsContent value="workout-log" className="space-y-6">
+          <WorkoutLogging />
         </TabsContent>
 
         <TabsContent value="nutrition" className="space-y-6">

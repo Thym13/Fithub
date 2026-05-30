@@ -449,6 +449,71 @@ export interface BodyCompositionEntry {
   updatedAt: string;
 }
 
+export interface Exercise {
+  id: string;
+  name: string;
+  category: 'Chest' | 'Back' | 'Legs' | 'Shoulders' | 'Arms' | 'Core' | 'Cardio' | 'Full Body';
+  muscleGroup: string; // Primary muscle targeted
+  equipment: 'Barbell' | 'Dumbbell' | 'Machine' | 'Cable' | 'Bodyweight' | 'Resistance Band' | 'Kettlebell' | 'Other';
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  description?: string;
+  instructions?: string[];
+  videoUrl?: string;
+  isCustom: boolean; // User-created vs system exercise
+  createdBy?: string; // User ID if custom
+  createdAt: string;
+}
+
+export interface WorkoutSet {
+  setNumber: number;
+  reps?: number;
+  weight?: number; // kg
+  duration?: number; // seconds (for cardio or timed exercises)
+  distance?: number; // km (for running, cycling)
+  restTime?: number; // seconds
+  completed: boolean;
+  notes?: string;
+}
+
+export interface WorkoutExercise {
+  exerciseId: string;
+  exerciseName: string;
+  category: string;
+  sets: WorkoutSet[];
+  targetSets?: number;
+  targetReps?: number;
+  targetWeight?: number;
+  notes?: string;
+}
+
+export interface WorkoutSession {
+  id: string;
+  userId: string;
+  userName: string;
+  trainerId?: string;
+  trainerName?: string;
+  programId?: string; // If part of a training program
+  date: string;
+  startTime?: string;
+  endTime?: string;
+  duration?: number; // minutes
+  workoutType: 'Strength' | 'Cardio' | 'HIIT' | 'Flexibility' | 'Sports' | 'Mixed';
+  title: string;
+  exercises: WorkoutExercise[];
+  totalVolume?: number; // Total weight lifted (sets * reps * weight)
+  caloriesBurned?: number;
+  avgHeartRate?: number;
+  maxHeartRate?: number;
+  mood?: 'Excellent' | 'Good' | 'Neutral' | 'Tired' | 'Poor';
+  energyLevel?: number; // 1-10
+  difficultyRating?: number; // 1-10
+  notes?: string;
+  location?: string; // Gym, Home, Outdoor, etc.
+  completed: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export class MockDatabase {
   private static instance: MockDatabase;
 
@@ -472,6 +537,8 @@ export class MockDatabase {
   private EQUIPMENT_KEY = 'fithub_equipment';
   private MAINTENANCE_LOGS_KEY = 'fithub_maintenance_logs';
   private BODY_COMPOSITION_KEY = 'fithub_body_composition';
+  private EXERCISES_KEY = 'fithub_exercises';
+  private WORKOUT_SESSIONS_KEY = 'fithub_workout_sessions';
 
   static getInstance(): MockDatabase {
     if (!MockDatabase.instance) {
@@ -2656,6 +2723,221 @@ export class MockDatabase {
     return progress;
   }
 
+  // ==================== Exercise Library ====================
+
+  createExercise(data: Omit<Exercise, 'id' | 'createdAt'>): Exercise {
+    const exercise: Exercise = {
+      ...data,
+      id: `exercise-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: new Date().toISOString()
+    };
+
+    const allExercises = this.getAllExercises();
+    allExercises.push(exercise);
+    localStorage.setItem(this.EXERCISES_KEY, JSON.stringify(allExercises));
+
+    return exercise;
+  }
+
+  getAllExercises(): Exercise[] {
+    const data = localStorage.getItem(this.EXERCISES_KEY);
+    return data ? JSON.parse(data) : [];
+  }
+
+  getExerciseById(id: string): Exercise | undefined {
+    return this.getAllExercises().find(e => e.id === id);
+  }
+
+  getExercisesByCategory(category: Exercise['category']): Exercise[] {
+    return this.getAllExercises().filter(e => e.category === category);
+  }
+
+  getExercisesByEquipment(equipment: Exercise['equipment']): Exercise[] {
+    return this.getAllExercises().filter(e => e.equipment === equipment);
+  }
+
+  searchExercises(query: string): Exercise[] {
+    const lowerQuery = query.toLowerCase();
+    return this.getAllExercises().filter(e =>
+      e.name.toLowerCase().includes(lowerQuery) ||
+      e.muscleGroup.toLowerCase().includes(lowerQuery) ||
+      e.description?.toLowerCase().includes(lowerQuery)
+    );
+  }
+
+  updateExercise(id: string, updates: Partial<Exercise>): Exercise | null {
+    const allExercises = this.getAllExercises();
+    const index = allExercises.findIndex(e => e.id === id);
+
+    if (index === -1) return null;
+
+    allExercises[index] = {
+      ...allExercises[index],
+      ...updates
+    };
+
+    localStorage.setItem(this.EXERCISES_KEY, JSON.stringify(allExercises));
+    return allExercises[index];
+  }
+
+  deleteExercise(id: string): boolean {
+    const allExercises = this.getAllExercises();
+    const filtered = allExercises.filter(e => e.id !== id);
+
+    if (filtered.length === allExercises.length) return false;
+
+    localStorage.setItem(this.EXERCISES_KEY, JSON.stringify(filtered));
+    return true;
+  }
+
+  // ==================== Workout Sessions ====================
+
+  createWorkoutSession(data: Omit<WorkoutSession, 'id' | 'createdAt' | 'updatedAt'>): WorkoutSession {
+    const session: WorkoutSession = {
+      ...data,
+      id: `workout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // Calculate total volume if exercises have weight/reps
+    let totalVolume = 0;
+    session.exercises.forEach(ex => {
+      ex.sets.forEach(set => {
+        if (set.weight && set.reps && set.completed) {
+          totalVolume += set.weight * set.reps;
+        }
+      });
+    });
+    session.totalVolume = totalVolume;
+
+    const allSessions = this.getAllWorkoutSessions();
+    allSessions.push(session);
+    localStorage.setItem(this.WORKOUT_SESSIONS_KEY, JSON.stringify(allSessions));
+
+    return session;
+  }
+
+  getAllWorkoutSessions(): WorkoutSession[] {
+    const data = localStorage.getItem(this.WORKOUT_SESSIONS_KEY);
+    return data ? JSON.parse(data) : [];
+  }
+
+  getWorkoutSessionById(id: string): WorkoutSession | undefined {
+    return this.getAllWorkoutSessions().find(s => s.id === id);
+  }
+
+  getWorkoutSessionsByUser(userId: string): WorkoutSession[] {
+    return this.getAllWorkoutSessions()
+      .filter(s => s.userId === userId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+
+  getWorkoutSessionsByDateRange(userId: string, startDate: string, endDate: string): WorkoutSession[] {
+    return this.getAllWorkoutSessions()
+      .filter(s => s.userId === userId && s.date >= startDate && s.date <= endDate)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }
+
+  getRecentWorkoutSessions(userId: string, limit: number = 10): WorkoutSession[] {
+    return this.getWorkoutSessionsByUser(userId).slice(0, limit);
+  }
+
+  updateWorkoutSession(id: string, updates: Partial<WorkoutSession>): WorkoutSession | null {
+    const allSessions = this.getAllWorkoutSessions();
+    const index = allSessions.findIndex(s => s.id === id);
+
+    if (index === -1) return null;
+
+    allSessions[index] = {
+      ...allSessions[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+
+    // Recalculate total volume if exercises updated
+    if (updates.exercises) {
+      let totalVolume = 0;
+      allSessions[index].exercises.forEach(ex => {
+        ex.sets.forEach(set => {
+          if (set.weight && set.reps && set.completed) {
+            totalVolume += set.weight * set.reps;
+          }
+        });
+      });
+      allSessions[index].totalVolume = totalVolume;
+    }
+
+    localStorage.setItem(this.WORKOUT_SESSIONS_KEY, JSON.stringify(allSessions));
+    return allSessions[index];
+  }
+
+  deleteWorkoutSession(id: string): boolean {
+    const allSessions = this.getAllWorkoutSessions();
+    const filtered = allSessions.filter(s => s.id !== id);
+
+    if (filtered.length === allSessions.length) return false;
+
+    localStorage.setItem(this.WORKOUT_SESSIONS_KEY, JSON.stringify(filtered));
+    return true;
+  }
+
+  getWorkoutStats(userId: string, days: number = 30): {
+    totalWorkouts: number;
+    totalDuration: number; // minutes
+    totalVolume: number; // kg
+    avgDuration: number;
+    avgVolume: number;
+    workoutsByType: { [key: string]: number };
+    completionRate: number;
+    mostUsedExercises: { exerciseName: string; count: number }[];
+  } {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    const cutoffStr = cutoffDate.toISOString().split('T')[0];
+
+    const sessions = this.getAllWorkoutSessions()
+      .filter(s => s.userId === userId && s.date >= cutoffStr);
+
+    const stats = {
+      totalWorkouts: sessions.length,
+      totalDuration: 0,
+      totalVolume: 0,
+      avgDuration: 0,
+      avgVolume: 0,
+      workoutsByType: {} as { [key: string]: number },
+      completionRate: 0,
+      mostUsedExercises: [] as { exerciseName: string; count: number }[]
+    };
+
+    let completedCount = 0;
+    const exerciseCounts: { [key: string]: number } = {};
+
+    sessions.forEach(s => {
+      if (s.duration) stats.totalDuration += s.duration;
+      if (s.totalVolume) stats.totalVolume += s.totalVolume;
+      if (s.completed) completedCount++;
+
+      stats.workoutsByType[s.workoutType] = (stats.workoutsByType[s.workoutType] || 0) + 1;
+
+      s.exercises.forEach(ex => {
+        exerciseCounts[ex.exerciseName] = (exerciseCounts[ex.exerciseName] || 0) + 1;
+      });
+    });
+
+    stats.avgDuration = sessions.length > 0 ? stats.totalDuration / sessions.length : 0;
+    stats.avgVolume = sessions.length > 0 ? stats.totalVolume / sessions.length : 0;
+    stats.completionRate = sessions.length > 0 ? (completedCount / sessions.length) * 100 : 0;
+
+    // Get top 5 exercises
+    stats.mostUsedExercises = Object.entries(exerciseCounts)
+      .map(([exerciseName, count]) => ({ exerciseName, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    return stats;
+  }
+
   clearAllData(): void {
     localStorage.removeItem(this.USERS_KEY);
     localStorage.removeItem(this.MEMBERSHIPS_KEY);
@@ -2677,6 +2959,8 @@ export class MockDatabase {
     localStorage.removeItem(this.EQUIPMENT_KEY);
     localStorage.removeItem(this.MAINTENANCE_LOGS_KEY);
     localStorage.removeItem(this.BODY_COMPOSITION_KEY);
+    localStorage.removeItem(this.EXERCISES_KEY);
+    localStorage.removeItem(this.WORKOUT_SESSIONS_KEY);
   }
 
   // Initialize demo data
@@ -4328,6 +4612,359 @@ export class MockDatabase {
           });
 
           console.log('✅ Demo body composition entries initialized');
+        }
+      }
+
+      // Create demo exercises
+      const exercises = this.getAllExercises();
+      if (exercises.length === 0) {
+        // Chest exercises
+        this.createExercise({
+          name: 'Barbell Bench Press',
+          category: 'Chest',
+          muscleGroup: 'Pectoralis Major',
+          equipment: 'Barbell',
+          difficulty: 'Intermediate',
+          description: 'Classic compound chest exercise',
+          instructions: ['Lie on bench', 'Lower bar to chest', 'Press up powerfully'],
+          isCustom: false
+        });
+
+        this.createExercise({
+          name: 'Dumbbell Flyes',
+          category: 'Chest',
+          muscleGroup: 'Pectoralis Major',
+          equipment: 'Dumbbell',
+          difficulty: 'Beginner',
+          description: 'Isolation exercise for chest',
+          isCustom: false
+        });
+
+        // Back exercises
+        this.createExercise({
+          name: 'Barbell Deadlift',
+          category: 'Back',
+          muscleGroup: 'Erector Spinae, Lats',
+          equipment: 'Barbell',
+          difficulty: 'Advanced',
+          description: 'Compound full-body exercise',
+          isCustom: false
+        });
+
+        this.createExercise({
+          name: 'Pull-ups',
+          category: 'Back',
+          muscleGroup: 'Latissimus Dorsi',
+          equipment: 'Bodyweight',
+          difficulty: 'Intermediate',
+          description: 'Bodyweight back exercise',
+          isCustom: false
+        });
+
+        // Leg exercises
+        this.createExercise({
+          name: 'Barbell Squat',
+          category: 'Legs',
+          muscleGroup: 'Quadriceps, Glutes',
+          equipment: 'Barbell',
+          difficulty: 'Intermediate',
+          description: 'Compound lower body exercise',
+          isCustom: false
+        });
+
+        this.createExercise({
+          name: 'Leg Press',
+          category: 'Legs',
+          muscleGroup: 'Quadriceps',
+          equipment: 'Machine',
+          difficulty: 'Beginner',
+          description: 'Machine-based leg exercise',
+          isCustom: false
+        });
+
+        // Shoulder exercises
+        this.createExercise({
+          name: 'Overhead Press',
+          category: 'Shoulders',
+          muscleGroup: 'Deltoids',
+          equipment: 'Barbell',
+          difficulty: 'Intermediate',
+          description: 'Compound shoulder exercise',
+          isCustom: false
+        });
+
+        this.createExercise({
+          name: 'Lateral Raises',
+          category: 'Shoulders',
+          muscleGroup: 'Lateral Deltoid',
+          equipment: 'Dumbbell',
+          difficulty: 'Beginner',
+          description: 'Isolation for side delts',
+          isCustom: false
+        });
+
+        // Arm exercises
+        this.createExercise({
+          name: 'Barbell Curl',
+          category: 'Arms',
+          muscleGroup: 'Biceps',
+          equipment: 'Barbell',
+          difficulty: 'Beginner',
+          description: 'Classic bicep exercise',
+          isCustom: false
+        });
+
+        this.createExercise({
+          name: 'Tricep Dips',
+          category: 'Arms',
+          muscleGroup: 'Triceps',
+          equipment: 'Bodyweight',
+          difficulty: 'Intermediate',
+          description: 'Bodyweight tricep exercise',
+          isCustom: false
+        });
+
+        // Core exercises
+        this.createExercise({
+          name: 'Plank',
+          category: 'Core',
+          muscleGroup: 'Abdominals',
+          equipment: 'Bodyweight',
+          difficulty: 'Beginner',
+          description: 'Isometric core exercise',
+          isCustom: false
+        });
+
+        this.createExercise({
+          name: 'Russian Twists',
+          category: 'Core',
+          muscleGroup: 'Obliques',
+          equipment: 'Bodyweight',
+          difficulty: 'Beginner',
+          description: 'Rotational core exercise',
+          isCustom: false
+        });
+
+        console.log('✅ Demo exercises initialized');
+      }
+
+      // Create demo workout sessions
+      const workoutSessions = this.getAllWorkoutSessions();
+      if (workoutSessions.length === 0) {
+        const memberUser = this.findUserByEmail('member@fithub.com');
+        const trainerUser = this.findUserByEmail('trainer@fithub.com');
+        const allExercises = this.getAllExercises();
+
+        if (memberUser && trainerUser && allExercises.length > 0) {
+          // Workout 1 - 7 days ago (Chest Day)
+          const date1 = new Date();
+          date1.setDate(date1.getDate() - 7);
+          this.createWorkoutSession({
+            userId: memberUser.id,
+            userName: memberUser.name,
+            trainerId: trainerUser.id,
+            trainerName: trainerUser.name,
+            date: date1.toISOString().split('T')[0],
+            startTime: '10:00',
+            endTime: '11:15',
+            duration: 75,
+            workoutType: 'Strength',
+            title: 'Chest & Triceps',
+            exercises: [
+              {
+                exerciseId: allExercises[0].id,
+                exerciseName: 'Barbell Bench Press',
+                category: 'Chest',
+                sets: [
+                  { setNumber: 1, reps: 10, weight: 60, restTime: 90, completed: true },
+                  { setNumber: 2, reps: 8, weight: 70, restTime: 90, completed: true },
+                  { setNumber: 3, reps: 6, weight: 75, restTime: 120, completed: true },
+                  { setNumber: 4, reps: 8, weight: 70, restTime: 90, completed: true }
+                ]
+              },
+              {
+                exerciseId: allExercises[1].id,
+                exerciseName: 'Dumbbell Flyes',
+                category: 'Chest',
+                sets: [
+                  { setNumber: 1, reps: 12, weight: 15, restTime: 60, completed: true },
+                  { setNumber: 2, reps: 12, weight: 15, restTime: 60, completed: true },
+                  { setNumber: 3, reps: 10, weight: 17.5, restTime: 60, completed: true }
+                ]
+              },
+              {
+                exerciseId: allExercises[9].id,
+                exerciseName: 'Tricep Dips',
+                category: 'Arms',
+                sets: [
+                  { setNumber: 1, reps: 15, weight: 0, restTime: 60, completed: true },
+                  { setNumber: 2, reps: 12, weight: 0, restTime: 60, completed: true },
+                  { setNumber: 3, reps: 10, weight: 0, restTime: 60, completed: true }
+                ]
+              }
+            ],
+            caloriesBurned: 350,
+            mood: 'Excellent',
+            energyLevel: 8,
+            difficultyRating: 7,
+            location: 'FitHub Gym',
+            completed: true,
+            notes: 'Great workout! New PR on bench press'
+          });
+
+          // Workout 2 - 5 days ago (Back Day)
+          const date2 = new Date();
+          date2.setDate(date2.getDate() - 5);
+          this.createWorkoutSession({
+            userId: memberUser.id,
+            userName: memberUser.name,
+            trainerId: trainerUser.id,
+            trainerName: trainerUser.name,
+            date: date2.toISOString().split('T')[0],
+            startTime: '14:00',
+            endTime: '15:30',
+            duration: 90,
+            workoutType: 'Strength',
+            title: 'Back & Biceps',
+            exercises: [
+              {
+                exerciseId: allExercises[2].id,
+                exerciseName: 'Barbell Deadlift',
+                category: 'Back',
+                sets: [
+                  { setNumber: 1, reps: 8, weight: 80, restTime: 120, completed: true },
+                  { setNumber: 2, reps: 6, weight: 90, restTime: 120, completed: true },
+                  { setNumber: 3, reps: 6, weight: 95, restTime: 120, completed: true }
+                ]
+              },
+              {
+                exerciseId: allExercises[3].id,
+                exerciseName: 'Pull-ups',
+                category: 'Back',
+                sets: [
+                  { setNumber: 1, reps: 10, weight: 0, restTime: 90, completed: true },
+                  { setNumber: 2, reps: 8, weight: 0, restTime: 90, completed: true },
+                  { setNumber: 3, reps: 7, weight: 0, restTime: 90, completed: true }
+                ]
+              },
+              {
+                exerciseId: allExercises[8].id,
+                exerciseName: 'Barbell Curl',
+                category: 'Arms',
+                sets: [
+                  { setNumber: 1, reps: 12, weight: 25, restTime: 60, completed: true },
+                  { setNumber: 2, reps: 10, weight: 30, restTime: 60, completed: true },
+                  { setNumber: 3, reps: 8, weight: 30, restTime: 60, completed: true }
+                ]
+              }
+            ],
+            caloriesBurned: 400,
+            mood: 'Good',
+            energyLevel: 7,
+            difficultyRating: 8,
+            location: 'FitHub Gym',
+            completed: true
+          });
+
+          // Workout 3 - 3 days ago (Leg Day)
+          const date3 = new Date();
+          date3.setDate(date3.getDate() - 3);
+          this.createWorkoutSession({
+            userId: memberUser.id,
+            userName: memberUser.name,
+            date: date3.toISOString().split('T')[0],
+            startTime: '09:00',
+            endTime: '10:30',
+            duration: 90,
+            workoutType: 'Strength',
+            title: 'Leg Day',
+            exercises: [
+              {
+                exerciseId: allExercises[4].id,
+                exerciseName: 'Barbell Squat',
+                category: 'Legs',
+                sets: [
+                  { setNumber: 1, reps: 10, weight: 70, restTime: 120, completed: true },
+                  { setNumber: 2, reps: 8, weight: 80, restTime: 120, completed: true },
+                  { setNumber: 3, reps: 8, weight: 85, restTime: 120, completed: true },
+                  { setNumber: 4, reps: 6, weight: 90, restTime: 120, completed: true }
+                ]
+              },
+              {
+                exerciseId: allExercises[5].id,
+                exerciseName: 'Leg Press',
+                category: 'Legs',
+                sets: [
+                  { setNumber: 1, reps: 15, weight: 150, restTime: 90, completed: true },
+                  { setNumber: 2, reps: 12, weight: 170, restTime: 90, completed: true },
+                  { setNumber: 3, reps: 10, weight: 190, restTime: 90, completed: true }
+                ]
+              }
+            ],
+            caloriesBurned: 450,
+            mood: 'Tired',
+            energyLevel: 6,
+            difficultyRating: 9,
+            location: 'FitHub Gym',
+            completed: true,
+            notes: 'Tough workout! Legs feeling sore'
+          });
+
+          // Workout 4 - Yesterday (Upper Body)
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          this.createWorkoutSession({
+            userId: memberUser.id,
+            userName: memberUser.name,
+            trainerId: trainerUser.id,
+            trainerName: trainerUser.name,
+            date: yesterday.toISOString().split('T')[0],
+            startTime: '11:00',
+            endTime: '12:15',
+            duration: 75,
+            workoutType: 'Strength',
+            title: 'Shoulders & Core',
+            exercises: [
+              {
+                exerciseId: allExercises[6].id,
+                exerciseName: 'Overhead Press',
+                category: 'Shoulders',
+                sets: [
+                  { setNumber: 1, reps: 10, weight: 40, restTime: 90, completed: true },
+                  { setNumber: 2, reps: 8, weight: 45, restTime: 90, completed: true },
+                  { setNumber: 3, reps: 8, weight: 45, restTime: 90, completed: true }
+                ]
+              },
+              {
+                exerciseId: allExercises[7].id,
+                exerciseName: 'Lateral Raises',
+                category: 'Shoulders',
+                sets: [
+                  { setNumber: 1, reps: 15, weight: 10, restTime: 60, completed: true },
+                  { setNumber: 2, reps: 12, weight: 12.5, restTime: 60, completed: true },
+                  { setNumber: 3, reps: 10, weight: 12.5, restTime: 60, completed: true }
+                ]
+              },
+              {
+                exerciseId: allExercises[10].id,
+                exerciseName: 'Plank',
+                category: 'Core',
+                sets: [
+                  { setNumber: 1, duration: 60, restTime: 60, completed: true },
+                  { setNumber: 2, duration: 45, restTime: 60, completed: true },
+                  { setNumber: 3, duration: 45, restTime: 60, completed: true }
+                ]
+              }
+            ],
+            caloriesBurned: 320,
+            mood: 'Excellent',
+            energyLevel: 9,
+            difficultyRating: 6,
+            location: 'FitHub Gym',
+            completed: true
+          });
+
+          console.log('✅ Demo workout sessions initialized');
         }
       }
     }

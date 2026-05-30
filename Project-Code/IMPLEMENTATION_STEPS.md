@@ -4985,6 +4985,415 @@ A comprehensive body composition tracking system that allows members to log deta
 
 ---
 
+## ✅ STEP 25: Workout Session Logging & Exercise Library System (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: Additional Feature - Workout Logging and Exercise Management  
+**Reference**: Member workout tracking, exercise library, session management, performance analytics
+
+### Overview:
+
+A comprehensive workout logging system that allows members to track workout sessions, log exercises with sets/reps/weights, browse an exercise library, and monitor workout statistics over time. This feature complements training programs by tracking actual workout execution and performance.
+
+### Files Added:
+
+1. **`src/app/components/workout-logging.tsx`** - Workout logging interface
+   - ✅ 2-tab interface (Workout Log, Exercise Library)
+   - ✅ 4 KPI cards (Total Workouts, Total Volume, Avg Duration, Completion Rate)
+   - ✅ Time range selector (7/30/90 days)
+   - ✅ Workout history display with session details
+   - ✅ Log workout modal with exercise selection
+   - ✅ Set tracking (reps, weight, completion status)
+   - ✅ Exercise library grid view
+   - ✅ Most used exercises section
+   - ✅ Add/remove sets dynamically
+   - ✅ Session notes and feedback
+
+### Files Modified:
+
+1. **`src/app/services/database.ts`**
+   - ✅ Added `Exercise` interface for exercise library
+   - ✅ Added `WorkoutSet` interface for set tracking
+   - ✅ Added `WorkoutExercise` interface for exercises in a workout
+   - ✅ Added `WorkoutSession` interface for complete workout sessions
+   - ✅ Added `EXERCISES_KEY` and `WORKOUT_SESSIONS_KEY` storage constants
+   
+   **Exercise Operations**:
+   - ✅ `createExercise()` - Add new exercise to library
+   - ✅ `getAllExercises()` - Retrieve all exercises
+   - ✅ `getExerciseById()` - Get specific exercise
+   - ✅ `getExercisesByCategory()` - Filter by muscle group
+   - ✅ `getExercisesByEquipment()` - Filter by equipment type
+   - ✅ `searchExercises()` - Search by name/muscle group
+   - ✅ `updateExercise()` - Update exercise details
+   - ✅ `deleteExercise()` - Remove exercise from library
+   
+   **Workout Session Operations**:
+   - ✅ `createWorkoutSession()` - Log new workout session
+   - ✅ `getAllWorkoutSessions()` - Retrieve all sessions
+   - ✅ `getWorkoutSessionById()` - Get specific session
+   - ✅ `getWorkoutSessionsByUser()` - Get user's workout history
+   - ✅ `getWorkoutSessionsByDateRange()` - Filter by date range
+   - ✅ `getRecentWorkoutSessions()` - Get recent workouts
+   - ✅ `updateWorkoutSession()` - Update session details
+   - ✅ `deleteWorkoutSession()` - Remove session
+   - ✅ `getWorkoutStats()` - Calculate workout statistics
+   
+   **Demo Data**:
+   - ✅ 12 exercises covering all major muscle groups
+   - ✅ 4 workout sessions with realistic data
+   - ✅ Variety of workout types (Strength, Cardio, Mixed)
+   - ✅ Complete set tracking with reps/weights
+   - ✅ Session notes and performance metrics
+
+2. **`src/app/components/member-dashboard-complete.tsx`**
+   - ✅ Added import for `WorkoutLogging` component
+   - ✅ Added "Workout Log" tab to memberTabs array
+   - ✅ Added TabsContent section for workout logging view
+
+### Features Implemented:
+
+**1. Workout Session Logging**:
+   
+   **Session Details**:
+   - 📅 Date and time tracking
+   - ⏱️ Duration logging (start/end time)
+   - 🏋️ Workout type (Strength/Cardio/HIIT/Flexibility/Sports/Mixed)
+   - 📝 Session title and notes
+   - 🎯 Program association (optional)
+   - 📍 Location tracking
+   - ✅ Completion status
+   
+   **Exercise Tracking**:
+   - 🔢 Multiple exercises per session
+   - 📊 Set-by-set tracking
+   - 💪 Reps and weight logging
+   - ⏱️ Duration for cardio exercises
+   - 📏 Distance for running/cycling
+   - ⏸️ Rest time between sets
+   - ✓ Set completion checkboxes
+   - 📝 Per-exercise notes
+   
+   **Performance Metrics**:
+   - 💪 Total volume calculation (weight × reps)
+   - 🔥 Calories burned estimation
+   - ❤️ Heart rate tracking (avg/max)
+   - 😊 Mood rating
+   - ⚡ Energy level (1-10)
+   - ⭐ Difficulty rating (1-10)
+
+**2. Exercise Library**:
+   
+   **Exercise Categories**:
+   - 💪 Chest
+   - 🏋️ Back
+   - 🦵 Legs
+   - 🤸 Shoulders
+   - 💪 Arms
+   - 🧘 Core
+   - 🏃 Cardio
+   - 🔄 Full Body
+   
+   **Equipment Types**:
+   - Barbell
+   - Dumbbell
+   - Machine
+   - Cable
+   - Bodyweight
+   - Resistance Band
+   - Kettlebell
+   - Other
+   
+   **Exercise Details**:
+   - 📝 Name and description
+   - 🎯 Target muscle groups
+   - 📊 Difficulty level (Beginner/Intermediate/Advanced)
+   - 📋 Step-by-step instructions
+   - 🎥 Video URL (optional)
+   - 🔧 Custom exercises (user-created vs. library)
+
+**3. Workout Statistics Dashboard**:
+   - 📊 Total workouts completed
+   - 💪 Total volume lifted (kg)
+   - ⏱️ Average workout duration
+   - ✅ Completion rate percentage
+   - 📈 Time range filtering (7/30/90 days)
+   - 📅 Most used exercises
+   - 🔥 Workout frequency tracking
+
+**4. Set Management**:
+   - ➕ Add sets dynamically
+   - ➖ Remove sets
+   - 📝 Track reps per set
+   - 🏋️ Track weight per set
+   - ⏱️ Track rest time
+   - ✅ Mark sets as completed
+   - 📋 Per-set notes
+
+**5. Data Models**:
+
+**Exercise Interface**:
+```typescript
+{
+  id: string;
+  name: string;
+  category: 'Chest' | 'Back' | 'Legs' | 'Shoulders' | 'Arms' | 'Core' | 'Cardio' | 'Full Body';
+  muscleGroup: string;
+  equipment: 'Barbell' | 'Dumbbell' | 'Machine' | 'Cable' | 'Bodyweight' | 'Resistance Band' | 'Kettlebell' | 'Other';
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  description?: string;
+  instructions?: string[];
+  videoUrl?: string;
+  isCustom: boolean;
+  createdBy?: string;
+  createdAt: string;
+}
+```
+
+**WorkoutSet Interface**:
+```typescript
+{
+  setNumber: number;
+  reps?: number;
+  weight?: number;
+  duration?: number;
+  distance?: number;
+  restTime?: number;
+  completed: boolean;
+  notes?: string;
+}
+```
+
+**WorkoutExercise Interface**:
+```typescript
+{
+  exerciseId: string;
+  exerciseName: string;
+  category: string;
+  sets: WorkoutSet[];
+  targetSets?: number;
+  targetReps?: number;
+  targetWeight?: number;
+  notes?: string;
+}
+```
+
+**WorkoutSession Interface**:
+```typescript
+{
+  id: string;
+  userId: string;
+  userName: string;
+  trainerId?: string;
+  trainerName?: string;
+  programId?: string;
+  date: string;
+  startTime?: string;
+  endTime?: string;
+  duration?: number;
+  workoutType: 'Strength' | 'Cardio' | 'HIIT' | 'Flexibility' | 'Sports' | 'Mixed';
+  title: string;
+  exercises: WorkoutExercise[];
+  totalVolume?: number;
+  caloriesBurned?: number;
+  avgHeartRate?: number;
+  maxHeartRate?: number;
+  mood?: 'Excellent' | 'Good' | 'Neutral' | 'Tired' | 'Poor';
+  energyLevel?: number;
+  difficultyRating?: number;
+  notes?: string;
+  location?: string;
+  completed: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+### Business Value:
+
+1. **Workout Accountability**: Track actual workout execution vs. planned programs
+2. **Progress Documentation**: Historical workout data for long-term progress analysis
+3. **Exercise Variety**: Comprehensive library encourages proper exercise selection
+4. **Performance Tracking**: Volume, intensity, and frequency metrics over time
+5. **Member Engagement**: Interactive logging keeps members engaged with their fitness journey
+6. **Trainer Insights**: Trainers can see what clients actually do in workouts
+7. **Data-Driven Coaching**: Workout data informs program adjustments
+8. **Member Motivation**: Seeing workout history and stats motivates consistency
+
+### User Experience:
+
+**Member Workflow - Logging a Workout**:
+1. Member navigates to "Workout Log" tab
+2. Clicks "Log Workout" button
+3. Selects date (default: today)
+4. Enters workout title
+5. Selects workout type (Strength/Cardio/etc.)
+6. Adds exercises from library
+7. For each exercise:
+   - Sets are pre-populated (default 3)
+   - Enters reps and weight for each set
+   - Marks sets as completed
+   - Adds exercise notes if needed
+   - Can add/remove sets
+8. Logs session details:
+   - Start/end time
+   - Mood and energy level
+   - Overall session notes
+9. Saves workout
+10. Views updated statistics
+
+**Member Workflow - Exercise Library**:
+1. Member switches to "Exercise Library" tab
+2. Browses exercises by category
+3. Views exercise details (muscle group, equipment, difficulty)
+4. Checks "Most Used Exercises" for quick access
+5. Can filter/search for specific exercises
+6. Selects exercises when logging workouts
+
+**Visual Design**:
+- Clean tabbed interface
+- KPI cards with statistics
+- Time range selector for filtering
+- Grid layout for exercise library
+- Modal-based workout entry
+- Category badges with colors
+- Completion checkboxes for sets
+- Expandable session details
+- Icon usage throughout
+
+### Technical Implementation:
+
+**Component Architecture**:
+- React functional component with hooks
+- Tab-based navigation (Workout Log / Exercise Library)
+- useState for comprehensive state management
+- useEffect for data loading and filtering
+- Modal-based workout entry form
+- Dynamic set management
+
+**State Management**:
+- workouts: filtered workout sessions
+- exercises: exercise library
+- mostUsedExercises: frequently used exercises
+- showLogWorkoutModal: modal visibility
+- selectedWorkout: workout being viewed/edited
+- timeRange: selected time range for stats
+- workoutForm: comprehensive workout data
+- selectedExercises: exercises in current workout
+
+**Database Operations**:
+- Full CRUD for exercises
+- Full CRUD for workout sessions
+- Statistics calculation
+- Date range filtering
+- Search and filter operations
+- Volume calculation
+- Completion rate calculation
+
+**Workout Stats Calculation**:
+```typescript
+{
+  totalWorkouts: number;
+  completedWorkouts: number;
+  totalVolume: number;
+  totalDuration: number;
+  avgDuration: number;
+  completionRate: number;
+  workoutsByType: Record<string, number>;
+  mostUsedExercises: { exerciseName: string; count: number }[];
+}
+```
+
+**Set Management**:
+- Add set: Adds new WorkoutSet to exercise
+- Remove set: Removes WorkoutSet from exercise
+- Update set: Updates reps/weight/completion status
+- Default 3 sets per exercise
+- Set numbering (Set 1, Set 2, Set 3...)
+
+### Integration Points:
+
+**With Training Programs**:
+- Workout sessions reference program IDs
+- Can log workouts from assigned programs
+- Track program adherence
+- Compare planned vs. actual workouts
+
+**With Body Composition Tracking**:
+- Correlate workout volume with body comp changes
+- Track muscle gain during strength phases
+- Monitor performance trends
+
+**With Member Dashboard**:
+- New tab in member navigation
+- Accessible from main member interface
+- Part of comprehensive fitness tracking
+
+**With Trainer Features**:
+- Trainers can view client workout logs
+- Monitor client adherence to programs
+- See which exercises clients perform
+- Track client progress over time
+
+### Future Enhancements:
+
+**Advanced Logging**:
+- Rest timer between sets
+- Superset grouping
+- Drop set tracking
+- Tempo notation (3-1-1-0)
+- RPE (Rate of Perceived Exertion) per set
+- 1RM calculator
+- Volume landmarks (PRs)
+- Workout templates for quick logging
+
+**Analytics**:
+- Progress photos per workout
+- Strength progression charts (exercise-specific)
+- Volume periodization view
+- Deload week detection
+- Progressive overload tracking
+- Personal records dashboard
+- Exercise frequency heatmap
+- Body part split analysis
+
+**Social Features**:
+- Share workouts with friends
+- Workout challenges
+- Leaderboards (volume, consistency)
+- Community workout templates
+- Exercise demonstrations (videos)
+- Form check requests
+
+**Smart Features**:
+- Auto-suggest weights (based on history)
+- Workout recommendations
+- Recovery time suggestions
+- Plateau detection
+- Automatic periodization
+- Smart deload suggestions
+- Exercise substitution recommendations
+
+**Integration**:
+- Fitness tracker sync (Apple Watch, Garmin, Fitbit)
+- Heart rate monitor integration
+- Barcode scanner for equipment
+- Voice logging (hands-free)
+- Wearable device sync
+- Export to CSV/PDF
+
+**Exercise Library Enhancements**:
+- Video demonstrations
+- Animated GIFs
+- Form tips and cues
+- Common mistakes to avoid
+- Equipment alternatives
+- Modification options
+- Injury considerations
+- Muscle activation diagrams
+
+---
+
 ## 📋 Upcoming Steps:
 
 ... and more!
@@ -5019,8 +5428,9 @@ A comprehensive body composition tracking system that allows members to log deta
 | 22 | ✅ | Additional | Trainer Meal Planning Interface |
 | 23 | ✅ | Additional | Equipment Management & Maintenance Tracking |
 | 24 | ✅ | Additional | Body Composition & Measurements Tracking |
+| 25 | ✅ | Additional | Workout Session Logging & Exercise Library System |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 24 (96%)  
-**Steps Remaining**: 1
+**Steps Completed**: 25 (100%)  
+**Steps Remaining**: 0
