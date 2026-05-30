@@ -2185,13 +2185,210 @@ This component integrates with:
 
 ---
 
-## 📋 Upcoming Steps:
+---
 
-### STEP 12: Campaign Management
-- Create marketing campaigns
-- Member targeting
-- Email campaigns
-- Campaign analytics
+## ✅ STEP 12: Campaign Management (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: UC-5 Campaign Management & Marketing  
+**Reference**: Manager/Secretary create and manage marketing campaigns
+
+### Files Added:
+
+1. **`src/app/components/campaign-management.tsx`** - Campaign creation and management component
+   - ✅ Create marketing campaigns with comprehensive details
+   - ✅ Campaign CRUD operations (Create, Read, Update, Delete)
+   - ✅ Target audience selection (All, Premium, Basic, Inactive, New members)
+   - ✅ Campaign types (Email, SMS, Push Notification, In-App)
+   - ✅ Draft, schedule, and send campaigns
+   - ✅ Campaign analytics and reporting
+   - ✅ Email distribution to target members
+   - ✅ Statistics dashboard (total, draft, scheduled, sent)
+   - ✅ Filter campaigns by status
+   - ✅ View campaign details and analytics
+   - ✅ Color-coded badges for type and status
+   - ✅ Responsive design with modals
+
+### Files Modified:
+
+1. **`src/app/services/database.ts`**
+   - ✅ Added Campaign interface with all required fields:
+     - id, name, description, type, targetAudience
+     - customFilters, subject, message, scheduledDate
+     - status, createdBy, createdByName, createdAt, sentAt
+     - analytics (targetCount, sentCount, deliveredCount, openedCount, clickedCount)
+   - ✅ Added CAMPAIGNS_KEY storage key
+   - ✅ Implemented campaign CRUD operations:
+     - `getAllCampaigns()`, `saveCampaigns()`, `createCampaign()`
+     - `getCampaignById()`, `updateCampaign()`, `deleteCampaign()`
+     - `getTargetMembers()` - filters members by audience criteria
+   - ✅ Added clearAllData support for campaigns
+   - ✅ Created 3 demo campaigns with analytics:
+     - New Year Fitness Challenge (Sent - with analytics)
+     - Premium Membership Upgrade Offer (Scheduled)
+     - Summer Bootcamp Registration (Draft)
+
+2. **`src/app/components/manager-dashboard.tsx`**
+   - ✅ Imported CampaignManagement component
+   - ✅ Replaced PromotionAnalytics with CampaignManagement
+   - ✅ Integrated into "Promotions & Campaigns" tab
+
+### Features Implemented:
+
+**UC-5 Manager/Secretary Features**:
+- 📧 Create email marketing campaigns
+- 🎯 Target specific member groups (All, Premium, Basic, Inactive, New)
+- 📝 Draft campaigns for later editing
+- 📅 Schedule campaigns for future sending
+- 📤 Send campaigns immediately to target audience
+- 📊 View campaign analytics (sent, delivered, opened, clicked)
+- ✏️ Edit draft campaigns
+- 🗑️ Delete campaigns
+- 👁️ View campaign details
+- 📈 Statistics dashboard with campaign counts
+
+**Campaign Analytics**:
+- Target recipient count
+- Sent count
+- Delivered count with delivery rate
+- Opened count with open rate
+- Clicked count with click-through rate (CTR)
+- Visual progress bars for rates
+- Percentage calculations
+
+### Components & Features:
+
+**Campaign Management (Manager/Secretary)**:
+- Statistics cards (total, draft, scheduled, sent, total emails sent)
+- Filter by status
+- Campaign list with cards showing all details
+- Action buttons (View, Analytics, Edit, Send, Delete)
+- Create campaign modal with comprehensive form
+- Edit campaign modal for draft campaigns
+- View campaign details modal
+- Analytics modal with detailed metrics
+- Delete confirmation modal
+- Empty state for no campaigns
+- Send now functionality for draft campaigns
+
+**Form Fields (Create/Edit)**:
+- Campaign Name (required)
+- Description (optional)
+- Campaign Type (required): Email, SMS, Push Notification, In-App
+- Target Audience (required): All Members, Premium Members, Basic Members, Inactive Members, New Members
+- Email Subject (required)
+- Email Message (required, textarea)
+- Schedule Date (optional, datetime picker)
+- Status: Draft, Scheduled
+
+**Campaign List View**:
+- Campaign cards with all information
+- Color-coded badges for type and status
+- Grid showing target audience, recipients, created by, created on
+- Analytics preview for sent campaigns (sent, opened, clicked)
+- Quick actions based on status
+
+**Target Audience Filtering**:
+- All Members: Every member in the system
+- Premium Members: Members with Premium subscription
+- Basic Members: Members with Basic subscription
+- Inactive Members: Members who haven't been active recently
+- New Members: Members who joined in the last 30 days
+
+### Data Model:
+
+**Campaign Interface**:
+```typescript
+{
+  id: string
+  name: string
+  description: string
+  type: 'Email' | 'SMS' | 'Push Notification' | 'In-App'
+  targetAudience: 'All Members' | 'Premium Members' | 'Basic Members' | 'Inactive Members' | 'New Members' | 'Custom'
+  customFilters?: {
+    membershipType?: string[]
+    minAge?: number
+    maxAge?: number
+    joinedAfter?: string
+    joinedBefore?: string
+  }
+  subject: string
+  message: string
+  scheduledDate?: string
+  status: 'Draft' | 'Scheduled' | 'Sent' | 'Cancelled'
+  createdBy: string
+  createdByName: string
+  createdAt: string
+  sentAt?: string
+  analytics: {
+    targetCount: number
+    sentCount: number
+    deliveredCount: number
+    openedCount: number
+    clickedCount: number
+  }
+}
+```
+
+### Color System:
+
+**Type Colors**:
+- Email: Purple (`bg-purple-100 text-purple-800`)
+- SMS: Orange (`bg-orange-100 text-orange-800`)
+- Push Notification: Blue (`bg-blue-100 text-blue-800`)
+- In-App: Green (`bg-green-100 text-green-800`)
+
+**Status Colors**:
+- Draft: Gray (`bg-gray-100 text-gray-800`)
+- Scheduled: Blue (`bg-blue-100 text-blue-800`)
+- Sent: Green (`bg-green-100 text-green-800`)
+- Cancelled: Red (`bg-red-100 text-red-800`)
+
+### Access Control:
+
+- **Manager**: Full access to create, edit, delete, send campaigns
+- **Secretary**: Full access (same as manager)
+- **Trainer/Member**: No access to campaign management
+
+### Email Integration:
+
+When a campaign is sent:
+1. System identifies target members based on audience criteria
+2. Sends individual emails to each target member
+3. Updates campaign status to "Sent"
+4. Records analytics (sent count, delivered count)
+5. Simulates open and click tracking
+
+### Testing:
+
+See TESTING_GUIDE.md for comprehensive test cases.
+
+### Integration:
+
+This component integrates with:
+- **Manager Dashboard**: Promotions & Campaigns tab
+- **Database Service**: Full CRUD operations
+- **Email Service**: Campaign distribution
+- **Auth Service**: Gets current user for campaign creation
+
+### Future Enhancements:
+
+- 📋 Advanced custom filters (age, join date, activity level)
+- 📋 A/B testing for campaigns
+- 📋 Email templates library
+- 📋 Rich text editor for message formatting
+- 📋 Image attachments and inline images
+- 📋 Automatic follow-up campaigns
+- 📋 Campaign scheduling with timezone support
+- 📋 Export analytics to PDF/CSV
+- 📋 Campaign performance comparison
+- 📋 Unsubscribe management
+- 📋 SMS and push notification integration
+- 📋 Segmentation builder
+
+---
+
+## 📋 Upcoming Steps:
 
 ... and more!
 
@@ -2212,9 +2409,9 @@ This component integrates with:
 | 9 | ✅ | UC-3 | Training Program Creation |
 | 10 | ✅ | UC-3 | Client View of Training Programs |
 | 11 | ✅ | UC-4 | Task Assignment System |
-| 12 | 🔜 | UC-5 | Campaign Management |
+| 12 | ✅ | UC-5 | Campaign Management |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 11 (44%)  
-**Steps Remaining**: 14
+**Steps Completed**: 12 (48%)  
+**Steps Remaining**: 13

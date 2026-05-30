@@ -15,6 +15,7 @@ import { PromotionAnalytics } from './promotion-analytics';
 import { PendingRegistrations } from './pending-registrations';
 import { ClassManagement } from './class-management';
 import { TaskAssignmentManagement } from './task-assignment-management';
+import { CampaignManagement } from './campaign-management';
 import {
   Users,
   Calendar,
@@ -1258,7 +1259,7 @@ export function ManagerDashboard() {
         </TabsContent>
 
         <TabsContent value="promotions" className="space-y-6">
-          <PromotionAnalytics />
+          <CampaignManagement />
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-6">

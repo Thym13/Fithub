@@ -2623,6 +2623,371 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 
 ---
 
+## ✅ STEP 12: Campaign Management
+
+### Test Case 12.1: Access Campaign Management (Manager)
+1. Login as manager: `manager@fithub.gr` / `Manager123!`
+2. Navigate to "Promotions & Campaigns" tab
+
+**Expected Result**:
+- ✅ Campaign Management page loads
+- ✅ Statistics cards show correct counts
+- ✅ See 3 demo campaigns (1 Draft, 1 Scheduled, 1 Sent)
+- ✅ "Create Campaign" button visible
+
+### Test Case 12.2: View Statistics Dashboard
+1. On Campaign Management page, check statistics
+
+**Expected Result**:
+- ✅ Total Campaigns: 3
+- ✅ Draft: 1
+- ✅ Scheduled: 1
+- ✅ Sent: 1
+- ✅ Total Emails Sent: 150 (from demo sent campaign)
+
+### Test Case 12.3: Create New Campaign
+1. Click "Create Campaign" button
+2. Fill in the form:
+   - Name: "Summer Membership Drive"
+   - Description: "Promote summer memberships"
+   - Type: Email
+   - Target Audience: All Members
+   - Subject: "Summer Special - Join Now!"
+   - Message: "Get fit this summer with our special offers!"
+   - Status: Draft
+3. Click "Create Campaign"
+
+**Expected Result**:
+- ✅ Modal opens with empty form
+- ✅ All fields accept input
+- ✅ After creating:
+  - Modal closes
+  - New campaign appears in list
+  - Status shows "Draft"
+  - Target count calculated automatically
+  - Statistics update
+
+### Test Case 12.4: Target Audience Selection
+1. Create campaigns with different target audiences:
+   - All Members
+   - Premium Members
+   - Basic Members
+   - New Members
+
+**Expected Result**:
+- ✅ Each option selects correctly
+- ✅ Target count varies based on audience
+- ✅ All Members has highest count
+- ✅ Specific audiences have filtered counts
+
+### Test Case 12.5: Send Campaign Now
+1. Find a Draft campaign
+2. Click "Send" (paper plane icon) button
+
+**Expected Result**:
+- ✅ Campaign sent immediately
+- ✅ Status changes to "Sent"
+- ✅ sentAt timestamp recorded
+- ✅ Emails sent to all target members
+- ✅ Alert shows: "Campaign sent to X members!"
+- ✅ Analytics populated with sent count
+- ✅ "Send" button disappears
+- ✅ "Analytics" button appears
+
+### Test Case 12.6: View Campaign Details
+1. Click "View" (eye icon) on any campaign
+
+**Expected Result**:
+- ✅ Detail modal opens
+- ✅ Shows all campaign information:
+  - Name, Description
+  - Type and Status badges (color-coded)
+  - Target Audience
+  - Subject
+  - Message (rendered as HTML)
+  - Created By, Created On
+  - Sent On (if sent)
+- ✅ "Close" button works
+
+### Test Case 12.7: View Campaign Analytics
+1. Find a Sent campaign
+2. Click "Analytics" (chart icon) button
+
+**Expected Result**:
+- ✅ Analytics modal opens
+- ✅ Shows campaign name and sent date
+- ✅ Displays statistics cards:
+  - Target Recipients
+  - Sent
+  - Delivered
+  - Opened (with open rate %)
+  - Clicked (with CTR %)
+- ✅ Progress bars show:
+  - Delivery Rate
+  - Open Rate
+  - Click-through Rate
+- ✅ Percentages calculated correctly
+
+### Test Case 12.8: Edit Draft Campaign
+1. Find a Draft campaign
+2. Click "Edit" (pencil icon) button
+3. Modify fields:
+   - Change subject
+   - Update message
+   - Change target audience
+4. Click "Update Campaign"
+
+**Expected Result**:
+- ✅ Edit modal opens with pre-filled data
+- ✅ All fields editable
+- ✅ After updating:
+  - Modal closes
+  - Campaign shows updated information
+  - Target count recalculated if audience changed
+  - Changes persist
+
+### Test Case 12.9: Edit Sent Campaign
+1. Find a Sent campaign
+2. Check available actions
+
+**Expected Result**:
+- ✅ No "Edit" button (sent campaigns cannot be edited)
+- ✅ No "Send" button
+- ✅ "Analytics" button available
+- ✅ "View" button available
+- ✅ "Delete" button available
+
+### Test Case 12.10: Delete Campaign
+1. Click "Delete" (trash icon) on any campaign
+2. Confirm deletion
+
+**Expected Result**:
+- ✅ Confirmation modal opens
+- ✅ Shows campaign name and status
+- ✅ Warning about irreversible action
+- ✅ After confirming:
+  - Modal closes
+  - Campaign removed from list
+  - Statistics update
+
+### Test Case 12.11: Filter Campaigns by Status
+1. Use "Filter by Status" dropdown
+2. Select "Draft"
+
+**Expected Result**:
+- ✅ Only shows Draft campaigns
+- ✅ Scheduled and Sent campaigns hidden
+- ✅ Empty state if no draft campaigns
+
+### Test Case 12.12: Schedule Campaign for Future
+1. Create new campaign
+2. Set Schedule Date to future date/time
+3. Set Status to "Scheduled"
+4. Create campaign
+
+**Expected Result**:
+- ✅ Campaign created with Scheduled status
+- ✅ Scheduled date displayed
+- ✅ Blue "Scheduled" badge shown
+- ✅ Cannot send immediately
+- ✅ Can edit before scheduled time
+
+### Test Case 12.13: Campaign Types
+1. Create campaigns with different types
+
+**Expected Result**:
+- ✅ Email option works (purple badge)
+- ✅ SMS option works (orange badge)
+- ✅ Push Notification option works (blue badge)
+- ✅ In-App option works (green badge)
+- ✅ Type badge displays with correct color
+
+### Test Case 12.14: Form Validation
+1. Click "Create Campaign"
+2. Leave required fields empty
+3. Click "Create Campaign"
+
+**Expected Result**:
+- ✅ Alert: "Please fill in all required fields"
+- ✅ Modal stays open
+- ✅ Campaign not created
+
+### Test Case 12.15: Demo Data Loading
+1. Fresh install/clear localStorage
+2. Reload page and login as manager
+
+**Expected Result**:
+- ✅ 3 demo campaigns created automatically
+- ✅ "New Year Fitness Challenge" (Sent with analytics)
+- ✅ "Premium Membership Upgrade Offer" (Scheduled)
+- ✅ "Summer Bootcamp Registration" (Draft)
+- ✅ Analytics populated for sent campaign
+
+### Test Case 12.16: Analytics Calculations
+1. View analytics for sent campaign with these numbers:
+   - Sent: 150
+   - Delivered: 148
+   - Opened: 112
+   - Clicked: 45
+
+**Expected Result**:
+- ✅ Delivery Rate: 99% (148/150)
+- ✅ Open Rate: 76% (112/148)
+- ✅ Click-through Rate: 40% (45/112)
+- ✅ Progress bars show correct percentages
+- ✅ All numbers display correctly
+
+### Test Case 12.17: Email Distribution
+1. Send a campaign to "All Members"
+2. Check sent emails in DevTools → localStorage
+
+**Expected Result**:
+- ✅ Individual email sent to each member
+- ✅ Subject matches campaign subject
+- ✅ Body matches campaign message
+- ✅ All target members receive email
+- ✅ Email count matches target count
+
+### Test Case 12.18: Empty State
+1. As manager, delete all campaigns
+2. View campaign list
+
+**Expected Result**:
+- ✅ Empty state displayed
+- ✅ Megaphone icon
+- ✅ Message: "No Campaigns Found"
+- ✅ Helpful text suggesting to create first campaign
+
+### Test Case 12.19: HTML Message Rendering
+1. Create campaign with HTML in message:
+   ```html
+   <h2>Special Offer</h2>
+   <p>Get <strong>20% off</strong>!</p>
+   ```
+2. View campaign details
+
+**Expected Result**:
+- ✅ HTML renders correctly in view modal
+- ✅ Heading displays as heading
+- ✅ Bold text displays as bold
+- ✅ Formatting preserved
+
+### Test Case 12.20: Data Persistence
+1. Create a campaign
+2. Navigate to another tab
+3. Return to Promotions & Campaigns tab
+
+**Expected Result**:
+- ✅ Campaign still exists
+- ✅ All data intact
+- ✅ Changes persisted in localStorage
+
+---
+
+## 🔍 Final Testing Checklist (Step 12 Added)
+
+### Training Program Management (Trainer - Step 9)
+- [x] Trainer can access Training Programs tab
+- [x] Create program with all required fields
+- [x] Add multiple exercises to program
+- [x] Edit existing program
+- [x] Delete program with confirmation
+- [x] Client selection works
+- [x] Goal selection works (5 options)
+- [x] Exercise categories work (6 options)
+- [x] Intensity levels work (3 options)
+- [x] Day assignment works (7 days + Daily)
+- [x] Sets/Reps fields work
+- [x] Duration field works
+- [x] Instructions field (optional)
+- [x] Email notification sent to client
+- [x] Programs display in grid layout
+- [x] Status badges color-coded
+- [x] Empty state displays correctly
+- [x] Date calculations correct
+- [x] Program data persists in localStorage
+- [x] Remove exercise from program works
+- [x] Validation prevents empty programs
+- [x] Members cannot access trainer features
+
+### Client Training Program View (Member - Step 10)
+- [x] Member can access Training Programs tab
+- [x] Program list displays correctly
+- [x] Statistics cards show accurate counts
+- [x] Program cards show all details
+- [x] Progress bars display correct percentage
+- [x] "View Program" opens detail modal
+- [x] Program info section complete
+- [x] Trainer notes displayed
+- [x] Exercises grouped by day
+- [x] Exercise completion toggle works
+- [x] Completed exercises have green background
+- [x] "Log Workout" button appears
+- [x] Log workout modal works
+- [x] Difficulty selector works
+- [x] Send feedback modal works
+- [x] Empty state displays for new users
+- [x] Progress updates in real-time
+- [x] Multiple programs display correctly
+- [x] Data persists across navigation
+- [x] Responsive design works
+- [x] Demo data loads correctly
+
+### Task Assignment System (Manager/Trainer - Step 11)
+- [x] Manager can access Task Assignment tab
+- [x] Statistics dashboard shows correct counts
+- [x] Create new task with all fields
+- [x] Task types work (6 options)
+- [x] Priority levels work (3 options)
+- [x] Frequency options work (4 options)
+- [x] Staff member selection works
+- [x] Deadline date picker works
+- [x] Edit existing task
+- [x] Delete task with confirmation
+- [x] View task details modal
+- [x] Filter by status works
+- [x] Filter by assignee works
+- [x] Combined filters work
+- [x] Email notification sent on assignment
+- [x] Trainer can view assigned tasks
+- [x] Trainer can start tasks (Pending → In Progress)
+- [x] Trainer can complete tasks (In Progress → Completed)
+- [x] Task status updates persist
+- [x] Color-coded badges for type, priority, status
+- [x] Empty state displays correctly
+- [x] Demo data loads (3 tasks)
+- [x] Data persists in localStorage
+- [x] Form validation works
+- [x] Members cannot access task system
+
+### Campaign Management (Manager - Step 12)
+- [x] Manager can access Promotions & Campaigns tab
+- [x] Statistics dashboard shows correct counts
+- [x] Create new campaign with all fields
+- [x] Campaign types work (4 options)
+- [x] Target audience options work (5 options)
+- [x] Subject and message fields work
+- [x] Schedule date picker works
+- [x] Send campaign immediately
+- [x] View campaign details
+- [x] View campaign analytics
+- [x] Edit draft campaigns
+- [x] Delete campaigns with confirmation
+- [x] Filter by status works
+- [x] Email distribution to target members
+- [x] Target count calculated correctly
+- [x] Analytics calculations accurate (delivery, open, CTR)
+- [x] Progress bars show correct percentages
+- [x] Color-coded badges for type and status
+- [x] Empty state displays correctly
+- [x] Demo data loads (3 campaigns with analytics)
+- [x] HTML message rendering works
+- [x] Data persists in localStorage
+- [x] Form validation works
+- [x] Sent campaigns cannot be edited
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-11  
-**Total Test Cases**: 190+
+**Steps Tested**: 1-12  
+**Total Test Cases**: 210+

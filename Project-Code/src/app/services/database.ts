@@ -129,7 +129,39 @@ export interface Task {
   notes?: string;
 }
 
-class MockDatabase {
+export interface Campaign {
+  id: string;
+  name: string;
+  description: string;
+  type: 'Email' | 'SMS' | 'Push Notification' | 'In-App';
+  targetAudience: 'All Members' | 'Premium Members' | 'Basic Members' | 'Inactive Members' | 'New Members' | 'Custom';
+  customFilters?: {
+    membershipType?: string[];
+    minAge?: number;
+    maxAge?: number;
+    joinedAfter?: string;
+    joinedBefore?: string;
+  };
+  subject: string;
+  message: string;
+  scheduledDate?: string; // ISO date string
+  status: 'Draft' | 'Scheduled' | 'Sent' | 'Cancelled';
+  createdBy: string; // User ID
+  createdByName: string;
+  createdAt: string; // ISO date string
+  sentAt?: string;
+  analytics: {
+    targetCount: number;
+    sentCount: number;
+    deliveredCount: number;
+    openedCount: number;
+    clickedCount: number;
+  };
+}
+
+export class MockDatabase {
+  private static instance: MockDatabase;
+
   private USERS_KEY = 'fithub_users';
   private MEMBERSHIPS_KEY = 'fithub_memberships';
   private TRANSACTIONS_KEY = 'fithub_transactions';
@@ -138,6 +170,14 @@ class MockDatabase {
   private BOOKINGS_KEY = 'fithub_bookings';
   private PROGRAMS_KEY = 'fithub_programs';
   private TASKS_KEY = 'fithub_tasks';
+  private CAMPAIGNS_KEY = 'fithub_campaigns';
+
+  static getInstance(): MockDatabase {
+    if (!MockDatabase.instance) {
+      MockDatabase.instance = new MockDatabase();
+    }
+    return MockDatabase.instance;
+  }
 
   // User Operations
 
@@ -536,6 +576,104 @@ class MockDatabase {
     return true;
   }
 
+  // Campaign Operations
+
+  getAllCampaigns(): Campaign[] {
+    const campaigns = localStorage.getItem(this.CAMPAIGNS_KEY);
+    return campaigns ? JSON.parse(campaigns) : [];
+  }
+
+  saveCampaigns(campaigns: Campaign[]): void {
+    localStorage.setItem(this.CAMPAIGNS_KEY, JSON.stringify(campaigns));
+  }
+
+  createCampaign(campaignData: Omit<Campaign, 'id' | 'createdAt' | 'analytics'>): Campaign {
+    const campaign: Campaign = {
+      ...campaignData,
+      id: this.generateId(),
+      createdAt: new Date().toISOString(),
+      analytics: {
+        targetCount: 0,
+        sentCount: 0,
+        deliveredCount: 0,
+        openedCount: 0,
+        clickedCount: 0
+      }
+    };
+
+    const campaigns = this.getAllCampaigns();
+    campaigns.push(campaign);
+    this.saveCampaigns(campaigns);
+
+    return campaign;
+  }
+
+  getCampaignById(id: string): Campaign | null {
+    const campaigns = this.getAllCampaigns();
+    return campaigns.find(c => c.id === id) || null;
+  }
+
+  updateCampaign(id: string, updates: Partial<Campaign>): Campaign | null {
+    const campaigns = this.getAllCampaigns();
+    const index = campaigns.findIndex(c => c.id === id);
+
+    if (index === -1) {
+      return null;
+    }
+
+    campaigns[index] = { ...campaigns[index], ...updates };
+    this.saveCampaigns(campaigns);
+    return campaigns[index];
+  }
+
+  deleteCampaign(id: string): boolean {
+    const campaigns = this.getAllCampaigns();
+    const filteredCampaigns = campaigns.filter(c => c.id !== id);
+
+    if (filteredCampaigns.length === campaigns.length) {
+      return false;
+    }
+
+    this.saveCampaigns(filteredCampaigns);
+    return true;
+  }
+
+  // Get members based on target audience
+  getTargetMembers(campaign: Campaign): User[] {
+    const allUsers = this.getAllUsers();
+    const members = allUsers.filter(u => u.role === 'member');
+
+    if (campaign.targetAudience === 'All Members') {
+      return members;
+    }
+
+    const memberships = this.getAllMemberships();
+
+    return members.filter(member => {
+      const membership = memberships.find(m => m.userId === member.id);
+
+      if (campaign.targetAudience === 'Premium Members') {
+        return membership?.subscriptionType === 'Premium';
+      }
+      if (campaign.targetAudience === 'Basic Members') {
+        return membership?.subscriptionType === 'Basic';
+      }
+      if (campaign.targetAudience === 'Inactive Members') {
+        // Members who haven't logged in recently (simplified logic)
+        return member.accountStatus === 'Active';
+      }
+      if (campaign.targetAudience === 'New Members') {
+        // Members who joined in the last 30 days
+        const joinDate = new Date(member.createdAt || Date.now());
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        return joinDate > thirtyDaysAgo;
+      }
+
+      return true;
+    });
+  }
+
   // Utility Methods
 
   generateId(): string {
@@ -555,6 +693,7 @@ class MockDatabase {
     localStorage.removeItem(this.BOOKINGS_KEY);
     localStorage.removeItem(this.PROGRAMS_KEY);
     localStorage.removeItem(this.TASKS_KEY);
+    localStorage.removeItem(this.CAMPAIGNS_KEY);
   }
 
   // Initialize demo data
@@ -917,10 +1056,115 @@ class MockDatabase {
         console.log('✅ Demo tasks initialized');
       }
     }
+
+    // Initialize demo campaigns
+    const campaigns = this.getAllCampaigns();
+    if (campaigns.length === 0) {
+      const manager = this.findUserByEmail('manager@fithub.gr');
+
+      if (manager) {
+        const demoCampaigns = [
+          {
+            name: 'New Year Fitness Challenge',
+            description: 'Promote our New Year fitness challenge to all members',
+            type: 'Email' as const,
+            targetAudience: 'All Members' as const,
+            subject: 'Join Our New Year Fitness Challenge! 🎯',
+            message: `
+              <h2>Start 2026 Strong!</h2>
+              <p>Dear Member,</p>
+              <p>We're excited to announce our New Year Fitness Challenge!</p>
+              <ul>
+                <li>6-week structured program</li>
+                <li>Weekly fitness assessments</li>
+                <li>Prizes for top performers</li>
+                <li>Free nutrition consultation</li>
+              </ul>
+              <p>Sign up now and transform your fitness journey!</p>
+              <p>Best regards,<br>FitHub Team</p>
+            `,
+            status: 'Sent' as const,
+            createdBy: manager.id,
+            createdByName: manager.name,
+            sentAt: '2026-01-01T09:00:00Z'
+          },
+          {
+            name: 'Premium Membership Upgrade Offer',
+            description: 'Target basic members with premium upgrade offer',
+            type: 'Email' as const,
+            targetAudience: 'Basic Members' as const,
+            subject: 'Upgrade to Premium - 20% Off This Month Only! 💎',
+            message: `
+              <h2>Unlock Premium Benefits</h2>
+              <p>Hello,</p>
+              <p>As a valued Basic member, we'd like to offer you an exclusive 20% discount on Premium membership!</p>
+              <h3>Premium Benefits Include:</h3>
+              <ul>
+                <li>Unlimited class bookings</li>
+                <li>Free personal training sessions</li>
+                <li>Access to premium equipment</li>
+                <li>Priority support</li>
+                <li>Nutrition consultation</li>
+              </ul>
+              <p>Use code: <strong>PREMIUM20</strong></p>
+              <p>Offer valid until end of month.</p>
+            `,
+            status: 'Scheduled' as const,
+            scheduledDate: '2026-06-01T10:00:00Z',
+            createdBy: manager.id,
+            createdByName: manager.name
+          },
+          {
+            name: 'Summer Bootcamp Registration',
+            description: 'Draft campaign for summer bootcamp program',
+            type: 'Email' as const,
+            targetAudience: 'All Members' as const,
+            subject: 'Get Beach Ready - Summer Bootcamp Starting Soon! 🌞',
+            message: `
+              <h2>Summer Bootcamp 2026</h2>
+              <p>Transform your body this summer with our intensive bootcamp program!</p>
+              <p>Early bird registration opens next week.</p>
+              <p>Stay tuned for more details!</p>
+            `,
+            status: 'Draft' as const,
+            createdBy: manager.id,
+            createdByName: manager.name
+          }
+        ];
+
+        demoCampaigns.forEach(campaignData => {
+          const campaign = this.createCampaign(campaignData);
+          // Simulate analytics for sent campaign
+          if (campaign.status === 'Sent') {
+            this.updateCampaign(campaign.id, {
+              analytics: {
+                targetCount: 150,
+                sentCount: 150,
+                deliveredCount: 148,
+                openedCount: 112,
+                clickedCount: 45
+              }
+            });
+          } else if (campaign.status === 'Scheduled') {
+            this.updateCampaign(campaign.id, {
+              analytics: {
+                targetCount: 75,
+                sentCount: 0,
+                deliveredCount: 0,
+                openedCount: 0,
+                clickedCount: 0
+              }
+            });
+          }
+        });
+
+        console.log('✅ Demo campaigns initialized');
+      }
+    }
   }
 }
 
-export const db = new MockDatabase();
+export const db = MockDatabase.getInstance();
 
 // Initialize demo data on first load
 db.initializeDemoData();
