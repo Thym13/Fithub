@@ -11,3 +11,4 @@ draft notes/
 # Local-only content inside Project-Code (keep on disk, exclude from GitHub)
 Project-Code/diagrams/
 Project-Code/test-cases/
+Project-Code/guidelines/
