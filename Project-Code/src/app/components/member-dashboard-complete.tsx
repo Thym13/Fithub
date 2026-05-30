@@ -6,6 +6,7 @@ import { CustomerSupport } from './customer-support';
 import { ClassBookingSystem } from './class-booking';
 import { ClientTrainingPrograms } from './client-training-programs';
 import { ApplyDiscountCode } from './apply-discount-code';
+import { SubmitReview } from './submit-review';
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from './dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -94,6 +95,7 @@ export function MemberDashboard() {
     { id: 'bookings', label: 'Book Classes', path: '#bookings' },
     { id: 'programs', label: 'Training Programs', path: '#programs' },
     { id: 'discounts', label: 'Discounts & Offers', path: '#discounts' },
+    { id: 'reviews', label: 'Submit Reviews', path: '#reviews' },
     { id: 'classes', label: 'Browse All Classes', path: '#classes' },
     { id: 'progress', label: 'My Progress', path: '#progress' },
     { id: 'schedule', label: 'My Schedule', path: '#schedule' },
@@ -514,6 +516,10 @@ export function MemberDashboard() {
 
         <TabsContent value="discounts" className="space-y-6">
           <ApplyDiscountCode />
+        </TabsContent>
+
+        <TabsContent value="reviews" className="space-y-6">
+          <SubmitReview />
         </TabsContent>
 
         <TabsContent value="classes" className="space-y-6">

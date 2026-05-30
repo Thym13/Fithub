@@ -2688,6 +2688,108 @@ interface ClientProgress {
 
 ---
 
+## ✅ STEP 16: Gym Review and Rating System (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: UC-9 Αξιολόγηση Γυμναστηρίου και Εμπειρίας Πελάτη (Gym and Customer Experience Rating)  
+**Reference**: Members submit reviews for classes and training programs, managers moderate reviews before publication
+
+### Files Added:
+
+1. **`src/app/components/submit-review.tsx`** - Review submission interface for members
+2. **`src/app/components/review-management.tsx`** - Review moderation interface for managers
+
+### Files Modified:
+
+1. **`src/app/services/database.ts`** - Added Review interface and CRUD operations
+2. **`src/app/components/member-dashboard-complete.tsx`** - Added "Submit Reviews" tab
+3. **`src/app/components/manager-dashboard.tsx`** - Added "Review Management" tab
+
+### Features Implemented:
+
+- ✅ Members can select attended classes or training programs to review
+- ✅ Star rating system (1-5 stars) for:
+  - Instructor performance
+  - Facility quality
+  - Overall experience
+- ✅ Optional comments and suggestions fields
+- ✅ Review submission with pending status
+- ✅ Email notifications to instructor and manager on new review
+- ✅ Manager review moderation (approve/reject)
+- ✅ Rejection with custom reason sent to member via email
+- ✅ Approval notification sent to member via email
+- ✅ Review statistics dashboard (total, pending, approved, rejected)
+- ✅ Filter reviews by status
+- ✅ View detailed review information
+- ✅ Average rating calculation for classes/programs
+- ✅ Review guidelines for members
+- ✅ 5 demo reviews initialized (2 approved, 1 pending, 1 rejected, 1 additional approved)
+
+### Database Schema:
+
+```typescript
+interface Review {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  // Link to class or training program
+  targetType: 'Class' | 'Training Program';
+  targetId: string;
+  targetName: string;
+  instructorId: string;
+  instructorName: string;
+  // Ratings (1-5 stars)
+  instructorRating: number;
+  facilityRating: number;
+  overallRating: number;
+  // Feedback
+  comments?: string;
+  suggestions?: string;
+  // Moderation
+  status: 'Pending' | 'Approved' | 'Rejected';
+  rejectionReason?: string;
+  moderatedBy?: string;
+  moderatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+### CRUD Operations:
+
+- `getAllReviews()` - Get all reviews
+- `saveReviews(reviews)` - Save all reviews
+- `createReview(review)` - Create new review (sends notifications)
+- `getReviewById(id)` - Get single review
+- `getReviewsByUser(userId)` - Get all reviews by a user
+- `getReviewsByTarget(targetType, targetId)` - Get approved reviews for a class/program
+- `getReviewsByInstructor(instructorId)` - Get all reviews for an instructor
+- `getReviewsByStatus(status)` - Filter reviews by status
+- `updateReview(id, updates)` - Update existing review
+- `approveReview(id, moderatorName)` - Approve review (sends notification)
+- `rejectReview(id, moderatorName, reason)` - Reject review (sends notification)
+- `deleteReview(id)` - Delete review
+- `getAverageRating(targetType, targetId)` - Calculate average ratings
+
+### Notification Flow:
+
+**On Review Submission**:
+1. Email sent to instructor
+2. Email sent to manager for moderation
+
+**On Review Approval**:
+1. Review status changed to "Approved"
+2. Email sent to member confirming approval
+3. Review becomes visible to all users
+
+**On Review Rejection**:
+1. Review status changed to "Rejected"
+2. Email sent to member with rejection reason
+3. Review not displayed publicly
+
+---
+
 ## 📋 Upcoming Steps:
 
 ... and more!
@@ -2713,8 +2815,9 @@ interface ClientProgress {
 | 13 | ✅ | UC-6 | Analytics Dashboard |
 | 14 | ✅ | UC-7 | Discount Code System |
 | 15 | ✅ | UC-8 | Client Progress Tracking |
+| 16 | ✅ | UC-9 | Gym Review and Rating System |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 15 (60%)  
-**Steps Remaining**: 10
+**Steps Completed**: 16 (64%)  
+**Steps Remaining**: 9

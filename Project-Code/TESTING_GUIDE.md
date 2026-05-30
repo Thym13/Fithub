@@ -3983,6 +3983,384 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 
 ---
 
+## Step 16: Gym Review and Rating System (UC-9)
+
+### Test Case 16.1: View Available Items to Review
+
+**Steps**:
+1. Login as member (john@example.com / password123)
+2. Navigate to "Submit Reviews" tab
+3. Click on "Select Class or Training Program" dropdown
+
+**Expected Result**:
+- ✅ Dropdown shows classes the member has booked (Confirmed bookings only)
+- ✅ Dropdown shows training programs assigned to the member
+- ✅ Each item shows type badge (Class or Training Program)
+- ✅ Each item shows instructor name
+- ✅ Empty message if no items available
+
+### Test Case 16.2: Submit Review - Star Ratings
+
+**Steps**:
+1. Login as member
+2. Select a class from dropdown
+3. Click "Start Review"
+4. Rate instructor: 5 stars
+5. Rate facility: 4 stars
+6. Rate overall experience: 5 stars
+7. Click "Submit Review"
+
+**Expected Result**:
+- ✅ Modal opens with selected item details
+- ✅ Star rating interactive (hover and click)
+- ✅ Selected stars highlighted in yellow
+- ✅ Unselected stars in gray
+- ✅ Rating count displayed next to stars (e.g., "5/5")
+- ✅ All three ratings required before submission
+- ✅ Success modal appears after submission
+- ✅ Review created with status "Pending"
+
+### Test Case 16.3: Submit Review - Complete with Comments
+
+**Steps**:
+1. Login as member
+2. Select training program
+3. Open review modal
+4. Provide all ratings (5, 4, 5)
+5. Add comment: "Great program! Very effective."
+6. Add suggestion: "More variety in exercises would be nice."
+7. Submit review
+
+**Expected Result**:
+- ✅ Comments textarea functional
+- ✅ Suggestions textarea functional
+- ✅ Both fields optional
+- ✅ Review saved with all data
+- ✅ Email sent to instructor
+- ✅ Email sent to manager
+- ✅ Success modal confirms submission
+- ✅ "Pending moderation" message shown
+
+### Test Case 16.4: Submit Review - Validation
+
+**Steps**:
+1. Login as member
+2. Select a class
+3. Open review modal
+4. Leave all ratings at 0
+5. Try to submit
+
+**Expected Result**:
+- ✅ Alert message: "Please provide all ratings before submitting."
+- ✅ Review not submitted
+- ✅ Modal remains open
+- ✅ Form data preserved
+
+### Test Case 16.5: Review Guidelines Display
+
+**Steps**:
+1. Navigate to "Submit Reviews" tab
+2. View the guidelines section
+
+**Expected Result**:
+- ✅ Blue info box displays guidelines
+- ✅ Guidelines include:
+  - Be honest and constructive
+  - Focus on experience
+  - Avoid inappropriate language
+  - Reviews are moderated
+- ✅ Guidelines visible before submission
+
+### Test Case 16.6: Manager Review Dashboard - Statistics
+
+**Steps**:
+1. Login as manager (manager@fithub.gr / Manager123!)
+2. Navigate to "Review Management" tab
+3. View statistics cards
+
+**Expected Result**:
+- ✅ Total Reviews card shows count
+- ✅ Pending Reviews card shows count with yellow icon
+- ✅ Approved Reviews card shows count with green icon
+- ✅ Rejected Reviews card shows count with red icon
+- ✅ Statistics accurate and real-time
+
+### Test Case 16.7: Manager View Review Details
+
+**Steps**:
+1. Login as manager
+2. Navigate to "Review Management"
+3. Click "View Details" on any review
+
+**Expected Result**:
+- ✅ Modal opens with complete review information
+- ✅ Status badge displayed
+- ✅ Target info (class/program name, type)
+- ✅ Reviewer info (name, email, date)
+- ✅ All three ratings with stars
+- ✅ Comments displayed if present
+- ✅ Suggestions displayed if present
+- ✅ Moderation info shown for approved/rejected reviews
+
+### Test Case 16.8: Approve Review
+
+**Steps**:
+1. Login as manager
+2. Navigate to "Review Management"
+3. Filter by "Pending"
+4. Click "Approve" on a pending review
+
+**Expected Result**:
+- ✅ Review status changes to "Approved"
+- ✅ moderatedBy set to manager name
+- ✅ moderatedAt timestamp recorded
+- ✅ Email sent to member confirming approval
+- ✅ Review moves to "Approved" filter
+- ✅ Pending count decreases
+- ✅ Approved count increases
+
+### Test Case 16.9: Reject Review with Reason
+
+**Steps**:
+1. Login as manager
+2. Find pending review
+3. Click "Reject"
+4. Modal opens for rejection reason
+5. Enter reason: "Contains inappropriate language"
+6. Click "Confirm Rejection"
+
+**Expected Result**:
+- ✅ Rejection modal opens
+- ✅ Reason textarea functional
+- ✅ Submit button disabled until reason entered
+- ✅ Review status changes to "Rejected"
+- ✅ Rejection reason saved
+- ✅ Email sent to member with reason
+- ✅ Review moves to "Rejected" filter
+- ✅ Moderator name and timestamp recorded
+
+### Test Case 16.10: Filter Reviews by Status
+
+**Steps**:
+1. Login as manager
+2. Navigate to Review Management
+3. Test each filter: All, Pending, Approved, Rejected
+
+**Expected Result**:
+- ✅ "All Reviews" shows all reviews
+- ✅ "Pending" shows only pending reviews
+- ✅ "Approved" shows only approved reviews
+- ✅ "Rejected" shows only rejected reviews
+- ✅ Filter dropdown responsive
+- ✅ Statistics update based on filter
+- ✅ Empty state if no reviews match filter
+
+### Test Case 16.11: Review List Display
+
+**Steps**:
+1. Login as manager
+2. View review list
+
+**Expected Result**:
+- ✅ Each review card shows:
+  - Target name and type badge
+  - Status badge (color-coded)
+  - Reviewer name
+  - Date created
+  - Instructor name
+  - All three ratings with stars
+  - Comments preview (truncated)
+- ✅ Hover effect on cards
+- ✅ Action buttons visible based on status
+- ✅ Pending reviews show Approve and Reject buttons
+- ✅ Approved/Rejected reviews show only View Details
+
+### Test Case 16.12: Email Notifications - New Review
+
+**Steps**:
+1. Member submits a review
+2. Check browser console for email logs
+
+**Expected Result**:
+- ✅ Email to instructor with:
+  - Subject: "New Review Received"
+  - Target name
+  - Overall and instructor ratings
+  - Comments if present
+  - "Pending moderation" note
+- ✅ Email to manager with:
+  - Subject: "New Review Pending Moderation"
+  - Reviewer name
+  - Target name and type
+  - Instructor name
+  - Overall rating
+  - Request to moderate
+
+### Test Case 16.13: Email Notifications - Approval
+
+**Steps**:
+1. Manager approves a review
+2. Check console for email
+
+**Expected Result**:
+- ✅ Email sent to member
+- ✅ Subject: "Your Review Has Been Approved"
+- ✅ Body confirms approval
+- ✅ Thanks member for feedback
+- ✅ Email address matches reviewer
+
+### Test Case 16.14: Email Notifications - Rejection
+
+**Steps**:
+1. Manager rejects review with reason
+2. Check console for email
+
+**Expected Result**:
+- ✅ Email sent to member
+- ✅ Subject: "Your Review Was Not Approved"
+- ✅ Body includes rejection reason
+- ✅ Polite tone with support contact option
+
+### Test Case 16.15: Average Rating Calculation
+
+**Steps**:
+1. Create 3 reviews for same class:
+   - Review 1: Overall 5, Instructor 5, Facility 4
+   - Review 2: Overall 4, Instructor 4, Facility 5
+   - Review 3: Overall 5, Instructor 5, Facility 5
+2. Call getAverageRating(targetType, targetId)
+
+**Expected Result**:
+- ✅ Overall average: 4.7 (rounded to 1 decimal)
+- ✅ Instructor average: 4.7
+- ✅ Facility average: 4.7
+- ✅ Count: 3
+- ✅ Only approved reviews counted
+
+### Test Case 16.16: Demo Reviews Initialized
+
+**Steps**:
+1. Clear localStorage
+2. Refresh page to trigger initializeDemoData
+3. Login as manager
+4. Navigate to Review Management
+
+**Expected Result**:
+- ✅ 5 demo reviews created
+- ✅ 3 approved reviews
+- ✅ 1 pending review
+- ✅ 1 rejected review
+- ✅ Reviews for different classes and programs
+- ✅ Realistic content and ratings
+- ✅ Moderation history on approved/rejected reviews
+
+### Test Case 16.17: Review Sorting
+
+**Steps**:
+1. View review list as manager
+2. Check review order
+
+**Expected Result**:
+- ✅ Reviews sorted by creation date
+- ✅ Newest reviews appear first
+- ✅ Consistent sorting across filters
+
+### Test Case 16.18: Star Rating Interaction
+
+**Steps**:
+1. Open review submission modal
+2. Hover over stars
+3. Click different star values
+4. Re-click to change rating
+
+**Expected Result**:
+- ✅ Hover effect scales star (scale-110)
+- ✅ Stars light up on hover
+- ✅ Click sets rating
+- ✅ Can change rating after selection
+- ✅ Visual feedback immediate
+- ✅ All three rating sections independent
+
+### Test Case 16.19: Multiple Reviews from Same User
+
+**Steps**:
+1. Login as member
+2. Submit review for Class A
+3. Submit review for Class B
+4. Submit review for Training Program C
+
+**Expected Result**:
+- ✅ All reviews created successfully
+- ✅ Each linked to correct target
+- ✅ All have same userId
+- ✅ getReviewsByUser returns all 3
+- ✅ No limit on reviews per user
+
+### Test Case 16.20: Data Persistence
+
+**Steps**:
+1. Submit 2 reviews as member
+2. Approve 1 review as manager
+3. Refresh page
+4. Check reviews still exist
+
+**Expected Result**:
+- ✅ All reviews persist in localStorage
+- ✅ Review statuses preserved
+- ✅ Moderation data preserved
+- ✅ Data reloads after refresh
+
+### Checklist - Submit Review (Member)
+- [x] Dropdown loads user's classes and programs
+- [x] Dropdown shows type badge and instructor
+- [x] Selected item details displayed
+- [x] Review modal opens on button click
+- [x] Star rating interactive (all 3 sections)
+- [x] Star rating visual feedback works
+- [x] Rating count displays next to stars
+- [x] Comments textarea functional
+- [x] Suggestions textarea functional
+- [x] Validation enforces all ratings
+- [x] Validation error message shown
+- [x] Success modal appears on submit
+- [x] Review created with Pending status
+- [x] Email sent to instructor
+- [x] Email sent to manager
+- [x] Form resets after submission
+- [x] Guidelines displayed
+- [x] Empty state for no items
+- [x] Responsive design works
+
+### Checklist - Review Management (Manager)
+- [x] Statistics cards display correctly
+- [x] Total reviews count accurate
+- [x] Pending reviews count accurate
+- [x] Approved reviews count accurate
+- [x] Rejected reviews count accurate
+- [x] Filter dropdown functional
+- [x] Filter by All works
+- [x] Filter by Pending works
+- [x] Filter by Approved works
+- [x] Filter by Rejected works
+- [x] Review cards display all info
+- [x] Status badges color-coded
+- [x] Star ratings displayed correctly
+- [x] View Details modal opens
+- [x] Modal shows complete review info
+- [x] Approve button functional
+- [x] Reject modal opens
+- [x] Rejection reason required
+- [x] Confirm rejection works
+- [x] Email sent on approval
+- [x] Email sent on rejection
+- [x] Moderation info recorded
+- [x] Review sorting works (newest first)
+- [x] Empty state shown when no reviews
+- [x] Responsive design works
+- [x] Demo reviews initialized (5 reviews)
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-15  
-**Total Test Cases**: 280+
+**Steps Tested**: 1-16  
+**Total Test Cases**: 300+

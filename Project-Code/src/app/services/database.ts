@@ -226,6 +226,33 @@ export interface ClientProgress {
   updatedAt: string;
 }
 
+export interface Review {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  // Link to class or training program
+  targetType: 'Class' | 'Training Program';
+  targetId: string; // Class ID or Training Program ID
+  targetName: string; // Class name or program name
+  instructorId: string;
+  instructorName: string;
+  // Ratings (1-5 stars)
+  instructorRating: number;
+  facilityRating: number;
+  overallRating: number;
+  // Feedback
+  comments?: string;
+  suggestions?: string;
+  // Moderation
+  status: 'Pending' | 'Approved' | 'Rejected';
+  rejectionReason?: string;
+  moderatedBy?: string; // Admin/Manager who approved/rejected
+  moderatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export class MockDatabase {
   private static instance: MockDatabase;
 
@@ -241,6 +268,7 @@ export class MockDatabase {
   private DISCOUNT_CODES_KEY = 'fithub_discount_codes';
   private DISCOUNT_CODE_USAGE_KEY = 'fithub_discount_code_usage';
   private CLIENT_PROGRESS_KEY = 'fithub_client_progress';
+  private REVIEWS_KEY = 'fithub_reviews';
 
   static getInstance(): MockDatabase {
     if (!MockDatabase.instance) {
@@ -1040,6 +1068,168 @@ export class MockDatabase {
     return allUsers.filter(u => clientIds.includes(u.id));
   }
 
+  // ============ REVIEW METHODS ============
+
+  getAllReviews(): Review[] {
+    const data = localStorage.getItem(this.REVIEWS_KEY);
+    return data ? JSON.parse(data) : [];
+  }
+
+  saveReviews(reviews: Review[]): void {
+    localStorage.setItem(this.REVIEWS_KEY, JSON.stringify(reviews));
+  }
+
+  createReview(reviewData: Omit<Review, 'id' | 'createdAt' | 'updatedAt'>): Review {
+    const reviews = this.getAllReviews();
+    const newReview: Review = {
+      ...reviewData,
+      id: this.generateId(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    reviews.push(newReview);
+    this.saveReviews(reviews);
+
+    // Send notification to instructor
+    this.sendEmail({
+      to: `${reviewData.instructorName.toLowerCase().replace(' ', '.')}@fithub.gr`,
+      subject: 'New Review Received',
+      body: `Hi ${reviewData.instructorName},\n\nYou have received a new review for "${reviewData.targetName}".\n\nOverall Rating: ${reviewData.overallRating}/5 stars\nInstructor Rating: ${reviewData.instructorRating}/5 stars\n${reviewData.comments ? `\nComments: ${reviewData.comments}` : ''}\n\nThe review is pending moderation.\n\nBest regards,\nFitHub Team`
+    });
+
+    // Send notification to manager
+    this.sendEmail({
+      to: 'manager@fithub.gr',
+      subject: 'New Review Pending Moderation',
+      body: `A new review has been submitted and requires moderation.\n\nReviewer: ${reviewData.userName}\nTarget: ${reviewData.targetName} (${reviewData.targetType})\nInstructor: ${reviewData.instructorName}\nOverall Rating: ${reviewData.overallRating}/5 stars\n${reviewData.comments ? `\nComments: ${reviewData.comments}` : ''}\n\nPlease review and approve/reject accordingly.\n\nBest regards,\nFitHub System`
+    });
+
+    return newReview;
+  }
+
+  getReviewById(id: string): Review | null {
+    const reviews = this.getAllReviews();
+    return reviews.find(r => r.id === id) || null;
+  }
+
+  getReviewsByUser(userId: string): Review[] {
+    const reviews = this.getAllReviews();
+    return reviews.filter(r => r.userId === userId);
+  }
+
+  getReviewsByTarget(targetType: 'Class' | 'Training Program', targetId: string): Review[] {
+    const reviews = this.getAllReviews();
+    return reviews.filter(r => r.targetType === targetType && r.targetId === targetId && r.status === 'Approved');
+  }
+
+  getReviewsByInstructor(instructorId: string): Review[] {
+    const reviews = this.getAllReviews();
+    return reviews.filter(r => r.instructorId === instructorId);
+  }
+
+  getReviewsByStatus(status: 'Pending' | 'Approved' | 'Rejected'): Review[] {
+    const reviews = this.getAllReviews();
+    return reviews.filter(r => r.status === status);
+  }
+
+  updateReview(id: string, updates: Partial<Review>): Review | null {
+    const reviews = this.getAllReviews();
+    const index = reviews.findIndex(r => r.id === id);
+
+    if (index === -1) {
+      return null;
+    }
+
+    reviews[index] = {
+      ...reviews[index],
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.saveReviews(reviews);
+    return reviews[index];
+  }
+
+  approveReview(id: string, moderatorName: string): Review | null {
+    const review = this.getReviewById(id);
+    if (!review) return null;
+
+    const updatedReview = this.updateReview(id, {
+      status: 'Approved',
+      moderatedBy: moderatorName,
+      moderatedAt: new Date().toISOString(),
+    });
+
+    if (updatedReview) {
+      // Notify the user
+      this.sendEmail({
+        to: updatedReview.userEmail,
+        subject: 'Your Review Has Been Approved',
+        body: `Hi ${updatedReview.userName},\n\nYour review for "${updatedReview.targetName}" has been approved and is now visible to other members.\n\nThank you for your feedback!\n\nBest regards,\nFitHub Team`
+      });
+    }
+
+    return updatedReview;
+  }
+
+  rejectReview(id: string, moderatorName: string, reason: string): Review | null {
+    const review = this.getReviewById(id);
+    if (!review) return null;
+
+    const updatedReview = this.updateReview(id, {
+      status: 'Rejected',
+      moderatedBy: moderatorName,
+      moderatedAt: new Date().toISOString(),
+      rejectionReason: reason,
+    });
+
+    if (updatedReview) {
+      // Notify the user
+      this.sendEmail({
+        to: updatedReview.userEmail,
+        subject: 'Your Review Was Not Approved',
+        body: `Hi ${updatedReview.userName},\n\nYour review for "${updatedReview.targetName}" was not approved due to the following reason:\n\n${reason}\n\nIf you have questions, please contact our support team.\n\nBest regards,\nFitHub Team`
+      });
+    }
+
+    return updatedReview;
+  }
+
+  deleteReview(id: string): boolean {
+    const reviews = this.getAllReviews();
+    const filteredReviews = reviews.filter(r => r.id !== id);
+
+    if (filteredReviews.length === reviews.length) {
+      return false;
+    }
+
+    this.saveReviews(filteredReviews);
+    return true;
+  }
+
+  // Get average rating for a target (class or training program)
+  getAverageRating(targetType: 'Class' | 'Training Program', targetId: string): { overall: number; instructor: number; facility: number; count: number } {
+    const reviews = this.getReviewsByTarget(targetType, targetId);
+
+    if (reviews.length === 0) {
+      return { overall: 0, instructor: 0, facility: 0, count: 0 };
+    }
+
+    const sum = reviews.reduce((acc, r) => ({
+      overall: acc.overall + r.overallRating,
+      instructor: acc.instructor + r.instructorRating,
+      facility: acc.facility + r.facilityRating,
+    }), { overall: 0, instructor: 0, facility: 0 });
+
+    return {
+      overall: parseFloat((sum.overall / reviews.length).toFixed(1)),
+      instructor: parseFloat((sum.instructor / reviews.length).toFixed(1)),
+      facility: parseFloat((sum.facility / reviews.length).toFixed(1)),
+      count: reviews.length,
+    };
+  }
+
   // Utility Methods
 
   generateId(): string {
@@ -1063,6 +1253,7 @@ export class MockDatabase {
     localStorage.removeItem(this.DISCOUNT_CODES_KEY);
     localStorage.removeItem(this.DISCOUNT_CODE_USAGE_KEY);
     localStorage.removeItem(this.CLIENT_PROGRESS_KEY);
+    localStorage.removeItem(this.REVIEWS_KEY);
   }
 
   // Initialize demo data
@@ -1756,6 +1947,146 @@ export class MockDatabase {
         });
 
         console.log('✅ Demo client progress initialized');
+      }
+    }
+
+    // Initialize demo reviews
+    const reviews = this.getAllReviews();
+    if (reviews.length === 0) {
+      const allUsers = this.getAllUsers();
+      const allClasses = this.getAllClasses();
+      const allPrograms = this.getAllPrograms();
+
+      // Find some users and targets for demo reviews
+      const memberUser = allUsers.find(u => u.role === 'member');
+      const yogaClass = allClasses.find(c => c.category === 'Yoga');
+      const hiitClass = allClasses.find(c => c.category === 'HIIT');
+      const program = allPrograms[0];
+
+      if (memberUser && yogaClass) {
+        // Approved review for Yoga class
+        this.saveReviews([
+          {
+            id: this.generateId(),
+            userId: memberUser.id,
+            userName: memberUser.name,
+            userEmail: memberUser.email,
+            targetType: 'Class',
+            targetId: yogaClass.id,
+            targetName: yogaClass.name,
+            instructorId: yogaClass.instructorId,
+            instructorName: yogaClass.instructorName,
+            instructorRating: 5,
+            facilityRating: 5,
+            overallRating: 5,
+            comments: 'Amazing class! The instructor is very knowledgeable and the atmosphere is perfect for relaxation.',
+            suggestions: 'Maybe add more beginner-friendly sessions?',
+            status: 'Approved',
+            moderatedBy: 'Nikos Georgiou',
+            moderatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+          }
+        ]);
+      }
+
+      if (hiitClass) {
+        const reviewsData = this.getAllReviews();
+        // Pending review for HIIT class
+        reviewsData.push({
+          id: this.generateId(),
+          userId: memberUser?.id || 'user-2',
+          userName: memberUser?.name || 'John Doe',
+          userEmail: memberUser?.email || 'john@example.com',
+          targetType: 'Class',
+          targetId: hiitClass.id,
+          targetName: hiitClass.name,
+          instructorId: hiitClass.instructorId,
+          instructorName: hiitClass.instructorName,
+          instructorRating: 4,
+          facilityRating: 4,
+          overallRating: 4,
+          comments: 'Great workout! Very intense and effective. The instructor pushes you to your limits.',
+          status: 'Pending',
+          createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+        this.saveReviews(reviewsData);
+      }
+
+      if (program) {
+        const reviewsData = this.getAllReviews();
+        // Approved review for Training Program
+        reviewsData.push({
+          id: this.generateId(),
+          userId: program.clientId,
+          userName: program.clientName,
+          userEmail: 'client@example.com',
+          targetType: 'Training Program',
+          targetId: program.id,
+          targetName: program.name,
+          instructorId: program.trainerId,
+          instructorName: program.trainerName,
+          instructorRating: 5,
+          facilityRating: 4,
+          overallRating: 5,
+          comments: 'Excellent personalized program! I have seen great results in just 4 weeks. My trainer is very professional and supportive.',
+          suggestions: 'Would love to see more variety in exercises.',
+          status: 'Approved',
+          moderatedBy: 'Nikos Georgiou',
+          moderatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+          createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+
+        // Rejected review with inappropriate content
+        reviewsData.push({
+          id: this.generateId(),
+          userId: 'user-test-reject',
+          userName: 'Test User',
+          userEmail: 'test@example.com',
+          targetType: 'Class',
+          targetId: yogaClass?.id || 'class-1',
+          targetName: yogaClass?.name || 'Yoga Class',
+          instructorId: yogaClass?.instructorId || 'trainer-1',
+          instructorName: yogaClass?.instructorName || 'Elena Dimitriou',
+          instructorRating: 1,
+          facilityRating: 1,
+          overallRating: 1,
+          comments: 'This review violated gym policy terms.',
+          status: 'Rejected',
+          rejectionReason: 'Review contains inappropriate language and violates community guidelines.',
+          moderatedBy: 'Maria Papadopoulou',
+          moderatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+
+        // Another approved review
+        reviewsData.push({
+          id: this.generateId(),
+          userId: 'user-test-2',
+          userName: 'Maria Konstantinou',
+          userEmail: 'maria.k@example.com',
+          targetType: 'Class',
+          targetId: yogaClass?.id || 'class-1',
+          targetName: yogaClass?.name || 'Yoga Class',
+          instructorId: yogaClass?.instructorId || 'trainer-1',
+          instructorName: yogaClass?.instructorName || 'Elena Dimitriou',
+          instructorRating: 4,
+          facilityRating: 5,
+          overallRating: 4,
+          comments: 'Love the morning yoga sessions! Perfect way to start the day. The instructor is patient and provides clear instructions.',
+          suggestions: 'Could use some more advanced poses for experienced practitioners.',
+          status: 'Approved',
+          moderatedBy: 'Nikos Georgiou',
+          moderatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+          createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+
+        this.saveReviews(reviewsData);
+        console.log('✅ Demo reviews initialized');
       }
     }
   }
