@@ -195,6 +195,37 @@ export interface DiscountCodeUsage {
   usedAt: string; // ISO date string
 }
 
+export interface ClientProgress {
+  id: string;
+  clientId: string;
+  clientName: string;
+  trainerId: string;
+  trainerName: string;
+  date: string; // ISO date string
+  weight?: number; // in kg
+  bodyFat?: number; // percentage
+  muscleMass?: number; // in kg
+  measurements?: {
+    chest?: number; // in cm
+    waist?: number;
+    hips?: number;
+    biceps?: number;
+    thighs?: number;
+  };
+  exercisePerformance?: {
+    exerciseName: string;
+    sets: number;
+    reps: string; // e.g., "10-12" or "8"
+    weight: number; // in kg
+    difficulty: 'Easy' | 'Medium' | 'Hard';
+    notes?: string;
+  }[];
+  goals?: string; // New goals set by trainer
+  notes?: string; // Trainer's notes about this session
+  createdAt: string;
+  updatedAt: string;
+}
+
 export class MockDatabase {
   private static instance: MockDatabase;
 
@@ -209,6 +240,7 @@ export class MockDatabase {
   private CAMPAIGNS_KEY = 'fithub_campaigns';
   private DISCOUNT_CODES_KEY = 'fithub_discount_codes';
   private DISCOUNT_CODE_USAGE_KEY = 'fithub_discount_code_usage';
+  private CLIENT_PROGRESS_KEY = 'fithub_client_progress';
 
   static getInstance(): MockDatabase {
     if (!MockDatabase.instance) {
@@ -925,6 +957,89 @@ export class MockDatabase {
     return usages.filter(u => u.discountCodeId === discountCodeId);
   }
 
+  // Client Progress Operations
+
+  getAllClientProgress(): ClientProgress[] {
+    const progress = localStorage.getItem(this.CLIENT_PROGRESS_KEY);
+    return progress ? JSON.parse(progress) : [];
+  }
+
+  saveClientProgress(progress: ClientProgress[]): void {
+    localStorage.setItem(this.CLIENT_PROGRESS_KEY, JSON.stringify(progress));
+  }
+
+  createClientProgress(progressData: Omit<ClientProgress, 'id' | 'createdAt' | 'updatedAt'>): ClientProgress {
+    const progress: ClientProgress = {
+      ...progressData,
+      id: this.generateId(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const allProgress = this.getAllClientProgress();
+    allProgress.push(progress);
+    this.saveClientProgress(allProgress);
+
+    return progress;
+  }
+
+  getClientProgressById(id: string): ClientProgress | null {
+    const allProgress = this.getAllClientProgress();
+    return allProgress.find(p => p.id === id) || null;
+  }
+
+  getClientProgressByClient(clientId: string): ClientProgress[] {
+    const allProgress = this.getAllClientProgress();
+    return allProgress.filter(p => p.clientId === clientId).sort((a, b) =>
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  }
+
+  getClientProgressByTrainer(trainerId: string): ClientProgress[] {
+    const allProgress = this.getAllClientProgress();
+    return allProgress.filter(p => p.trainerId === trainerId).sort((a, b) =>
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  }
+
+  updateClientProgress(id: string, updates: Partial<ClientProgress>): ClientProgress | null {
+    const allProgress = this.getAllClientProgress();
+    const index = allProgress.findIndex(p => p.id === id);
+
+    if (index === -1) {
+      return null;
+    }
+
+    allProgress[index] = {
+      ...allProgress[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    this.saveClientProgress(allProgress);
+    return allProgress[index];
+  }
+
+  deleteClientProgress(id: string): boolean {
+    const allProgress = this.getAllClientProgress();
+    const filteredProgress = allProgress.filter(p => p.id !== id);
+
+    if (filteredProgress.length === allProgress.length) {
+      return false;
+    }
+
+    this.saveClientProgress(filteredProgress);
+    return true;
+  }
+
+  // Get clients for a trainer (members who have programs assigned by this trainer)
+  getTrainerClients(trainerId: string): User[] {
+    const programs = this.getProgramsByTrainer(trainerId);
+    const clientIds = [...new Set(programs.map(p => p.clientId))]; // Unique client IDs
+
+    const allUsers = this.getAllUsers();
+    return allUsers.filter(u => clientIds.includes(u.id));
+  }
+
   // Utility Methods
 
   generateId(): string {
@@ -947,6 +1062,7 @@ export class MockDatabase {
     localStorage.removeItem(this.CAMPAIGNS_KEY);
     localStorage.removeItem(this.DISCOUNT_CODES_KEY);
     localStorage.removeItem(this.DISCOUNT_CODE_USAGE_KEY);
+    localStorage.removeItem(this.CLIENT_PROGRESS_KEY);
   }
 
   // Initialize demo data
@@ -1487,6 +1603,159 @@ export class MockDatabase {
         });
 
         console.log('✅ Demo discount codes initialized');
+      }
+    }
+
+    // Initialize demo client progress
+    const clientProgress = this.getAllClientProgress();
+    if (clientProgress.length === 0) {
+      const trainer = this.findUserByEmail('trainer@fithub.gr');
+      const member = this.findUserByEmail('member@fithub.gr');
+
+      if (trainer && member) {
+        const demoProgress = [
+          {
+            clientId: member.id,
+            clientName: member.name,
+            trainerId: trainer.id,
+            trainerName: trainer.name,
+            date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
+            weight: 85,
+            bodyFat: 22,
+            muscleMass: 35,
+            measurements: {
+              chest: 102,
+              waist: 88,
+              hips: 98,
+              biceps: 36,
+              thighs: 58
+            },
+            exercisePerformance: [
+              {
+                exerciseName: 'Bench Press',
+                sets: 3,
+                reps: '10',
+                weight: 60,
+                difficulty: 'Medium' as const,
+                notes: 'Good form, increasing weight next session'
+              },
+              {
+                exerciseName: 'Squats',
+                sets: 4,
+                reps: '8',
+                weight: 80,
+                difficulty: 'Hard' as const,
+                notes: 'Struggled with last set'
+              }
+            ],
+            goals: 'Reduce body fat to 18%, increase muscle mass',
+            notes: 'Client is motivated and consistent. Good progress on strength exercises.'
+          },
+          {
+            clientId: member.id,
+            clientName: member.name,
+            trainerId: trainer.id,
+            trainerName: trainer.name,
+            date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
+            weight: 83.5,
+            bodyFat: 20.5,
+            muscleMass: 36,
+            measurements: {
+              chest: 103,
+              waist: 86,
+              hips: 97,
+              biceps: 37,
+              thighs: 59
+            },
+            exercisePerformance: [
+              {
+                exerciseName: 'Bench Press',
+                sets: 3,
+                reps: '10',
+                weight: 65,
+                difficulty: 'Medium' as const,
+                notes: 'Weight increased successfully'
+              },
+              {
+                exerciseName: 'Squats',
+                sets: 4,
+                reps: '8',
+                weight: 85,
+                difficulty: 'Medium' as const,
+                notes: 'Better form today'
+              },
+              {
+                exerciseName: 'Deadlifts',
+                sets: 3,
+                reps: '6',
+                weight: 90,
+                difficulty: 'Hard' as const,
+                notes: 'First time with this weight'
+              }
+            ],
+            goals: 'Continue current program, focus on compound movements',
+            notes: 'Excellent progress! Lost 1.5kg, gained muscle mass. Keep up the good work.'
+          },
+          {
+            clientId: member.id,
+            clientName: member.name,
+            trainerId: trainer.id,
+            trainerName: trainer.name,
+            date: new Date().toISOString(), // Today
+            weight: 82,
+            bodyFat: 19,
+            muscleMass: 37,
+            measurements: {
+              chest: 104,
+              waist: 84,
+              hips: 96,
+              biceps: 38,
+              thighs: 60
+            },
+            exercisePerformance: [
+              {
+                exerciseName: 'Bench Press',
+                sets: 4,
+                reps: '10',
+                weight: 70,
+                difficulty: 'Medium' as const,
+                notes: 'Added extra set, good endurance'
+              },
+              {
+                exerciseName: 'Squats',
+                sets: 4,
+                reps: '10',
+                weight: 90,
+                difficulty: 'Medium' as const,
+                notes: 'Perfect form throughout'
+              },
+              {
+                exerciseName: 'Deadlifts',
+                sets: 3,
+                reps: '8',
+                weight: 95,
+                difficulty: 'Medium' as const,
+                notes: 'Strength improving steadily'
+              },
+              {
+                exerciseName: 'Pull-ups',
+                sets: 3,
+                reps: '12',
+                weight: 0,
+                difficulty: 'Easy' as const,
+                notes: 'Bodyweight - consider adding weight'
+              }
+            ],
+            goals: 'Target: 80kg, 17% body fat by next month',
+            notes: 'Outstanding progress! Client has lost 3kg and gained 2kg muscle in one month. Ready to increase training intensity.'
+          }
+        ];
+
+        demoProgress.forEach(progressData => {
+          this.createClientProgress(progressData);
+        });
+
+        console.log('✅ Demo client progress initialized');
       }
     }
   }

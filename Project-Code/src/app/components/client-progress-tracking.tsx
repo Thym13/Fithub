@@ -1,844 +1,866 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
+import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import { Badge } from './ui/badge';
-import { Progress } from './ui/progress';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { 
-  TrendingUp, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from './ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
+import {
+  TrendingUp,
   TrendingDown,
-  Activity, 
-  Target, 
-  CheckCircle, 
-  X, 
+  Minus,
   Plus,
-  Save,
-  AlertCircle,
+  Eye,
+  Calendar,
+  Weight,
+  Activity,
+  Target,
   Mail,
-  Bell,
-  Edit,
-  LineChart as LineChartIcon,
-  Dumbbell,
-  Heart,
-  Zap
+  BarChart3,
+  User
 } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { mockTrainerClients } from '../utils/mockData';
-
-// Mock client progress data with history
-const mockClientProgressData = {
-  '1': {
-    hasHistory: true,
-    weightHistory: [
-      { date: '2026-01-20', weight: 84, bodyFat: 22, muscleMass: 64 },
-      { date: '2026-02-05', weight: 83, bodyFat: 21, muscleMass: 64 },
-      { date: '2026-02-20', weight: 82, bodyFat: 20, muscleMass: 65 },
-      { date: '2026-03-05', weight: 81, bodyFat: 19, muscleMass: 65 },
-      { date: '2026-03-20', weight: 79, bodyFat: 18, muscleMass: 66 }
-    ],
-    exercises: [
-      { name: 'Bench Press', maxWeight: 84, sets: 4, reps: 10, lastUpdated: '2026-03-18' },
-      { name: 'Squats', maxWeight: 102, sets: 4, reps: 8, lastUpdated: '2026-03-18' },
-      { name: 'Deadlift', maxWeight: 125, sets: 3, reps: 6, lastUpdated: '2026-03-15' },
-      { name: 'Pull-ups', maxWeight: 0, sets: 3, reps: 12, lastUpdated: '2026-03-18' }
-    ],
-    enduranceHistory: [
-      { date: '2026-01-20', cardio: 20, distance: 4.0 },
-      { date: '2026-02-05', cardio: 25, distance: 4.8 },
-      { date: '2026-02-20', cardio: 30, distance: 5.6 },
-      { date: '2026-03-05', cardio: 35, distance: 6.4 },
-      { date: '2026-03-20', cardio: 40, distance: 7.2 }
-    ],
-    program: 'Muscle Building Program',
-    notes: [
-      { date: '2026-03-15', note: 'Great progress on deadlifts! Increased weight by 5 kg.' },
-      { date: '2026-03-10', note: 'Client showing excellent form improvements.' }
-    ],
-    goals: [
-      { id: 1, goal: 'Reach 77 kg body weight', status: 'In Progress', deadline: '2026-04-30' },
-      { id: 2, goal: 'Bench press 90 kg', status: 'In Progress', deadline: '2026-05-15' }
-    ]
-  },
-  '2': {
-    hasHistory: true,
-    weightHistory: [
-      { date: '2026-01-20', weight: 75, bodyFat: 28, muscleMass: 50 },
-      { date: '2026-02-05', weight: 73, bodyFat: 27, muscleMass: 50 },
-      { date: '2026-02-20', weight: 73, bodyFat: 26, muscleMass: 51 },
-      { date: '2026-03-05', weight: 72, bodyFat: 25, muscleMass: 51 },
-      { date: '2026-03-20', weight: 70, bodyFat: 24, muscleMass: 52 }
-    ],
-    exercises: [
-      { name: 'Treadmill Run', maxWeight: 0, sets: 1, reps: 0, lastUpdated: '2026-03-18' },
-      { name: 'Leg Press', maxWeight: 68, sets: 3, reps: 15, lastUpdated: '2026-03-18' },
-      { name: 'Dumbbell Curls', maxWeight: 11, sets: 3, reps: 12, lastUpdated: '2026-03-15' }
-    ],
-    enduranceHistory: [
-      { date: '2026-01-20', cardio: 15, distance: 2.4 },
-      { date: '2026-02-05', cardio: 20, distance: 3.2 },
-      { date: '2026-02-20', cardio: 25, distance: 4.0 },
-      { date: '2026-03-05', cardio: 30, distance: 4.8 },
-      { date: '2026-03-20', cardio: 35, distance: 5.6 }
-    ],
-    program: 'Weight Loss Program',
-    notes: [
-      { date: '2026-03-18', note: 'Excellent cardio improvement! Stamina increasing.' }
-    ],
-    goals: [
-      { id: 1, goal: 'Reach 68 kg body weight', status: 'In Progress', deadline: '2026-05-30' }
-    ]
-  },
-  '3': {
-    hasHistory: false,
-    weightHistory: [],
-    exercises: [],
-    enduranceHistory: [],
-    program: 'Not Assigned',
-    notes: [],
-    goals: []
-  }
-};
+import { MockDatabase, ClientProgress, User as DbUser } from '../services/database';
+import { useAuth } from '../hooks/useAuth';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export function ClientProgressTracking() {
-  const [selectedClientId, setSelectedClientId] = useState('');
-  const [showAddMeasurement, setShowAddMeasurement] = useState(false);
-  const [showAddGoal, setShowAddGoal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [showErrorModal, setShowErrorModal] = useState(false);
-  const [saveError, setSaveError] = useState(false);
-  
-  // New measurement form
-  const [newMeasurement, setNewMeasurement] = useState({
-    date: '2026-03-20',
+  const { user } = useAuth();
+  const db = MockDatabase.getInstance();
+
+  const [clients, setClients] = useState<DbUser[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string>('');
+  const [progressRecords, setProgressRecords] = useState<ClientProgress[]>([]);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedProgress, setSelectedProgress] = useState<ClientProgress | null>(null);
+
+  // Form state
+  const [formData, setFormData] = useState({
     weight: '',
     bodyFat: '',
     muscleMass: '',
-    cardio: '',
-    distance: '',
-    notes: ''
+    chest: '',
+    waist: '',
+    hips: '',
+    biceps: '',
+    thighs: '',
+    goals: '',
+    notes: '',
+    exercisePerformance: [] as {
+      exerciseName: string;
+      sets: number;
+      reps: string;
+      weight: number;
+      difficulty: 'Easy' | 'Medium' | 'Hard';
+      notes?: string;
+    }[]
   });
 
-  // New goal form
-  const [newGoal, setNewGoal] = useState({
-    goal: '',
-    deadline: ''
-  });
-
-  // Edit exercise
-  const [editingExercise, setEditingExercise] = useState<any>(null);
-  const [exerciseData, setExerciseData] = useState({
-    maxWeight: '',
-    sets: '',
-    reps: ''
-  });
-
-  const selectedClient = mockTrainerClients.find(c => c.id === selectedClientId);
-  const clientProgress = selectedClientId ? mockClientProgressData[selectedClientId as keyof typeof mockClientProgressData] : null;
-
-  const handleSaveMeasurement = () => {
-    // Simulate random error for Alternative Flow 2
-    const hasError = Math.random() < 0.15; // 15% chance of error
-    
-    if (hasError) {
-      setSaveError(true);
-      setShowErrorModal(true);
-      return;
+  useEffect(() => {
+    if (user) {
+      loadClients();
     }
+  }, [user]);
 
-    // Success
-    
-    setShowAddMeasurement(false);
-    setShowSuccessModal(true);
-    setNewMeasurement({
-      date: '2026-03-20',
+  useEffect(() => {
+    if (selectedClientId) {
+      loadProgress();
+    }
+  }, [selectedClientId]);
+
+  const loadClients = () => {
+    if (!user) return;
+    const trainerClients = db.getTrainerClients(user.id);
+    setClients(trainerClients);
+
+    if (trainerClients.length > 0 && !selectedClientId) {
+      setSelectedClientId(trainerClients[0].id);
+    }
+  };
+
+  const loadProgress = () => {
+    if (!selectedClientId) return;
+    const records = db.getClientProgressByClient(selectedClientId);
+    setProgressRecords(records);
+  };
+
+  const resetForm = () => {
+    setFormData({
       weight: '',
       bodyFat: '',
       muscleMass: '',
-      cardio: '',
-      distance: '',
-      notes: ''
+      chest: '',
+      waist: '',
+      hips: '',
+      biceps: '',
+      thighs: '',
+      goals: '',
+      notes: '',
+      exercisePerformance: []
     });
   };
 
-  const handleSaveGoal = () => {
-    
-    setShowAddGoal(false);
-    setShowSuccessModal(true);
-    setNewGoal({ goal: '', deadline: '' });
+  const handleAddProgress = () => {
+    if (!user || !selectedClientId) return;
+
+    const selectedClient = clients.find(c => c.id === selectedClientId);
+    if (!selectedClient) return;
+
+    const newProgress: Omit<ClientProgress, 'id' | 'createdAt' | 'updatedAt'> = {
+      clientId: selectedClientId,
+      clientName: selectedClient.name,
+      trainerId: user.id,
+      trainerName: user.name,
+      date: new Date().toISOString(),
+      weight: formData.weight ? parseFloat(formData.weight) : undefined,
+      bodyFat: formData.bodyFat ? parseFloat(formData.bodyFat) : undefined,
+      muscleMass: formData.muscleMass ? parseFloat(formData.muscleMass) : undefined,
+      measurements: {
+        chest: formData.chest ? parseFloat(formData.chest) : undefined,
+        waist: formData.waist ? parseFloat(formData.waist) : undefined,
+        hips: formData.hips ? parseFloat(formData.hips) : undefined,
+        biceps: formData.biceps ? parseFloat(formData.biceps) : undefined,
+        thighs: formData.thighs ? parseFloat(formData.thighs) : undefined,
+      },
+      exercisePerformance: formData.exercisePerformance.length > 0 ? formData.exercisePerformance : undefined,
+      goals: formData.goals || undefined,
+      notes: formData.notes || undefined,
+    };
+
+    db.createClientProgress(newProgress);
+
+    // Send email notification to client
+    db.sendEmail({
+      to: selectedClient.email,
+      subject: 'Progress Update Recorded',
+      body: `Hi ${selectedClient.name},\n\nYour trainer ${user.name} has recorded your latest progress update.\n\nDate: ${new Date().toLocaleDateString()}\n${formData.weight ? `Weight: ${formData.weight} kg\n` : ''}${formData.bodyFat ? `Body Fat: ${formData.bodyFat}%\n` : ''}${formData.muscleMass ? `Muscle Mass: ${formData.muscleMass} kg\n` : ''}\n${formData.notes ? `Notes: ${formData.notes}\n` : ''}\nKeep up the great work!\n\nBest regards,\nFitHub Team`
+    });
+
+    loadProgress();
+    setIsAddModalOpen(false);
+    resetForm();
   };
 
-  const handleSaveExercise = () => {
-    setEditingExercise(null);
-    setShowSuccessModal(true);
+  const handleAddExercise = () => {
+    setFormData({
+      ...formData,
+      exercisePerformance: [
+        ...formData.exercisePerformance,
+        {
+          exerciseName: '',
+          sets: 1,
+          reps: '',
+          weight: 0,
+          difficulty: 'Medium',
+          notes: ''
+        }
+      ]
+    });
   };
 
-  const handleAddBasicMeasurements = () => {
-    // Alternative Flow 1: Add basic measurements for client without history
-    setShowAddMeasurement(true);
+  const handleRemoveExercise = (index: number) => {
+    const updated = [...formData.exercisePerformance];
+    updated.splice(index, 1);
+    setFormData({ ...formData, exercisePerformance: updated });
   };
+
+  const handleExerciseChange = (index: number, field: string, value: any) => {
+    const updated = [...formData.exercisePerformance];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormData({ ...formData, exercisePerformance: updated });
+  };
+
+  const getLatestMetric = (metric: 'weight' | 'bodyFat' | 'muscleMass'): number | null => {
+    const sortedRecords = [...progressRecords].sort((a, b) =>
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
+    for (const record of sortedRecords) {
+      if (record[metric] !== undefined) {
+        return record[metric]!;
+      }
+    }
+    return null;
+  };
+
+  const getTrend = (metric: 'weight' | 'bodyFat' | 'muscleMass'): { value: number; direction: 'up' | 'down' | 'stable' } | null => {
+    const sortedRecords = [...progressRecords].sort((a, b) =>
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
+    const recordsWithMetric = sortedRecords.filter(r => r[metric] !== undefined);
+
+    if (recordsWithMetric.length < 2) return null;
+
+    const latest = recordsWithMetric[0][metric]!;
+    const previous = recordsWithMetric[1][metric]!;
+    const diff = latest - previous;
+
+    if (Math.abs(diff) < 0.1) return { value: 0, direction: 'stable' };
+    return {
+      value: Math.abs(diff),
+      direction: diff > 0 ? 'up' : 'down'
+    };
+  };
+
+  const getChartData = () => {
+    return progressRecords
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .map(record => ({
+        date: new Date(record.date).toLocaleDateString(),
+        weight: record.weight,
+        bodyFat: record.bodyFat,
+        muscleMass: record.muscleMass,
+      }));
+  };
+
+  const selectedClient = clients.find(c => c.id === selectedClientId);
 
   return (
     <div className="space-y-6">
       {/* Client Selection */}
       <Card>
         <CardHeader>
-          <CardTitle>Client Progress Tracking</CardTitle>
-          <p className="text-sm text-gray-500">Select a client to view and update their training progress</p>
+          <CardTitle className="flex items-center gap-2">
+            <User className="size-5" />
+            Select Client
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {mockTrainerClients.map((client) => (
-              <div
-                key={client.id}
-                onClick={() => setSelectedClientId(client.id)}
-                className={`p-4 border rounded-lg cursor-pointer transition-all hover:border-blue-400 ${
-                  selectedClientId === client.id ? 'border-blue-600 bg-blue-50' : ''
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <img src={client.avatar} alt={client.name} className="size-12 rounded-full" />
-                  <div>
-                    <div className="font-medium">{client.name}</div>
-                    <div className="text-sm text-gray-500">{client.goals}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a client" />
+            </SelectTrigger>
+            <SelectContent>
+              {clients.map(client => (
+                <SelectItem key={client.id} value={client.id}>
+                  {client.name} ({client.email})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </CardContent>
       </Card>
 
-      {/* Client Progress Details */}
-      {selectedClient && clientProgress && (
+      {selectedClient && (
         <>
-          {/* Alternative Flow 1: No History Available */}
-          {!clientProgress.hasHistory && (
+          {/* Progress Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="pt-6">
-                <div className="text-center py-8">
-                  <div className="mb-4 flex justify-center">
-                    <div className="p-4 bg-yellow-100 rounded-full">
-                      <AlertCircle className="size-12 text-yellow-600" />
-                    </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Weight</p>
+                    <p className="text-2xl font-bold">
+                      {getLatestMetric('weight') !== null ? `${getLatestMetric('weight')} kg` : 'N/A'}
+                    </p>
+                    {getTrend('weight') && (
+                      <div className="flex items-center gap-1 mt-1">
+                        {getTrend('weight')!.direction === 'down' && (
+                          <>
+                            <TrendingDown className="size-4 text-green-600" />
+                            <span className="text-sm text-green-600">-{getTrend('weight')!.value.toFixed(1)} kg</span>
+                          </>
+                        )}
+                        {getTrend('weight')!.direction === 'up' && (
+                          <>
+                            <TrendingUp className="size-4 text-red-600" />
+                            <span className="text-sm text-red-600">+{getTrend('weight')!.value.toFixed(1)} kg</span>
+                          </>
+                        )}
+                        {getTrend('weight')!.direction === 'stable' && (
+                          <>
+                            <Minus className="size-4 text-gray-600" />
+                            <span className="text-sm text-gray-600">Stable</span>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <h3 className="text-xl font-medium mb-2">No Training History Available</h3>
-                  <p className="text-gray-600 mb-6">
-                    {selectedClient.name} does not have sufficient data to track their progress. 
-                    Start by recording some basic measurements and exercises.
-                  </p>
-                  <div className="flex gap-3 justify-center">
-                    <Button onClick={handleAddBasicMeasurements}>
-                      <Plus className="size-4 mr-2" />
-                      Add Initial Measurements
-                    </Button>
-                    <Button variant="outline">
-                      Assign Workout Program
-                    </Button>
-                  </div>
+                  <Weight className="size-8 text-blue-600" />
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Body Fat</p>
+                    <p className="text-2xl font-bold">
+                      {getLatestMetric('bodyFat') !== null ? `${getLatestMetric('bodyFat')}%` : 'N/A'}
+                    </p>
+                    {getTrend('bodyFat') && (
+                      <div className="flex items-center gap-1 mt-1">
+                        {getTrend('bodyFat')!.direction === 'down' && (
+                          <>
+                            <TrendingDown className="size-4 text-green-600" />
+                            <span className="text-sm text-green-600">-{getTrend('bodyFat')!.value.toFixed(1)}%</span>
+                          </>
+                        )}
+                        {getTrend('bodyFat')!.direction === 'up' && (
+                          <>
+                            <TrendingUp className="size-4 text-red-600" />
+                            <span className="text-sm text-red-600">+{getTrend('bodyFat')!.value.toFixed(1)}%</span>
+                          </>
+                        )}
+                        {getTrend('bodyFat')!.direction === 'stable' && (
+                          <>
+                            <Minus className="size-4 text-gray-600" />
+                            <span className="text-sm text-gray-600">Stable</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <Activity className="size-8 text-orange-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Muscle Mass</p>
+                    <p className="text-2xl font-bold">
+                      {getLatestMetric('muscleMass') !== null ? `${getLatestMetric('muscleMass')} kg` : 'N/A'}
+                    </p>
+                    {getTrend('muscleMass') && (
+                      <div className="flex items-center gap-1 mt-1">
+                        {getTrend('muscleMass')!.direction === 'up' && (
+                          <>
+                            <TrendingUp className="size-4 text-green-600" />
+                            <span className="text-sm text-green-600">+{getTrend('muscleMass')!.value.toFixed(1)} kg</span>
+                          </>
+                        )}
+                        {getTrend('muscleMass')!.direction === 'down' && (
+                          <>
+                            <TrendingDown className="size-4 text-red-600" />
+                            <span className="text-sm text-red-600">-{getTrend('muscleMass')!.value.toFixed(1)} kg</span>
+                          </>
+                        )}
+                        {getTrend('muscleMass')!.direction === 'stable' && (
+                          <>
+                            <Minus className="size-4 text-gray-600" />
+                            <span className="text-sm text-gray-600">Stable</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <Target className="size-8 text-green-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Total Records</p>
+                    <p className="text-2xl font-bold">{progressRecords.length}</p>
+                    <p className="text-sm text-gray-600 mt-1">progress entries</p>
+                  </div>
+                  <BarChart3 className="size-8 text-purple-600" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Progress Charts */}
+          {progressRecords.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Progress Trends</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={getChartData()}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="weight" stroke="#3b82f6" name="Weight (kg)" />
+                    <Line type="monotone" dataKey="bodyFat" stroke="#f97316" name="Body Fat (%)" />
+                    <Line type="monotone" dataKey="muscleMass" stroke="#22c55e" name="Muscle Mass (kg)" />
+                  </LineChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
           )}
 
-          {/* Main Progress View */}
-          {clientProgress.hasHistory && (
-            <>
-              {/* Client Overview Card */}
-              <Card>
-                <CardHeader>
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-3">
-                      <img src={selectedClient.avatar} alt={selectedClient.name} className="size-12 rounded-full" />
-                      <div className="flex-1">
-                        <CardTitle>{selectedClient.name}'s Progress</CardTitle>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Current Program: <Badge variant="outline">{clientProgress.program}</Badge>
-                        </p>
-                      </div>
-                    </div>
-                    <Button onClick={() => setShowAddMeasurement(true)} className="w-full sm:w-auto sm:self-end">
-                      <Plus className="size-4 mr-2" />
-                      Add Measurement
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
+          {/* Add Progress Button */}
+          <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full" size="lg" onClick={resetForm}>
+                <Plus className="size-4 mr-2" />
+                Add Progress Record
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Add Progress Record for {selectedClient.name}</DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-6">
+                {/* Body Metrics */}
+                <div>
+                  <h3 className="font-medium mb-3">Body Metrics</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Weight Stats */}
-                    <div className="p-4 border rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Activity className="size-5 text-blue-600" />
-                        <span className="font-medium">Weight Progress</span>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Starting</span>
-                          <span className="font-medium">{clientProgress.weightHistory[0]?.weight} kg</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Current</span>
-                          <span className="font-medium text-blue-600">
-                            {clientProgress.weightHistory[clientProgress.weightHistory.length - 1]?.weight} kg
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Change</span>
-                          <span className="font-medium text-green-600 flex items-center gap-1">
-                            <TrendingDown className="size-4" />
-                            {clientProgress.weightHistory[0]?.weight - clientProgress.weightHistory[clientProgress.weightHistory.length - 1]?.weight} kg
-                          </span>
-                        </div>
-                      </div>
+                    <div>
+                      <Label>Weight (kg)</Label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g., 75.5"
+                        value={formData.weight}
+                        onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                      />
                     </div>
-
-                    {/* Body Composition */}
-                    <div className="p-4 border rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Target className="size-5 text-green-600" />
-                        <span className="font-medium">Body Composition</span>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Body Fat</span>
-                          <span className="font-medium">
-                            {clientProgress.weightHistory[clientProgress.weightHistory.length - 1]?.bodyFat}%
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Muscle Mass</span>
-                          <span className="font-medium text-green-600">
-                            {clientProgress.weightHistory[clientProgress.weightHistory.length - 1]?.muscleMass} kg
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Muscle Gain</span>
-                          <span className="font-medium text-green-600 flex items-center gap-1">
-                            <TrendingUp className="size-4" />
-                            {clientProgress.weightHistory[clientProgress.weightHistory.length - 1]?.muscleMass - clientProgress.weightHistory[0]?.muscleMass} kg
-                          </span>
-                        </div>
-                      </div>
+                    <div>
+                      <Label>Body Fat (%)</Label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g., 18.5"
+                        value={formData.bodyFat}
+                        onChange={(e) => setFormData({ ...formData, bodyFat: e.target.value })}
+                      />
                     </div>
-
-                    {/* Endurance */}
-                    <div className="p-4 border rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Heart className="size-5 text-red-600" />
-                        <span className="font-medium">Endurance</span>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Cardio Time</span>
-                          <span className="font-medium">
-                            {clientProgress.enduranceHistory[clientProgress.enduranceHistory.length - 1]?.cardio} min
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Distance</span>
-                          <span className="font-medium">
-                            {clientProgress.enduranceHistory[clientProgress.enduranceHistory.length - 1]?.distance} km
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Improvement</span>
-                          <span className="font-medium text-green-600 flex items-center gap-1">
-                            <TrendingUp className="size-4" />
-                            +{clientProgress.enduranceHistory[clientProgress.enduranceHistory.length - 1]?.cardio - clientProgress.enduranceHistory[0]?.cardio} min
-                          </span>
-                        </div>
-                      </div>
+                    <div>
+                      <Label>Muscle Mass (kg)</Label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g., 35.2"
+                        value={formData.muscleMass}
+                        onChange={(e) => setFormData({ ...formData, muscleMass: e.target.value })}
+                      />
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              {/* Weight Progress Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <LineChartIcon className="size-5 text-blue-600" />
-                    Weight & Body Composition Progress
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={clientProgress.weightHistory}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis yAxisId="left" />
-                      <YAxis yAxisId="right" orientation="right" />
-                      <Tooltip />
-                      <Legend />
-                      <Line 
-                        key="weight-line"
-                        yAxisId="left" 
-                        type="monotone" 
-                        dataKey="weight" 
-                        stroke="#3b82f6" 
-                        strokeWidth={2} 
-                        name="Weight (kg)" 
+                {/* Body Measurements */}
+                <div>
+                  <h3 className="font-medium mb-3">Body Measurements (cm)</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div>
+                      <Label>Chest</Label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g., 95"
+                        value={formData.chest}
+                        onChange={(e) => setFormData({ ...formData, chest: e.target.value })}
                       />
-                      <Line 
-                        key="bodyfat-line"
-                        yAxisId="right" 
-                        type="monotone" 
-                        dataKey="bodyFat" 
-                        stroke="#ef4444" 
-                        strokeWidth={2} 
-                        name="Body Fat %"  
+                    </div>
+                    <div>
+                      <Label>Waist</Label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g., 80"
+                        value={formData.waist}
+                        onChange={(e) => setFormData({ ...formData, waist: e.target.value })}
                       />
-                      <Line 
-                        key="muscle-line"
-                        yAxisId="left" 
-                        type="monotone" 
-                        dataKey="muscleMass" 
-                        stroke="#10b981" 
-                        strokeWidth={2} 
-                        name="Muscle Mass (kg)" 
+                    </div>
+                    <div>
+                      <Label>Hips</Label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g., 95"
+                        value={formData.hips}
+                        onChange={(e) => setFormData({ ...formData, hips: e.target.value })}
                       />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+                    </div>
+                    <div>
+                      <Label>Biceps</Label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g., 32"
+                        value={formData.biceps}
+                        onChange={(e) => setFormData({ ...formData, biceps: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Thighs</Label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g., 55"
+                        value={formData.thighs}
+                        onChange={(e) => setFormData({ ...formData, thighs: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
 
-              {/* Endurance Progress Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Zap className="size-5 text-yellow-600" />
-                    Endurance Progress
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={clientProgress.enduranceHistory}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar 
-                        key="cardio-bar"
-                        dataKey="cardio" 
-                        fill="#8b5cf6" 
-                        name="Cardio (min)" 
-                      />
-                      <Bar 
-                        key="distance-bar"
-                        dataKey="distance" 
-                        fill="#f59e0b" 
-                        name="Distance (km)" 
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              {/* Exercise Performance */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Dumbbell className="size-5 text-purple-600" />
-                      Exercise Performance
-                    </CardTitle>
-                    <Button variant="outline" size="sm">
-                      <Plus className="size-4 mr-2" />
+                {/* Exercise Performance */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-medium">Exercise Performance</h3>
+                    <Button type="button" variant="outline" size="sm" onClick={handleAddExercise}>
+                      <Plus className="size-4 mr-1" />
                       Add Exercise
                     </Button>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {clientProgress.exercises.map((exercise, index) => (
-                      <div key={index} className="p-4 border rounded-lg">
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <div className="font-medium">{exercise.name}</div>
-                            <div className="text-sm text-gray-500">Last updated: {exercise.lastUpdated}</div>
+
+                  {formData.exercisePerformance.length === 0 ? (
+                    <p className="text-sm text-gray-600">No exercises added yet.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {formData.exercisePerformance.map((exercise, index) => (
+                        <div key={index} className="border rounded-lg p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium">Exercise {index + 1}</h4>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveExercise(index)}
+                            >
+                              Remove
+                            </Button>
                           </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => {
-                              setEditingExercise(exercise);
-                              setExerciseData({
-                                maxWeight: exercise.maxWeight.toString(),
-                                sets: exercise.sets.toString(),
-                                reps: exercise.reps.toString()
-                              });
-                            }}
-                          >
-                            <Edit className="size-4 mr-2" />
-                            Update
-                          </Button>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <Label>Exercise Name</Label>
+                              <Input
+                                placeholder="e.g., Bench Press"
+                                value={exercise.exerciseName}
+                                onChange={(e) => handleExerciseChange(index, 'exerciseName', e.target.value)}
+                              />
+                            </div>
+                            <div>
+                              <Label>Difficulty</Label>
+                              <Select
+                                value={exercise.difficulty}
+                                onValueChange={(value) => handleExerciseChange(index, 'difficulty', value)}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Easy">Easy</SelectItem>
+                                  <SelectItem value="Medium">Medium</SelectItem>
+                                  <SelectItem value="Hard">Hard</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label>Sets</Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                value={exercise.sets}
+                                onChange={(e) => handleExerciseChange(index, 'sets', parseInt(e.target.value) || 1)}
+                              />
+                            </div>
+                            <div>
+                              <Label>Reps</Label>
+                              <Input
+                                placeholder="e.g., 8-10"
+                                value={exercise.reps}
+                                onChange={(e) => handleExerciseChange(index, 'reps', e.target.value)}
+                              />
+                            </div>
+                            <div>
+                              <Label>Weight (kg)</Label>
+                              <Input
+                                type="number"
+                                step="0.5"
+                                placeholder="e.g., 60"
+                                value={exercise.weight}
+                                onChange={(e) => handleExerciseChange(index, 'weight', parseFloat(e.target.value) || 0)}
+                              />
+                            </div>
+                            <div>
+                              <Label>Notes</Label>
+                              <Input
+                                placeholder="Optional notes"
+                                value={exercise.notes || ''}
+                                onChange={(e) => handleExerciseChange(index, 'notes', e.target.value)}
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          <div className="p-3 bg-gray-50 rounded text-center">
-                            <div className="text-gray-600">Max Weight</div>
-                            <div className="text-lg font-medium">{exercise.maxWeight || 'N/A'} {exercise.maxWeight ? 'kg' : ''}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Goals */}
+                <div>
+                  <Label>Goals</Label>
+                  <Textarea
+                    placeholder="e.g., Lose 5kg in 2 months, increase bench press to 80kg"
+                    value={formData.goals}
+                    onChange={(e) => setFormData({ ...formData, goals: e.target.value })}
+                    rows={2}
+                  />
+                </div>
+
+                {/* Notes */}
+                <div>
+                  <Label>Trainer Notes</Label>
+                  <Textarea
+                    placeholder="Additional observations, recommendations, or feedback"
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleAddProgress}>
+                  <Mail className="size-4 mr-2" />
+                  Save & Notify Client
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Progress History */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Progress History</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {progressRecords.length === 0 ? (
+                <p className="text-gray-600 text-center py-8">No progress records yet. Add the first one!</p>
+              ) : (
+                <div className="space-y-3">
+                  {progressRecords
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .map((record) => (
+                      <div
+                        key={record.id}
+                        className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                        onClick={() => {
+                          setSelectedProgress(record);
+                          setIsViewModalOpen(true);
+                        }}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Calendar className="size-4 text-gray-600" />
+                              <span className="font-medium">{new Date(record.date).toLocaleDateString()}</span>
+                            </div>
+
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                              {record.weight && (
+                                <div className="flex items-center gap-1">
+                                  <Weight className="size-4 text-blue-600" />
+                                  <span>{record.weight} kg</span>
+                                </div>
+                              )}
+                              {record.bodyFat && (
+                                <div className="flex items-center gap-1">
+                                  <Activity className="size-4 text-orange-600" />
+                                  <span>{record.bodyFat}% body fat</span>
+                                </div>
+                              )}
+                              {record.muscleMass && (
+                                <div className="flex items-center gap-1">
+                                  <Target className="size-4 text-green-600" />
+                                  <span>{record.muscleMass} kg muscle</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {record.exercisePerformance && record.exercisePerformance.length > 0 && (
+                              <div className="mt-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {record.exercisePerformance.length} exercises logged
+                                </Badge>
+                              </div>
+                            )}
                           </div>
-                          <div className="p-3 bg-gray-50 rounded text-center">
-                            <div className="text-gray-600">Sets</div>
-                            <div className="text-lg font-medium">{exercise.sets}</div>
-                          </div>
-                          <div className="p-3 bg-gray-50 rounded text-center">
-                            <div className="text-gray-600">Reps</div>
-                            <div className="text-lg font-medium">{exercise.reps}</div>
-                          </div>
+
+                          <Button variant="ghost" size="sm">
+                            <Eye className="size-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* View Progress Modal */}
+          <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Progress Details</DialogTitle>
+              </DialogHeader>
+
+              {selectedProgress && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="font-medium mb-2">Date</h3>
+                    <p className="text-gray-700">{new Date(selectedProgress.date).toLocaleDateString()}</p>
                   </div>
-                </CardContent>
-              </Card>
 
-              {/* Goals & Notes */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Current Goals */}
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="flex items-center gap-2">
-                        <Target className="size-5 text-orange-600" />
-                        Current Goals
-                      </CardTitle>
-                      <Button variant="outline" size="sm" onClick={() => setShowAddGoal(true)}>
-                        <Plus className="size-4 mr-2" />
-                        Add Goal
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {clientProgress.goals.map((goal) => (
-                        <div key={goal.id} className="p-3 border rounded-lg">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="font-medium">{goal.goal}</div>
-                            <Badge variant="outline">{goal.status}</Badge>
+                  {(selectedProgress.weight || selectedProgress.bodyFat || selectedProgress.muscleMass) && (
+                    <div>
+                      <h3 className="font-medium mb-2">Body Metrics</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {selectedProgress.weight && (
+                          <div className="border rounded-lg p-3">
+                            <p className="text-sm text-gray-600">Weight</p>
+                            <p className="text-xl font-bold">{selectedProgress.weight} kg</p>
                           </div>
-                          <div className="text-sm text-gray-500">Deadline: {goal.deadline}</div>
-                        </div>
-                      ))}
+                        )}
+                        {selectedProgress.bodyFat && (
+                          <div className="border rounded-lg p-3">
+                            <p className="text-sm text-gray-600">Body Fat</p>
+                            <p className="text-xl font-bold">{selectedProgress.bodyFat}%</p>
+                          </div>
+                        )}
+                        {selectedProgress.muscleMass && (
+                          <div className="border rounded-lg p-3">
+                            <p className="text-sm text-gray-600">Muscle Mass</p>
+                            <p className="text-xl font-bold">{selectedProgress.muscleMass} kg</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  )}
 
-                {/* Session Notes */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Recent Notes</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {clientProgress.notes.map((note, index) => (
-                        <div key={index} className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                          <div className="text-sm text-gray-600 mb-1">{note.date}</div>
-                          <div className="text-sm">{note.note}</div>
-                        </div>
-                      ))}
-                      <Textarea 
-                        placeholder="Add a new note about this client's progress..."
-                        rows={3}
-                      />
-                      <Button size="sm" className="w-full">
-                        <Save className="size-4 mr-2" />
-                        Save Note
-                      </Button>
+                  {selectedProgress.measurements && Object.values(selectedProgress.measurements).some(v => v !== undefined) && (
+                    <div>
+                      <h3 className="font-medium mb-2">Body Measurements (cm)</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        {selectedProgress.measurements.chest && (
+                          <div className="border rounded-lg p-2">
+                            <p className="text-xs text-gray-600">Chest</p>
+                            <p className="font-medium">{selectedProgress.measurements.chest} cm</p>
+                          </div>
+                        )}
+                        {selectedProgress.measurements.waist && (
+                          <div className="border rounded-lg p-2">
+                            <p className="text-xs text-gray-600">Waist</p>
+                            <p className="font-medium">{selectedProgress.measurements.waist} cm</p>
+                          </div>
+                        )}
+                        {selectedProgress.measurements.hips && (
+                          <div className="border rounded-lg p-2">
+                            <p className="text-xs text-gray-600">Hips</p>
+                            <p className="font-medium">{selectedProgress.measurements.hips} cm</p>
+                          </div>
+                        )}
+                        {selectedProgress.measurements.biceps && (
+                          <div className="border rounded-lg p-2">
+                            <p className="text-xs text-gray-600">Biceps</p>
+                            <p className="font-medium">{selectedProgress.measurements.biceps} cm</p>
+                          </div>
+                        )}
+                        {selectedProgress.measurements.thighs && (
+                          <div className="border rounded-lg p-2">
+                            <p className="text-xs text-gray-600">Thighs</p>
+                            <p className="font-medium">{selectedProgress.measurements.thighs} cm</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </>
-          )}
+                  )}
+
+                  {selectedProgress.exercisePerformance && selectedProgress.exercisePerformance.length > 0 && (
+                    <div>
+                      <h3 className="font-medium mb-2">Exercise Performance</h3>
+                      <div className="space-y-3">
+                        {selectedProgress.exercisePerformance.map((exercise, index) => (
+                          <div key={index} className="border rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-medium">{exercise.exerciseName}</h4>
+                              <Badge variant={
+                                exercise.difficulty === 'Easy' ? 'outline' :
+                                exercise.difficulty === 'Medium' ? 'secondary' :
+                                'destructive'
+                              }>
+                                {exercise.difficulty}
+                              </Badge>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2 text-sm">
+                              <div>
+                                <p className="text-gray-600">Sets</p>
+                                <p className="font-medium">{exercise.sets}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-600">Reps</p>
+                                <p className="font-medium">{exercise.reps}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-600">Weight</p>
+                                <p className="font-medium">{exercise.weight} kg</p>
+                              </div>
+                            </div>
+                            {exercise.notes && (
+                              <p className="text-sm text-gray-600 mt-2">Notes: {exercise.notes}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedProgress.goals && (
+                    <div>
+                      <h3 className="font-medium mb-2">Goals</h3>
+                      <p className="text-gray-700">{selectedProgress.goals}</p>
+                    </div>
+                  )}
+
+                  {selectedProgress.notes && (
+                    <div>
+                      <h3 className="font-medium mb-2">Trainer Notes</h3>
+                      <p className="text-gray-700">{selectedProgress.notes}</p>
+                    </div>
+                  )}
+
+                  <div className="text-xs text-gray-500 pt-4 border-t">
+                    <p>Recorded by: {selectedProgress.trainerName}</p>
+                    <p>Created: {new Date(selectedProgress.createdAt).toLocaleString()}</p>
+                  </div>
+                </div>
+              )}
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsViewModalOpen(false)}>
+                  Close
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </>
       )}
 
-      {/* Add Measurement Modal */}
-      {showAddMeasurement && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Add New Measurement</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setShowAddMeasurement(false)}>
-                <X className="size-5" />
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>Date</Label>
-                <Input 
-                  type="date" 
-                  value={newMeasurement.date}
-                  onChange={(e) => setNewMeasurement({ ...newMeasurement, date: e.target.value })}
-                  className="mt-2"
-                />
-              </div>
-              
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label>Weight (kg)</Label>
-                  <Input 
-                    type="number" 
-                    placeholder="0"
-                    value={newMeasurement.weight}
-                    onChange={(e) => setNewMeasurement({ ...newMeasurement, weight: e.target.value })}
-                    className="mt-2"
-                  />
-                </div>
-                <div>
-                  <Label>Body Fat %</Label>
-                  <Input 
-                    type="number" 
-                    placeholder="0"
-                    value={newMeasurement.bodyFat}
-                    onChange={(e) => setNewMeasurement({ ...newMeasurement, bodyFat: e.target.value })}
-                    className="mt-2"
-                  />
-                </div>
-                <div>
-                  <Label>Muscle Mass (kg)</Label>
-                  <Input 
-                    type="number" 
-                    placeholder="0"
-                    value={newMeasurement.muscleMass}
-                    onChange={(e) => setNewMeasurement({ ...newMeasurement, muscleMass: e.target.value })}
-                    className="mt-2"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Cardio Time (min)</Label>
-                  <Input 
-                    type="number" 
-                    placeholder="0"
-                    value={newMeasurement.cardio}
-                    onChange={(e) => setNewMeasurement({ ...newMeasurement, cardio: e.target.value })}
-                    className="mt-2"
-                  />
-                </div>
-                <div>
-                  <Label>Distance (km)</Label>
-                  <Input 
-                    type="number" 
-                    step="0.1"
-                    placeholder="0.0"
-                    value={newMeasurement.distance}
-                    onChange={(e) => setNewMeasurement({ ...newMeasurement, distance: e.target.value })}
-                    className="mt-2"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label>Session Notes</Label>
-                <Textarea 
-                  placeholder="Notes about today's session..."
-                  rows={3}
-                  value={newMeasurement.notes}
-                  onChange={(e) => setNewMeasurement({ ...newMeasurement, notes: e.target.value })}
-                  className="mt-2"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button variant="outline" className="flex-1" onClick={() => setShowAddMeasurement(false)}>
-                  Cancel
-                </Button>
-                <Button className="flex-1" onClick={handleSaveMeasurement}>
-                  <Save className="size-4 mr-2" />
-                  Save Measurement
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Add Goal Modal */}
-      {showAddGoal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Add New Goal</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setShowAddGoal(false)}>
-                <X className="size-5" />
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>Goal Description</Label>
-                <Input 
-                  placeholder="e.g., Reach 170 lbs body weight"
-                  value={newGoal.goal}
-                  onChange={(e) => setNewGoal({ ...newGoal, goal: e.target.value })}
-                  className="mt-2"
-                />
-              </div>
-              
-              <div>
-                <Label>Target Deadline</Label>
-                <Input 
-                  type="date"
-                  value={newGoal.deadline}
-                  onChange={(e) => setNewGoal({ ...newGoal, deadline: e.target.value })}
-                  className="mt-2"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button variant="outline" className="flex-1" onClick={() => setShowAddGoal(false)}>
-                  Cancel
-                </Button>
-                <Button className="flex-1" onClick={handleSaveGoal}>
-                  <Save className="size-4 mr-2" />
-                  Save Goal
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Edit Exercise Modal */}
-      {editingExercise && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Update Exercise - {editingExercise.name}</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setEditingExercise(null)}>
-                <X className="size-5" />
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>Max Weight (kg)</Label>
-                <Input 
-                  type="number"
-                  placeholder="0"
-                  value={exerciseData.maxWeight}
-                  onChange={(e) => setExerciseData({ ...exerciseData, maxWeight: e.target.value })}
-                  className="mt-2"
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Sets</Label>
-                  <Input 
-                    type="number"
-                    placeholder="0"
-                    value={exerciseData.sets}
-                    onChange={(e) => setExerciseData({ ...exerciseData, sets: e.target.value })}
-                    className="mt-2"
-                  />
-                </div>
-                <div>
-                  <Label>Reps</Label>
-                  <Input 
-                    type="number"
-                    placeholder="0"
-                    value={exerciseData.reps}
-                    onChange={(e) => setExerciseData({ ...exerciseData, reps: e.target.value })}
-                    className="mt-2"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button variant="outline" className="flex-1" onClick={() => setEditingExercise(null)}>
-                  Cancel
-                </Button>
-                <Button className="flex-1" onClick={handleSaveExercise}>
-                  <Save className="size-4 mr-2" />
-                  Update Exercise
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Success Modal */}
-      {showSuccessModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md">
-            <CardContent className="pt-6 text-center">
-              <div className="mb-4 flex justify-center">
-                <div className="p-4 bg-green-100 rounded-full">
-                  <CheckCircle className="size-12 text-green-600" />
-                </div>
-              </div>
-              <h3 className="text-xl font-medium mb-2">Progress Updated Successfully!</h3>
-              <p className="text-gray-600 mb-4">
-                The client's progress has been saved and they will be notified.
-              </p>
-              <div className="flex items-center justify-center gap-4 mb-6">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Bell className="size-4" />
-                  <span>In-app notification sent</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Mail className="size-4" />
-                  <span>Email sent</span>
-                </div>
-              </div>
-              <Button onClick={() => setShowSuccessModal(false)} className="w-full">
-                Close
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Error Modal - Alternative Flow 2 */}
-      {showErrorModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md">
-            <CardContent className="pt-6 text-center">
-              <div className="mb-4 flex justify-center">
-                <div className="p-4 bg-red-100 rounded-full">
-                  <AlertCircle className="size-12 text-red-600" />
-                </div>
-              </div>
-              <h3 className="text-xl font-medium mb-2">Error Saving Data</h3>
-              <p className="text-gray-600 mb-6">
-                We encountered a technical error while saving the client's progress. Please try again later.
-              </p>
-              <div className="space-y-3">
-                <Button 
-                  onClick={() => {
-                    setShowErrorModal(false);
-                    setSaveError(false);
-                    handleSaveMeasurement();
-                  }} 
-                  className="w-full"
-                >
-                  Try Again
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    setShowErrorModal(false);
-                    setSaveError(false);
-                  }} 
-                  className="w-full"
-                >
-                  Close
-                </Button>
-              </div>
-              <p className="text-xs text-gray-500 mt-4">
-                💡 Tip: Try restarting the app if the problem persists
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 }

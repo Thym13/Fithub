@@ -3616,6 +3616,373 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 
 ---
 
+## Step 15: Client Progress Tracking (UC-8)
+
+### Test Case 15.1: Client Selection
+
+**Steps**:
+1. Login as trainer (sarah@fithub.com / password)
+2. Navigate to "Progress Tracking" tab
+3. Verify client dropdown is populated
+4. Select a client from dropdown
+5. Verify progress summary loads
+
+**Expected Result**:
+- ✅ Dropdown shows all assigned clients
+- ✅ Client name and email displayed in dropdown options
+- ✅ Progress summary cards appear when client selected
+- ✅ Chart displays if progress records exist
+- ✅ "No progress records yet" message if no data
+
+### Test Case 15.2: View Progress Summary
+
+**Steps**:
+1. Login as trainer
+2. Select client "John Doe" (has demo data)
+3. View the 4 summary cards
+
+**Expected Result**:
+- ✅ Weight card shows latest weight and trend (down arrow, green)
+- ✅ Body Fat card shows latest percentage and trend (down arrow, green)
+- ✅ Muscle Mass card shows latest mass and trend (up arrow, green)
+- ✅ Total Records card shows count of progress entries
+- ✅ Trend indicators accurate (comparing current vs previous)
+
+### Test Case 15.3: View Progress Chart
+
+**Steps**:
+1. Login as trainer
+2. Select client with progress data
+3. View the "Progress Trends" chart
+
+**Expected Result**:
+- ✅ LineChart displays with date on X-axis
+- ✅ Three lines visible (Weight, Body Fat, Muscle Mass)
+- ✅ Legend shows color coding
+- ✅ Tooltip displays on hover
+- ✅ Chart responsive to screen size
+- ✅ Data points sorted chronologically
+
+### Test Case 15.4: Add Progress Record - Body Metrics Only
+
+**Steps**:
+1. Login as trainer
+2. Select a client
+3. Click "Add Progress Record"
+4. Fill in body metrics:
+   - Weight: 82.5
+   - Body Fat: 19.5
+   - Muscle Mass: 36.0
+5. Click "Save & Notify Client"
+
+**Expected Result**:
+- ✅ Modal opens with form
+- ✅ Body metrics inputs accept decimal values
+- ✅ Record saved successfully
+- ✅ Modal closes
+- ✅ Progress history updates with new entry
+- ✅ Summary cards update with new data
+- ✅ Email sent to client (check console)
+- ✅ Chart updates with new data point
+
+### Test Case 15.5: Add Progress Record - Complete Entry
+
+**Steps**:
+1. Login as trainer
+2. Select a client
+3. Click "Add Progress Record"
+4. Fill in all fields:
+   - Weight: 80
+   - Body Fat: 18
+   - Muscle Mass: 37
+   - Chest: 100
+   - Waist: 85
+   - Hips: 98
+   - Biceps: 35
+   - Thighs: 58
+   - Goals: "Reach 77kg by end of month"
+   - Notes: "Excellent progress this week"
+5. Add 2 exercises:
+   - Bench Press: 4 sets, 8-10 reps, 70kg, Medium difficulty
+   - Squats: 4 sets, 10-12 reps, 100kg, Hard difficulty
+6. Click "Save & Notify Client"
+
+**Expected Result**:
+- ✅ All input fields functional
+- ✅ Exercise performance section allows adding multiple exercises
+- ✅ Difficulty dropdown works (Easy/Medium/Hard)
+- ✅ Record saved with all data
+- ✅ Progress history shows "2 exercises logged" badge
+- ✅ Email notification sent
+
+### Test Case 15.6: Add Exercise Performance
+
+**Steps**:
+1. Open "Add Progress Record" modal
+2. Click "Add Exercise" button
+3. Fill in exercise details:
+   - Exercise Name: "Deadlift"
+   - Sets: 3
+   - Reps: "6-8"
+   - Weight: 120
+   - Difficulty: "Hard"
+   - Notes: "New PR!"
+4. Click "Add Exercise" again
+5. Remove the first exercise
+6. Save the record
+
+**Expected Result**:
+- ✅ "Add Exercise" button creates new exercise form
+- ✅ Exercise counter increments (Exercise 1, Exercise 2, etc.)
+- ✅ All exercise fields editable
+- ✅ "Remove" button deletes exercise
+- ✅ Exercise count updates after removal
+- ✅ Saved record contains only remaining exercises
+
+### Test Case 15.7: View Progress History
+
+**Steps**:
+1. Login as trainer
+2. Select client with multiple progress records
+3. Scroll to "Progress History" section
+4. Observe the list of records
+
+**Expected Result**:
+- ✅ Records sorted by date (newest first)
+- ✅ Each card shows date icon and formatted date
+- ✅ Weight/body fat/muscle mass displayed if present
+- ✅ Icons color-coded (blue for weight, orange for body fat, green for muscle)
+- ✅ Exercise badge shows count if exercises logged
+- ✅ Cards have hover effect
+- ✅ Eye icon visible on each card
+
+### Test Case 15.8: View Progress Details
+
+**Steps**:
+1. Login as trainer
+2. Select client
+3. Click on any progress record in history
+4. Modal opens with full details
+
+**Expected Result**:
+- ✅ Modal displays record date
+- ✅ Body metrics section shows all recorded metrics
+- ✅ Body measurements section (if present) shows all 5 measurements
+- ✅ Exercise performance section (if present) lists all exercises
+- ✅ Exercise difficulty badge color-coded (Easy=outline, Medium=secondary, Hard=destructive)
+- ✅ Goals displayed if present
+- ✅ Trainer notes displayed if present
+- ✅ Footer shows recorded by trainer name and timestamp
+- ✅ "Close" button functional
+
+### Test Case 15.9: Progress Trend Calculation - Weight Loss
+
+**Steps**:
+1. Login as trainer
+2. Select client with weight trend
+3. View Weight summary card
+
+**Expected Result**:
+- ✅ If weight decreased: green text, down arrow, "-X.X kg"
+- ✅ If weight increased: red text, up arrow, "+X.X kg"
+- ✅ If weight stable (<0.1 kg diff): gray text, minus icon, "Stable"
+- ✅ Calculation accurate comparing latest vs previous
+
+### Test Case 15.10: Progress Trend Calculation - Muscle Gain
+
+**Steps**:
+1. Login as trainer
+2. Select client with muscle mass trend
+3. View Muscle Mass summary card
+
+**Expected Result**:
+- ✅ If muscle increased: green text, up arrow, "+X.X kg"
+- ✅ If muscle decreased: red text, down arrow, "-X.X kg"
+- ✅ If muscle stable: gray text, minus icon, "Stable"
+- ✅ Trend direction appropriate for muscle gain goal
+
+### Test Case 15.11: Email Notification
+
+**Steps**:
+1. Login as trainer
+2. Select a client
+3. Add progress record
+4. Click "Save & Notify Client"
+5. Check browser console for email log
+
+**Expected Result**:
+- ✅ Email sent to client's email address
+- ✅ Subject: "Progress Update Recorded"
+- ✅ Body includes trainer name
+- ✅ Body includes recorded date
+- ✅ Body includes weight/body fat/muscle mass (if present)
+- ✅ Body includes notes (if present)
+- ✅ Email logged to console with ✉️ icon
+
+### Test Case 15.12: Empty State
+
+**Steps**:
+1. Login as trainer
+2. Select client with no progress records
+3. Scroll to Progress History
+
+**Expected Result**:
+- ✅ Summary cards show "N/A" for metrics
+- ✅ No trend indicators displayed
+- ✅ Total Records shows "0"
+- ✅ Chart hidden (no data to display)
+- ✅ Progress history shows "No progress records yet. Add the first one!"
+- ✅ "Add Progress Record" button still functional
+
+### Test Case 15.13: Modal Form Validation
+
+**Steps**:
+1. Login as trainer
+2. Open "Add Progress Record" modal
+3. Try saving without filling any fields
+4. Fill in partial data and save
+
+**Expected Result**:
+- ✅ All fields optional (can save with minimal data)
+- ✅ Number inputs accept decimal values
+- ✅ Exercise fields allow empty state
+- ✅ Measurements can be individually skipped
+- ✅ Record saves with only filled fields
+
+### Test Case 15.14: Cancel Modal
+
+**Steps**:
+1. Open "Add Progress Record" modal
+2. Fill in some data
+3. Click "Cancel" button
+4. Re-open modal
+
+**Expected Result**:
+- ✅ Modal closes on cancel
+- ✅ Data not saved
+- ✅ Form resets when modal re-opened
+- ✅ No progress record added to history
+
+### Test Case 15.15: Multiple Clients Progress
+
+**Steps**:
+1. Login as trainer
+2. Select first client, add progress
+3. Switch to second client
+4. Verify correct data displays
+5. Add progress for second client
+6. Switch back to first client
+
+**Expected Result**:
+- ✅ Client switch loads correct progress records
+- ✅ Summary cards update per client
+- ✅ Chart data specific to selected client
+- ✅ History filtered by client
+- ✅ No data mixing between clients
+
+### Test Case 15.16: Chart Responsiveness
+
+**Steps**:
+1. Login as trainer and view progress chart
+2. Resize browser window
+3. View on mobile viewport
+4. Return to desktop size
+
+**Expected Result**:
+- ✅ Chart resizes smoothly
+- ✅ ResponsiveContainer maintains aspect ratio
+- ✅ Legend readable at all sizes
+- ✅ Tooltip functional on mobile
+- ✅ Chart height fixed at 300px
+
+### Test Case 15.17: Database Integration
+
+**Steps**:
+1. Add progress for client
+2. Refresh page
+3. Navigate back to Progress Tracking tab
+4. Select same client
+
+**Expected Result**:
+- ✅ Progress data persists in localStorage
+- ✅ Data reloads after page refresh
+- ✅ All fields preserved (metrics, measurements, exercises, goals, notes)
+- ✅ Timestamps accurate
+
+### Test Case 15.18: getTrainerClients Method
+
+**Steps**:
+1. Login as trainer
+2. Check client dropdown
+3. Verify only assigned clients appear
+
+**Expected Result**:
+- ✅ getTrainerClients() returns clients from trainer's programs
+- ✅ Unique client list (no duplicates)
+- ✅ Only clients with programs by this trainer
+- ✅ Client objects include id, name, email
+
+### Test Case 15.19: Progress Record Sorting
+
+**Steps**:
+1. Add 3 progress records on different dates
+2. View progress history
+
+**Expected Result**:
+- ✅ Records sorted newest first
+- ✅ Dates displayed in localized format
+- ✅ Chart shows chronological progression (oldest to newest)
+- ✅ Latest metric used in summary cards
+
+### Test Case 15.20: Exercise Badge Display
+
+**Steps**:
+1. Add progress without exercises
+2. Add progress with 1 exercise
+3. Add progress with 3 exercises
+4. View history
+
+**Expected Result**:
+- ✅ No badge if no exercises
+- ✅ "1 exercises logged" badge if 1 exercise (grammar correct)
+- ✅ "3 exercises logged" badge if 3 exercises
+- ✅ Badge has outline variant styling
+
+### Checklist - Client Progress Tracking (Trainer)
+- [x] Client selection dropdown works
+- [x] Progress summary cards display correctly
+- [x] Trend indicators show accurate direction and value
+- [x] LineChart visualization renders
+- [x] Chart data sorted chronologically
+- [x] "Add Progress Record" button opens modal
+- [x] Body metrics inputs functional
+- [x] Body measurements inputs functional
+- [x] Add exercise button works
+- [x] Remove exercise button works
+- [x] Exercise form inputs functional
+- [x] Difficulty dropdown works
+- [x] Goals textarea functional
+- [x] Trainer notes textarea functional
+- [x] Save button creates record
+- [x] Cancel button closes without saving
+- [x] Modal form resets after save
+- [x] Email notification sent to client
+- [x] Progress history displays records
+- [x] Records sorted newest first
+- [x] Click record opens detail modal
+- [x] Detail modal shows all data
+- [x] Exercise badges display correctly
+- [x] Empty state shown for no records
+- [x] Chart hidden when no data
+- [x] Data persists in localStorage
+- [x] Client switch updates data correctly
+- [x] getTrainerClients returns correct clients
+- [x] Responsive design works
+- [x] All optional fields work
+- [x] Demo progress records initialized (3 records)
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-14  
-**Total Test Cases**: 260+
+**Steps Tested**: 1-15  
+**Total Test Cases**: 280+
