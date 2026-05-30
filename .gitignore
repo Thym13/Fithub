@@ -8,5 +8,6 @@ dist/
 .vite/
 draft notes/
 
-# Local-only diagrams inside Project-Code (keep on disk, exclude from GitHub)
+# Local-only content inside Project-Code (keep on disk, exclude from GitHub)
 Project-Code/diagrams/
+Project-Code/test-cases/
