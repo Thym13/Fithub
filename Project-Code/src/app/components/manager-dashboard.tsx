@@ -19,6 +19,7 @@ import { CampaignManagement } from './campaign-management';
 import { DiscountCodeManagement } from './discount-code-management';
 import { ReviewManagement } from './review-management';
 import { AnalyticsDashboard } from './analytics-dashboard';
+import { ManagerAnalytics } from './manager-analytics';
 import {
   Users,
   Calendar,
@@ -47,6 +48,7 @@ const managerTabs = [
   { id: 'registrations', label: 'Pending Registrations', path: '#registrations' },
   { id: 'class-management', label: 'Class Management', path: '#class-management' },
   { id: 'analytics', label: 'Analytics & Reports', path: '#analytics' },
+  { id: 'advanced-analytics', label: 'Advanced Analytics', path: '#advanced-analytics' },
   { id: 'members', label: 'Member Profiles', path: '#members' },
   { id: 'schedules', label: 'Employee Schedules', path: '#schedules' },
   { id: 'classes', label: 'Class Schedule', path: '#classes' },
@@ -495,6 +497,10 @@ export function ManagerDashboard() {
 
         <TabsContent value="analytics" className="space-y-6">
           <AnalyticsDashboard />
+        </TabsContent>
+
+        <TabsContent value="advanced-analytics" className="space-y-6">
+          <ManagerAnalytics />
         </TabsContent>
 
         <TabsContent value="members" className="space-y-6">

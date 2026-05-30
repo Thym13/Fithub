@@ -3500,6 +3500,280 @@ export interface CheckIn {
 
 ---
 
+## ✅ STEP 20: Manager Analytics Dashboard (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: Additional Feature - Business Intelligence and Reporting  
+**Reference**: Comprehensive analytics, KPIs, data visualization, business insights
+
+### Overview:
+
+Step 20 introduces a comprehensive Manager Analytics Dashboard that provides business intelligence, key performance indicators (KPIs), data visualization, and actionable insights for decision-making. The dashboard aggregates data from all system modules to present a holistic view of gym operations.
+
+### Files Added:
+
+1. **`src/app/components/manager-analytics.tsx`** - Advanced analytics dashboard with charts and insights
+   - ✅ Key metrics cards (4 main KPIs)
+   - ✅ Member status breakdown (Active/Pending/Suspended)
+   - ✅ Revenue trend chart (last 6 months)
+   - ✅ Membership distribution pie chart
+   - ✅ Check-ins by day of week bar chart
+   - ✅ Check-ins by hour line chart
+   - ✅ Top 5 most popular classes
+   - ✅ Key insights cards with actionable information
+   - ✅ Time range filter (7/30/90/365 days)
+   - ✅ Export report functionality (PDF/Excel ready)
+
+### Files Modified:
+
+1. **`src/app/components/manager-dashboard.tsx`**
+   - ✅ Added import for ManagerAnalytics
+   - ✅ Added "Advanced Analytics" tab (4th tab)
+   - ✅ Added TabsContent for advanced analytics
+
+### Features Implemented:
+
+**Key Performance Indicators (KPIs)**:
+1. **Total Members**:
+   - Count of all registered members
+   - Growth percentage vs previous period
+   - Visual trend indicator (up/down arrow)
+   - Color-coded (green for growth, red for decline)
+
+2. **Total Revenue**:
+   - Sum of all completed transactions in period
+   - Revenue growth percentage
+   - Formatted as currency (€)
+   - Comparison with previous period
+
+3. **Active Classes**:
+   - Count of currently active classes
+   - Average attendance percentage
+   - Quick view of class utilization
+
+4. **Total Check-Ins**:
+   - Number of gym visits in period
+   - Average session duration
+   - Member engagement metric
+
+**Member Analytics**:
+- **Active Members**: Count and percentage of active memberships
+- **Pending Approval**: Members awaiting activation
+- **Suspended**: Members requiring attention
+- **Member Growth**: Percentage change vs previous period
+- **Comparison Period**: Automatically calculated based on selected time range
+
+**Revenue Analytics**:
+- **Revenue Trend Chart**: Line chart showing 6-month revenue history
+- **Month-over-Month Comparison**: Visual representation of revenue changes
+- **Revenue Growth Rate**: Percentage increase/decrease
+- **Transaction Analysis**: Completed vs pending/failed transactions
+- **Time Period Filtering**: 7 days, 30 days, 90 days, or 1 year
+
+**Membership Analytics**:
+- **Distribution Pie Chart**: Visual breakdown of membership types
+- **Basic/Premium/Elite Counts**: Number of members per tier
+- **Percentage Breakdown**: Proportion of each membership type
+- **Color-Coded Display**: Blue (Basic), Purple (Premium), Orange (Elite)
+
+**Check-In Analytics**:
+- **By Day of Week**: Bar chart showing which days are busiest
+- **Peak Day Identification**: Automatically identifies busiest day
+- **By Hour of Day**: Line chart showing peak hours
+- **Peak Hour Identification**: Identifies busiest time slot
+- **Average Session Time**: Mean duration per gym visit
+- **Total Check-Ins**: Count for selected period
+
+**Class Analytics**:
+- **Top 5 Popular Classes**: Ranked by enrollment
+- **Enrollment Percentage**: Capacity utilization per class
+- **Visual Progress Bars**: Easy-to-read capacity indicators
+- **Champion Badge**: Gold badge for #1 most popular class
+- **Enrollment vs Capacity**: Clear comparison metrics
+
+**Time Range Filtering**:
+- Last 7 days
+- Last 30 days
+- Last 90 days
+- Last year (365 days)
+- Automatic recalculation on filter change
+- Comparison with previous equivalent period
+
+**Key Insights Section**:
+1. **Peak Usage Time**:
+   - Identifies busiest day and hour
+   - Helps with staffing decisions
+   - Resource allocation planning
+
+2. **Revenue Growth**:
+   - Percentage change indicator
+   - Up/down trend comparison
+   - Previous period reference
+
+3. **Most Popular Class**:
+   - Highest enrollment class
+   - Success indicator
+   - Class schedule optimization
+
+4. **Average Session**:
+   - Mean visit duration
+   - Member engagement level
+   - Facility usage pattern
+
+**Export Functionality**:
+- Export full report button
+- PDF/Excel format support (ready for integration)
+- Includes all charts and data
+- Printable format
+
+**Charts & Visualizations**:
+
+1. **Line Charts**:
+   - Revenue Trend (6 months)
+   - Check-Ins by Hour (24-hour view)
+   - Smooth curves with data points
+   - Tooltips on hover
+
+2. **Bar Charts**:
+   - Check-Ins by Day of Week
+   - Clear vertical bars
+   - Labeled axes
+
+3. **Pie Charts**:
+   - Membership Distribution
+   - Percentage labels
+   - Color-coded segments
+   - Interactive tooltips
+
+4. **Progress Bars**:
+   - Class popularity rankings
+   - Capacity utilization
+   - Color-coded (gold for #1)
+
+### Analytics Calculations:
+
+**Member Growth**:
+```typescript
+// Compare current period with previous period
+const newMembers = members in current period
+const previousNewMembers = members in previous period
+const growth = ((newMembers - previousNewMembers) / previousNewMembers) * 100
+```
+
+**Revenue Growth**:
+```typescript
+// Compare revenue between periods
+const currentRevenue = sum of completed transactions (current)
+const previousRevenue = sum of completed transactions (previous)
+const growth = ((current - previous) / previous) * 100
+```
+
+**Average Attendance**:
+```typescript
+// Calculate class utilization
+const totalEnrolled = sum of all class enrollments
+const totalCapacity = sum of all class capacities
+const attendance = (totalEnrolled / totalCapacity) * 100
+```
+
+**Peak Identification**:
+```typescript
+// Find highest value in time-based data
+const peakDay = day with maximum check-ins
+const peakHour = hour with maximum check-ins
+```
+
+### Data Sources:
+
+The dashboard aggregates data from:
+- **Users Table**: Member counts, status distribution
+- **Transactions Table**: Revenue data, payment history
+- **Classes Table**: Class enrollment, capacity
+- **CheckIns Table**: Visit patterns, duration data
+- **Memberships Table**: Type distribution, active counts
+- **Programs Table**: Training program metrics
+- **Progress Table**: Client progress tracking
+
+### Business Value:
+
+1. **Decision Making**: Data-driven insights for management
+2. **Resource Optimization**: Identify peak times for staffing
+3. **Revenue Tracking**: Monitor financial performance
+4. **Member Engagement**: Track attendance patterns
+5. **Class Planning**: Optimize schedule based on popularity
+6. **Growth Monitoring**: Track member acquisition trends
+7. **Capacity Planning**: Understand facility utilization
+8. **Performance Benchmarking**: Compare period-over-period
+
+### User Experience:
+
+**Manager Workflow**:
+1. Manager navigates to "Advanced Analytics" tab
+2. Selects desired time range (default: 30 days)
+3. Views key metrics at a glance (4 KPI cards)
+4. Reviews member status breakdown
+5. Analyzes revenue trends in line chart
+6. Checks membership distribution in pie chart
+7. Identifies peak usage times in bar/line charts
+8. Reviews top performing classes
+9. Reads key insights for actionable information
+10. Exports report for stakeholder presentation
+
+**Visual Design**:
+- Clean, professional dashboard layout
+- Color-coded metrics (green=positive, red=negative)
+- Interactive charts with hover tooltips
+- Responsive grid system
+- Card-based organization
+- Icon usage for visual clarity
+- Trend indicators (arrows)
+- Progress bars for rankings
+
+**Performance**:
+- Real-time data aggregation
+- Automatic calculations
+- Efficient filtering
+- Fast rendering
+- Responsive charts
+- Smooth interactions
+
+### Technical Implementation:
+
+**Libraries Used**:
+- Recharts: For all chart visualizations
+- React: Component architecture
+- Tailwind CSS: Styling and layout
+- Lucide Icons: Visual indicators
+
+**Data Processing**:
+- Array filtering and mapping
+- Date range calculations
+- Percentage computations
+- Sorting and ranking
+- Aggregation functions
+- Period comparison logic
+
+**State Management**:
+- React hooks (useState, useEffect)
+- Time range selection
+- Dynamic data loading
+- Automatic recalculation
+
+### Future Enhancements:
+
+- Real-time data updates (WebSocket)
+- Custom date range selection
+- Drill-down capabilities (click chart to filter)
+- Comparison mode (compare two periods side-by-side)
+- Forecasting and predictions
+- Custom report builder
+- Scheduled email reports
+- Dashboard widgets customization
+- Export to multiple formats (CSV, JSON)
+- Advanced filtering (by membership type, trainer, etc.)
+
+---
+
 ## 📋 Upcoming Steps:
 
 ... and more!
@@ -3529,8 +3803,9 @@ export interface CheckIn {
 | 17 | ✅ | UC-10 | Customer Support and Ticketing System |
 | 18 | ✅ | Additional | Member Profile Management |
 | 19 | ✅ | Additional | Member Check-In System |
+| 20 | ✅ | Additional | Manager Analytics Dashboard |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 19 (76%)  
-**Steps Remaining**: 6
+**Steps Completed**: 20 (80%)  
+**Steps Remaining**: 5

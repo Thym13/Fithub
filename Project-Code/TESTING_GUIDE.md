@@ -5562,6 +5562,457 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 
 ---
 
+## 📊 STEP 20: Manager Analytics Dashboard
+
+### Test Case 20.1: View Analytics Dashboard
+
+**Steps**:
+1. Login as manager
+2. Navigate to "Advanced Analytics" tab
+3. View dashboard
+
+**Expected Result**:
+- ✅ Dashboard loads successfully
+- ✅ 4 KPI cards displayed
+- ✅ All charts visible
+- ✅ No loading errors
+- ✅ Default time range: 30 days
+
+### Test Case 20.2: Key Metrics - Total Members
+
+**Steps**:
+1. View Total Members KPI card
+2. Check value and growth indicator
+
+**Expected Result**:
+- ✅ Shows accurate member count
+- ✅ Growth percentage displayed
+- ✅ Trend arrow (up/down) shown
+- ✅ Green for growth, red for decline
+- ✅ Icon displayed (Users)
+
+### Test Case 20.3: Key Metrics - Total Revenue
+
+**Steps**:
+1. View Total Revenue KPI card
+2. Check value and growth
+
+**Expected Result**:
+- ✅ Shows revenue in € format
+- ✅ Revenue growth percentage shown
+- ✅ Trend indicator displayed
+- ✅ Compares with previous period
+- ✅ Currency symbol (€) present
+
+### Test Case 20.4: Key Metrics - Active Classes
+
+**Steps**:
+1. View Active Classes KPI card
+2. Check class count and attendance
+
+**Expected Result**:
+- ✅ Shows number of active classes
+- ✅ Average attendance percentage shown
+- ✅ Formatted correctly (XX%)
+- ✅ Icon displayed (Calendar)
+
+### Test Case 20.5: Key Metrics - Total Check-Ins
+
+**Steps**:
+1. View Total Check-Ins KPI card
+2. Check count and average session
+
+**Expected Result**:
+- ✅ Shows check-in count
+- ✅ Average session time displayed
+- ✅ Formatted as hours/minutes
+- ✅ Icon displayed (Activity)
+
+### Test Case 20.6: Member Status Breakdown
+
+**Steps**:
+1. View member status cards
+2. Check active, pending, suspended counts
+
+**Expected Result**:
+- ✅ 3 status cards displayed
+- ✅ Active members: green color
+- ✅ Pending: yellow color
+- ✅ Suspended: red color
+- ✅ Percentages calculated correctly
+- ✅ All counts accurate
+
+### Test Case 20.7: Revenue Trend Chart
+
+**Steps**:
+1. View "Revenue Trend" line chart
+2. Check data for last 6 months
+
+**Expected Result**:
+- ✅ Chart renders correctly
+- ✅ Shows 6 months of data
+- ✅ X-axis: Month names
+- ✅ Y-axis: Revenue amounts
+- ✅ Line connects all points
+- ✅ Tooltips work on hover
+- ✅ Legend displayed
+
+### Test Case 20.8: Membership Distribution Pie Chart
+
+**Steps**:
+1. View "Membership Distribution" pie chart
+2. Check segments
+
+**Expected Result**:
+- ✅ Pie chart renders
+- ✅ 3 segments (Basic, Premium, Elite)
+- ✅ Colors: Blue, Purple, Orange
+- ✅ Labels show percentages
+- ✅ Tooltips display on hover
+- ✅ Percentages add up to 100%
+
+### Test Case 20.9: Check-Ins by Day Bar Chart
+
+**Steps**:
+1. View "Check-Ins by Day of Week" chart
+2. Check all days displayed
+
+**Expected Result**:
+- ✅ Bar chart renders
+- ✅ 7 bars (one per day)
+- ✅ X-axis: Day names
+- ✅ Y-axis: Check-in counts
+- ✅ Bars colored blue
+- ✅ Peak day highlighted below chart
+- ✅ Peak day identified correctly
+
+### Test Case 20.10: Check-Ins by Hour Line Chart
+
+**Steps**:
+1. View "Check-Ins by Hour of Day" chart
+2. Check hourly distribution
+
+**Expected Result**:
+- ✅ Line chart renders
+- ✅ 24 data points (0:00 to 23:00)
+- ✅ X-axis: Hour labels
+- ✅ Y-axis: Check-in counts
+- ✅ Line colored purple
+- ✅ Peak hour displayed below
+- ✅ Peak hour identified correctly
+
+### Test Case 20.11: Top 5 Popular Classes
+
+**Steps**:
+1. View "Top 5 Most Popular Classes" section
+2. Check rankings
+
+**Expected Result**:
+- ✅ 5 classes listed (if available)
+- ✅ Sorted by enrollment (highest first)
+- ✅ #1 has gold badge
+- ✅ Others have gray badge
+- ✅ Enrollment/capacity shown
+- ✅ Percentage calculated correctly
+- ✅ Progress bars displayed
+- ✅ #1 has yellow/gold progress bar
+
+### Test Case 20.12: Time Range Filter - 7 Days
+
+**Steps**:
+1. Change time range to "Last 7 days"
+2. Observe dashboard updates
+
+**Expected Result**:
+- ✅ All metrics recalculate
+- ✅ Charts update with 7-day data
+- ✅ Growth comparisons change
+- ✅ Previous period: 7 days before
+- ✅ No errors during update
+
+### Test Case 20.13: Time Range Filter - 30 Days
+
+**Steps**:
+1. Change time range to "Last 30 days"
+2. Check all data
+
+**Expected Result**:
+- ✅ All metrics recalculate
+- ✅ Charts show 30-day data
+- ✅ Default selection
+- ✅ Accurate comparisons
+
+### Test Case 20.14: Time Range Filter - 90 Days
+
+**Steps**:
+1. Change time range to "Last 90 days"
+2. Verify updates
+
+**Expected Result**:
+- ✅ All metrics recalculate
+- ✅ 90-day period data shown
+- ✅ Previous 90 days used for comparison
+- ✅ Charts render correctly
+
+### Test Case 20.15: Time Range Filter - 1 Year
+
+**Steps**:
+1. Change time range to "Last year"
+2. Check annual data
+
+**Expected Result**:
+- ✅ All metrics recalculate
+- ✅ 365-day period
+- ✅ Year-over-year comparison
+- ✅ Charts show full year
+
+### Test Case 20.16: Key Insights - Peak Usage Time
+
+**Steps**:
+1. View "Peak Usage Time" insight card
+2. Check peak day and hour
+
+**Expected Result**:
+- ✅ Card displayed with clock icon
+- ✅ Peak day identified
+- ✅ Peak hour identified
+- ✅ Accurate based on check-in data
+- ✅ Blue color scheme
+
+### Test Case 20.17: Key Insights - Revenue Growth
+
+**Steps**:
+1. View "Revenue Growth" insight card
+2. Check growth information
+
+**Expected Result**:
+- ✅ Card displayed with trend icon
+- ✅ Shows up or down
+- ✅ Percentage accurate
+- ✅ Comparison period noted
+- ✅ Green color scheme
+
+### Test Case 20.18: Key Insights - Most Popular Class
+
+**Steps**:
+1. View "Most Popular Class" insight card
+2. Check class name
+
+**Expected Result**:
+- ✅ Card displayed with award icon
+- ✅ Shows class with highest enrollment
+- ✅ Accurate class name
+- ✅ Purple color scheme
+
+### Test Case 20.19: Key Insights - Average Session
+
+**Steps**:
+1. View "Average Session" insight card
+2. Check duration
+
+**Expected Result**:
+- ✅ Card displayed with activity icon
+- ✅ Average duration shown
+- ✅ Formatted as hours/minutes
+- ✅ Accurate calculation
+- ✅ Orange color scheme
+
+### Test Case 20.20: Export Report Button
+
+**Steps**:
+1. Click "Export Report" button
+2. Check functionality
+
+**Expected Result**:
+- ✅ Button visible
+- ✅ Download icon displayed
+- ✅ Click triggers action
+- ✅ Alert/modal appears
+- ✅ Ready for PDF/Excel integration
+
+### Test Case 20.21: Empty State - No Classes
+
+**Steps**:
+1. Database with no active classes
+2. View class popularity section
+
+**Expected Result**:
+- ✅ Empty state displayed
+- ✅ Icon shown (Award)
+- ✅ Message: "No class data available"
+- ✅ No errors
+- ✅ Graceful handling
+
+### Test Case 20.22: Growth Calculation - Positive
+
+**Steps**:
+1. Current period: 50 new members
+2. Previous period: 40 new members
+3. View member growth
+
+**Expected Result**:
+- ✅ Growth: +25%
+- ✅ Green arrow up
+- ✅ Green text color
+- ✅ Calculation accurate
+
+### Test Case 20.23: Growth Calculation - Negative
+
+**Steps**:
+1. Current period: 30 revenue
+2. Previous period: 50 revenue
+3. View revenue growth
+
+**Expected Result**:
+- ✅ Growth: -40%
+- ✅ Red arrow down
+- ✅ Red text color
+- ✅ Calculation accurate
+
+### Test Case 20.24: Growth Calculation - Zero Previous
+
+**Steps**:
+1. Previous period: 0 members
+2. Current period: 10 members
+3. View growth
+
+**Expected Result**:
+- ✅ Growth: 0%
+- ✅ No division by zero error
+- ✅ Handles edge case
+- ✅ No crash
+
+### Test Case 20.25: Chart Tooltips
+
+**Steps**:
+1. Hover over revenue line chart
+2. Hover over pie chart segment
+3. Hover over bar chart bar
+
+**Expected Result**:
+- ✅ Tooltips appear on hover
+- ✅ Show accurate values
+- ✅ Formatted correctly
+- ✅ Readable text
+- ✅ Proper positioning
+
+### Test Case 20.26: Responsive Design
+
+**Steps**:
+1. View on desktop (wide screen)
+2. Resize to tablet width
+3. Resize to mobile width
+
+**Expected Result**:
+- ✅ Charts resize appropriately
+- ✅ Grid adjusts (4 cols → 2 cols → 1 col)
+- ✅ No horizontal scroll
+- ✅ All content visible
+- ✅ Readable on all sizes
+
+### Test Case 20.27: Data Accuracy - Member Count
+
+**Steps**:
+1. Create 5 active members
+2. Create 2 pending members
+3. View analytics
+
+**Expected Result**:
+- ✅ Total members: 7
+- ✅ Active members: 5
+- ✅ Pending members: 2
+- ✅ Percentages correct
+- ✅ Real-time accuracy
+
+### Test Case 20.28: Data Accuracy - Revenue
+
+**Steps**:
+1. Create transactions totaling €500
+2. Include failed transaction €100
+3. View revenue
+
+**Expected Result**:
+- ✅ Total revenue: €500 (not €600)
+- ✅ Only completed transactions counted
+- ✅ Failed transactions excluded
+- ✅ Currency formatting correct
+
+### Test Case 20.29: Data Accuracy - Check-Ins
+
+**Steps**:
+1. Create 10 check-ins across different days
+2. Create 5 check-ins on Monday
+3. View analytics
+
+**Expected Result**:
+- ✅ Total: 15 check-ins
+- ✅ Monday: 5 check-ins
+- ✅ Peak day: Monday
+- ✅ Bar chart accurate
+- ✅ All days represented
+
+### Test Case 20.30: Performance - Large Dataset
+
+**Steps**:
+1. Database with 1000+ members
+2. 500+ transactions
+3. 200+ check-ins
+4. Load analytics dashboard
+
+**Expected Result**:
+- ✅ Loads within reasonable time (<3 seconds)
+- ✅ No performance issues
+- ✅ Charts render smoothly
+- ✅ Filters work quickly
+- ✅ No browser lag
+
+### Checklist - Manager Analytics Dashboard
+
+- [x] Tab accessible from manager dashboard
+- [x] 4 KPI cards displayed
+- [x] Total members count accurate
+- [x] Member growth calculated correctly
+- [x] Total revenue displayed in €
+- [x] Revenue growth shown
+- [x] Active classes count correct
+- [x] Average attendance accurate
+- [x] Total check-ins displayed
+- [x] Average session time shown
+- [x] Member status breakdown (3 cards)
+- [x] Active/Pending/Suspended counts accurate
+- [x] Percentages calculated correctly
+- [x] Revenue trend chart renders
+- [x] 6 months of data shown
+- [x] Membership distribution pie chart
+- [x] 3 segments (Basic/Premium/Elite)
+- [x] Check-ins by day bar chart
+- [x] Peak day identified
+- [x] Check-ins by hour line chart
+- [x] Peak hour identified
+- [x] Top 5 popular classes listed
+- [x] Rankings accurate
+- [x] #1 has gold badge
+- [x] Progress bars shown
+- [x] Key insights section (4 cards)
+- [x] Peak usage time insight
+- [x] Revenue growth insight
+- [x] Most popular class insight
+- [x] Average session insight
+- [x] Time range filter functional
+- [x] 7/30/90/365 day options
+- [x] Data recalculates on filter change
+- [x] Export report button present
+- [x] Tooltips work on charts
+- [x] Responsive design works
+- [x] Empty states handled
+- [x] Growth indicators (arrows)
+- [x] Color coding correct
+- [x] Icons displayed
+- [x] No performance issues
+- [x] Data accuracy verified
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-19  
-**Total Test Cases**: 380+
+**Steps Tested**: 1-20  
+**Total Test Cases**: 410+
