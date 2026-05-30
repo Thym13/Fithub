@@ -33,6 +33,7 @@ import {
 import { mockTrainerClients, mockClasses } from '../utils/mockData';
 import { ClientProgressTracking } from './client-progress-tracking';
 import { TrainingProgramManagement } from './training-program-management';
+import { TrainerMealPlanning } from './trainer-meal-planning';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { MockDatabase } from '../services/database';
@@ -41,6 +42,7 @@ import { authService } from '../services/auth';
 const trainerTabs = [
   { id: 'clients', label: 'My Clients', path: '#clients' },
   { id: 'programs', label: 'Training Programs', path: '#programs' },
+  { id: 'meal-planning', label: 'Meal Planning', path: '#meal-planning' },
   { id: 'schedule', label: 'Schedule', path: '#schedule' },
   { id: 'progress', label: 'Progress Tracking', path: '#progress' },
   { id: 'contracts', label: 'Contracts', path: '#contracts' },
@@ -785,6 +787,10 @@ export function TrainerDashboard() {
 
         <TabsContent value="programs" className="space-y-6">
           <TrainingProgramManagement />
+        </TabsContent>
+
+        <TabsContent value="meal-planning" className="space-y-6">
+          <TrainerMealPlanning />
         </TabsContent>
 
         <TabsContent value="schedule" className="space-y-6">

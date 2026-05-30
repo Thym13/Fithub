@@ -4043,6 +4043,284 @@ A comprehensive nutrition and meal planning system that enables trainers to crea
 
 ---
 
+## ✅ STEP 22: Trainer Meal Planning Interface (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: Additional Feature - Trainer Meal Planning Management  
+**Reference**: Complements Step 21 (Member Nutrition), provides trainer interface for creating/managing meal plans
+
+### Overview:
+
+A comprehensive trainer interface for creating and managing customized meal plans for clients. This feature completes the nutrition system by providing trainers with tools to build meal plans, utilize a meal library, and track client adherence to nutrition programs.
+
+### Files Added:
+
+1. **`src/app/components/trainer-meal-planning.tsx`** - Trainer meal planning management interface
+   - ✅ Dashboard with meal plan statistics (total plans, active, completed, clients)
+   - ✅ View all meal plans with filtering (All, Active, Completed)
+   - ✅ Create new meal plan modal with comprehensive form
+   - ✅ Edit meal plan modal with weekly meal organization
+   - ✅ Meal library with 10 pre-defined meals
+   - ✅ Add meals to specific days of the week
+   - ✅ Remove meals from meal plans
+   - ✅ Complete meal plan functionality
+   - ✅ Delete meal plan functionality
+   - ✅ Client selection dropdown
+   - ✅ Goal-based planning (Weight Loss, Muscle Gain, Maintenance, Performance)
+   - ✅ Macro target setting (calories, protein, carbs, fats)
+   - ✅ Duration configuration
+   - ✅ Weekly meal view with day tabs (Monday-Sunday)
+
+### Files Modified:
+
+1. **`src/app/components/trainer-dashboard.tsx`**
+   - ✅ Added import for `TrainerMealPlanning` component
+   - ✅ Added "Meal Planning" tab to trainerTabs array (3rd position)
+   - ✅ Added TabsContent section for meal planning view
+
+### Features Implemented:
+
+**1. Meal Plan Management Dashboard**:
+- 📊 4 KPI cards: Total Plans, Active Plans, Completed Plans, Total Clients
+- 📋 Complete list of all meal plans created by trainer
+- 🔍 Filter by status (All, Active, Completed)
+- 📅 View plan details (client, dates, daily calories, goal)
+- ✏️ Edit, complete, or delete meal plans
+- 🎯 At-a-glance view of all client nutrition programs
+
+**2. Create Meal Plan Form**:
+- 📝 Plan name and description
+- 👤 Client selection from active members
+- 🎯 Goal selection (Weight Loss, Muscle Gain, Maintenance, Performance)
+- 📊 Daily macro targets: calories, protein, carbs, fats
+- ⏱️ Duration in days
+- 📝 Additional notes field
+- 🗓️ Automatic start/end date calculation
+- ✅ Form validation before creation
+
+**3. Meal Library**:
+- 🍽️ 10 pre-defined meals across all meal types
+- 🥗 Breakfast options: Scrambled Eggs, Greek Yogurt, Oatmeal
+- 🥙 Lunch options: Grilled Chicken Salad, Quinoa Bowl, Turkey Wrap
+- 🍲 Dinner options: Baked Salmon, Beef Stir-Fry
+- 🍎 Snack options: Protein Smoothie, Almonds & Apple
+- 📋 Each meal includes: name, type, description, macros, ingredients, instructions
+- ➕ Quick add functionality to meal plans
+- 🔍 Browse and search meal library
+
+**4. Weekly Meal Planning**:
+- 📅 7-day meal organization (Monday-Sunday)
+- 🔄 Tab-based day navigation
+- ➕ Add meals to specific days
+- 🗑️ Remove meals from days
+- 👁️ View all meals for each day
+- 📊 See total macros per meal
+- 🍽️ Multiple meals per day supported
+- 🔢 Meal type badges (Breakfast, Lunch, Dinner, Snack)
+
+**5. Meal Plan Editing**:
+- ✏️ Edit existing meal plans
+- 👁️ View plan details (goal, duration, macro targets)
+- 📅 Weekly meal editor
+- ➕ Add meals from library
+- 🗑️ Remove meals from plan
+- 💾 Changes auto-saved
+- 📊 Visual macro breakdown
+
+**6. Plan Lifecycle Management**:
+- ✅ Mark plans as completed
+- 🗑️ Delete plans with confirmation
+- 📊 Track plan status (Active, Completed, Cancelled)
+- 📈 Client progress visibility
+- 🔄 Plan updates reflected immediately
+
+### Meal Library Contents:
+
+**Breakfast Meals**:
+1. Scrambled Eggs with Toast (350 cal, 25g protein)
+2. Greek Yogurt with Berries (250 cal, 20g protein)
+3. Oatmeal with Protein (400 cal, 25g protein)
+
+**Lunch Meals**:
+4. Grilled Chicken Salad (400 cal, 45g protein)
+5. Quinoa Buddha Bowl (450 cal, 20g protein)
+6. Turkey Wrap (380 cal, 35g protein)
+
+**Dinner Meals**:
+7. Baked Salmon with Sweet Potato (500 cal, 40g protein)
+8. Lean Beef Stir-Fry (550 cal, 50g protein)
+
+**Snack Meals**:
+9. Protein Smoothie (300 cal, 30g protein)
+10. Almonds and Apple (200 cal, 6g protein)
+
+### Business Value:
+
+1. **Complete Nutrition Solution**: Trainers can now create and manage meal plans, members can track them
+2. **Time Savings**: Meal library eliminates need to recreate common meals
+3. **Client Results**: Better outcomes through personalized nutrition plans
+4. **Revenue Opportunity**: Nutrition planning as an additional service offering
+5. **Trainer Efficiency**: Manage all client meal plans from one dashboard
+6. **Client Engagement**: Personalized nutrition keeps clients engaged and accountable
+7. **Professional Service**: Demonstrates comprehensive fitness coaching
+8. **Scalability**: Trainers can manage multiple client meal plans efficiently
+
+### User Experience:
+
+**Trainer Workflow**:
+1. Trainer navigates to "Meal Planning" tab
+2. Views dashboard with all meal plans and stats
+3. Clicks "Create Meal Plan" to start new plan
+4. Selects client and sets nutrition goals
+5. Configures daily macro targets
+6. Saves plan (meals can be added later or immediately)
+7. Clicks "Edit" on a plan to add meals
+8. Browses meal library and adds meals to specific days
+9. Reviews weekly meal plan layout
+10. Marks plan as complete when duration ends
+
+**Create Plan Flow**:
+1. Click "Create Meal Plan" button
+2. Enter plan name (e.g., "John's Weight Loss Plan")
+3. Add description
+4. Select client from dropdown
+5. Choose goal (Weight Loss, Muscle Gain, etc.)
+6. Set daily calorie target
+7. Set daily protein/carbs/fats targets
+8. Set plan duration in days
+9. Add any additional notes
+10. Click "Create Plan"
+
+**Add Meals Flow**:
+1. Click "Edit" on a meal plan
+2. Select a day (Monday-Sunday)
+3. Click "Add Meal" button
+4. Browse meal library
+5. Click "Add" on desired meal
+6. Meal appears on selected day
+7. Repeat for all days/meals
+8. Close edit modal when done
+
+**Visual Design**:
+- Clean card-based layout
+- Color-coded KPI cards with icons
+- Status badges (Active/Completed)
+- Goal badges (Weight Loss, Muscle Gain, etc.)
+- Tabbed day navigation for weekly view
+- Modal-based forms for creating/editing
+- Meal library with detailed meal cards
+- Macro breakdown for each meal
+- Responsive grid layouts
+
+### Technical Implementation:
+
+**Component Architecture**:
+- React functional component with hooks
+- Multiple useState hooks for modal and form management
+- useEffect for data loading
+- MockDatabase integration for CRUD operations
+- Conditional rendering for modals and empty states
+
+**State Management**:
+- myMealPlans: array of trainer's meal plans
+- selectedPlan: currently editing plan
+- selectedDay: currently viewing day
+- formData: create plan form state
+- Modal visibility states (create, edit, library)
+- Filter state (All, Active, Completed)
+
+**Database Operations**:
+- createMealPlan() - Create new plan
+- getMealPlansByTrainer() - Load trainer's plans
+- addMealToPlan() - Add meal to specific day
+- removeMealFromPlan() - Remove meal from day
+- completeMealPlan() - Mark plan as completed
+- deleteMealPlan() - Delete plan
+- All operations use existing database service from Step 21
+
+**User Interface Components**:
+- Stats cards with KPIs
+- Meal plan list with filters
+- Create plan modal with multi-field form
+- Edit plan modal with weekly tabs
+- Meal library modal with browse/add
+- Badge components for status/type
+- Icon usage throughout (Apple, Flame, Target, etc.)
+
+**Data Flow**:
+1. Component loads trainer's meal plans on mount
+2. Filter changes reload filtered plans
+3. Create form submits to database
+4. Edit modal loads selected plan details
+5. Meal library allows adding to plan
+6. All changes persist to localStorage
+7. UI updates reflect latest data
+
+### Integration Points:
+
+**With Step 21 (Member Nutrition)**:
+- Trainers create plans → Members view plans
+- Same MealPlan data model
+- Same Meal structure
+- Trainer edits → Member sees updates
+- Shared database service
+
+**With Trainer Dashboard**:
+- New tab in trainer navigation
+- Accessible from main trainer interface
+- Consistent with other trainer tools
+- Part of trainer workflow
+
+### Future Enhancements:
+
+**Meal Library Expansion**:
+- Custom meal creation
+- Save client's favorite meals
+- Import meals from recipe APIs
+- Photo uploads for meals
+- Nutritional database integration
+- Barcode scanning for packaged foods
+- Meal templates library
+- Seasonal meal collections
+
+**Advanced Planning**:
+- Meal plan templates (create once, reuse)
+- Clone meal plans between clients
+- Bulk operations (copy week, copy meals)
+- Meal variations (swap similar meals)
+- Shopping list generation
+- Meal prep schedule
+- Recipe scaling for portions
+- Family-size meal adjustments
+
+**Client Collaboration**:
+- Client meal preferences tracking
+- Dietary restrictions management
+- Allergy alerts
+- Client meal requests
+- Meal rating/feedback
+- Meal swap suggestions
+- Chat about meal plans
+
+**Analytics & Reporting**:
+- Client adherence rates
+- Most popular meals
+- Macro distribution charts
+- Client progress correlation
+- Meal plan effectiveness tracking
+- Client nutrition trends
+- Compliance reports
+
+**Automation**:
+- Auto-generate weekly plans based on macros
+- Smart meal recommendations
+- Goal-based meal suggestions
+- Macro-balanced day generation
+- Progressive macro adjustments
+- Seasonal meal rotation
+
+---
+
 ## 📋 Upcoming Steps:
 
 ... and more!
@@ -4074,8 +4352,9 @@ A comprehensive nutrition and meal planning system that enables trainers to crea
 | 19 | ✅ | Additional | Member Check-In System |
 | 20 | ✅ | Additional | Manager Analytics Dashboard |
 | 21 | ✅ | Additional | Nutrition & Meal Planning System |
+| 22 | ✅ | Additional | Trainer Meal Planning Interface |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 21 (84%)  
-**Steps Remaining**: 4
+**Steps Completed**: 22 (88%)  
+**Steps Remaining**: 3

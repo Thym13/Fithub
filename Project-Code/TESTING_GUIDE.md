@@ -6513,6 +6513,496 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 
 ---
 
+## STEP 22: Trainer Meal Planning Interface (30 Test Cases)
+
+### Test Case 22.1: View Meal Planning Dashboard
+
+**Steps**:
+1. Login as trainer
+2. Navigate to "Meal Planning" tab
+3. View dashboard
+
+**Expected Result**:
+- ✅ 4 KPI cards displayed (Total Plans, Active Plans, Completed, Clients)
+- ✅ Stats calculated correctly
+- ✅ All meal plans listed
+- ✅ Create Meal Plan button visible
+- ✅ Filter dropdown present
+
+### Test Case 22.2: View KPI Cards
+
+**Steps**:
+1. Trainer has 5 total plans, 3 active, 2 completed
+2. Plans assigned to 4 different clients
+3. View stats cards
+
+**Expected Result**:
+- ✅ Total Plans: 5
+- ✅ Active Plans: 3
+- ✅ Completed: 2
+- ✅ Clients: 4
+- ✅ Icons displayed correctly
+- ✅ Labels clear
+
+### Test Case 22.3: Filter Meal Plans by Status
+
+**Steps**:
+1. View all plans (5 total)
+2. Filter by "Active"
+3. Filter by "Completed"
+4. Filter back to "All"
+
+**Expected Result**:
+- ✅ All: Shows 5 plans
+- ✅ Active: Shows 3 plans
+- ✅ Completed: Shows 2 plans
+- ✅ Filter applies immediately
+- ✅ Correct plans displayed for each filter
+
+### Test Case 22.4: Open Create Meal Plan Modal
+
+**Steps**:
+1. Click "Create Meal Plan" button
+2. Modal should open
+3. Check modal contents
+
+**Expected Result**:
+- ✅ Modal opens successfully
+- ✅ "Create New Meal Plan" title shown
+- ✅ All form fields present (name, description, client, goal, macros, duration, notes)
+- ✅ Cancel and Create buttons visible
+- ✅ Form fields empty/default values
+
+### Test Case 22.5: Create New Meal Plan
+
+**Steps**:
+1. Open create modal
+2. Fill in plan name "Weight Loss Plan"
+3. Select client
+4. Set goal to "Weight Loss"
+5. Set calories: 1800, protein: 140g, carbs: 150g, fats: 60g
+6. Set duration: 30 days
+7. Click "Create Plan"
+
+**Expected Result**:
+- ✅ Plan created successfully
+- ✅ Modal closes
+- ✅ Plan appears in list
+- ✅ Status: Active
+- ✅ All details saved correctly
+- ✅ Start/end dates calculated
+- ✅ UI updates immediately
+
+### Test Case 22.6: Create Plan - Validation
+
+**Steps**:
+1. Open create modal
+2. Leave name blank
+3. Don't select client
+4. Click "Create Plan"
+
+**Expected Result**:
+- ✅ Alert shown: "Please fill in required fields"
+- ✅ Plan not created
+- ✅ Modal remains open
+- ✅ No data saved
+
+### Test Case 22.7: View Meal Plan Details in List
+
+**Steps**:
+1. Create a meal plan
+2. View plan in list
+3. Check displayed information
+
+**Expected Result**:
+- ✅ Plan name displayed
+- ✅ Status badge shown (Active/Completed)
+- ✅ Goal badge shown
+- ✅ Description visible
+- ✅ Client name shown
+- ✅ Date range shown (start to end)
+- ✅ Daily calorie target shown
+- ✅ Edit, Complete, Delete buttons visible
+
+### Test Case 22.8: Open Edit Meal Plan Modal
+
+**Steps**:
+1. Click "Edit" on a meal plan
+2. Modal should open
+3. Check modal contents
+
+**Expected Result**:
+- ✅ Edit modal opens
+- ✅ Plan name in header
+- ✅ Client name shown
+- ✅ Plan details section visible (goal, duration, calories, macros)
+- ✅ Weekly meal plan tabs shown
+- ✅ "Add Meal" button visible
+- ✅ Day tabs for Monday-Sunday
+
+### Test Case 22.9: Open Meal Library Modal
+
+**Steps**:
+1. Edit a meal plan
+2. Click "Add Meal" button
+3. Meal library modal should open
+
+**Expected Result**:
+- ✅ Meal library modal opens
+- ✅ "Meal Library" title shown
+- ✅ Selected day mentioned in subtitle
+- ✅ 10 meals displayed
+- ✅ Each meal shows: name, type, description, macros, ingredients
+- ✅ "Add" button on each meal
+- ✅ Close button present
+
+### Test Case 22.10: View Meal Library Contents
+
+**Steps**:
+1. Open meal library
+2. Browse all meals
+3. Check meal details
+
+**Expected Result**:
+- ✅ 10 meals total
+- ✅ 3 breakfast meals
+- ✅ 3 lunch meals
+- ✅ 2 dinner meals
+- ✅ 2 snack meals
+- ✅ Each has calories, protein, carbs, fats
+- ✅ Ingredients list shown
+- ✅ Type badges visible
+
+### Test Case 22.11: Add Meal to Plan
+
+**Steps**:
+1. Edit meal plan
+2. Select Monday
+3. Click "Add Meal"
+4. Click "Add" on "Scrambled Eggs with Toast"
+5. Library modal should close
+
+**Expected Result**:
+- ✅ Meal added to Monday
+- ✅ Library modal closes
+- ✅ Meal appears in Monday's list
+- ✅ Meal details visible (name, type, macros)
+- ✅ Remove button present
+
+### Test Case 22.12: Add Multiple Meals to Same Day
+
+**Steps**:
+1. Add "Scrambled Eggs" to Monday (Breakfast)
+2. Add "Grilled Chicken Salad" to Monday (Lunch)
+3. Add "Baked Salmon" to Monday (Dinner)
+4. Add "Protein Smoothie" to Monday (Snack)
+
+**Expected Result**:
+- ✅ All 4 meals added to Monday
+- ✅ Meals displayed in order
+- ✅ Each meal separate card
+- ✅ Type badges show correctly
+- ✅ No conflicts or errors
+
+### Test Case 22.13: Add Meals to Different Days
+
+**Steps**:
+1. Add meal to Monday
+2. Switch to Tuesday tab
+3. Add meal to Tuesday
+4. Switch to Wednesday tab
+5. Add meal to Wednesday
+
+**Expected Result**:
+- ✅ Monday meal saved when switching tabs
+- ✅ Tuesday shows its own meals
+- ✅ Wednesday shows its own meals
+- ✅ Each day independent
+- ✅ Tab switching preserves data
+
+### Test Case 22.14: Remove Meal from Plan
+
+**Steps**:
+1. Plan has meal on Monday
+2. Click remove/trash button on meal
+3. Meal should be removed
+
+**Expected Result**:
+- ✅ Meal removed from Monday
+- ✅ UI updates immediately
+- ✅ Other meals unaffected
+- ✅ Day remains (even if empty)
+
+### Test Case 22.15: View Empty Day State
+
+**Steps**:
+1. Edit meal plan
+2. Select a day with no meals
+3. View empty state
+
+**Expected Result**:
+- ✅ Empty state icon shown
+- ✅ "No meals for [Day]" message
+- ✅ "Add Meal" button shown
+- ✅ Helpful message displayed
+- ✅ No error thrown
+
+### Test Case 22.16: Weekly Navigation with Tabs
+
+**Steps**:
+1. Edit meal plan
+2. Click through all 7 day tabs
+3. Add meals to different days
+4. Navigate back and forth
+
+**Expected Result**:
+- ✅ All 7 tabs visible (Mon-Sun)
+- ✅ Tab highlighting shows active day
+- ✅ Content changes per day
+- ✅ Meals persist when switching
+- ✅ No lag or delay
+- ✅ Smooth transitions
+
+### Test Case 22.17: Complete Meal Plan
+
+**Steps**:
+1. Active meal plan exists
+2. Click "Complete" button
+3. Confirm action
+
+**Expected Result**:
+- ✅ Plan status changes to "Completed"
+- ✅ Plan no longer in Active filter
+- ✅ Plan appears in Completed filter
+- ✅ Edit modal closes (if open)
+- ✅ Stats update (Active -1, Completed +1)
+
+### Test Case 22.18: Delete Meal Plan
+
+**Steps**:
+1. Click "Delete" button on plan
+2. Confirmation dialog appears
+3. Confirm deletion
+
+**Expected Result**:
+- ✅ Confirmation prompt shown
+- ✅ Plan deleted from database
+- ✅ Plan removed from list
+- ✅ Stats update (Total -1)
+- ✅ No errors thrown
+
+### Test Case 22.19: Delete Plan - Cancel
+
+**Steps**:
+1. Click "Delete" button
+2. Confirmation dialog appears
+3. Click "Cancel"
+
+**Expected Result**:
+- ✅ Dialog closes
+- ✅ Plan NOT deleted
+- ✅ Plan remains in list
+- ✅ No changes to data
+
+### Test Case 22.20: Client Selection Dropdown
+
+**Steps**:
+1. Open create plan modal
+2. Click client dropdown
+3. View client list
+
+**Expected Result**:
+- ✅ All members listed
+- ✅ Client names visible
+- ✅ Dropdown scrollable if many clients
+- ✅ Can select a client
+- ✅ Only members shown (no trainers/managers)
+
+### Test Case 22.21: Goal Selection
+
+**Steps**:
+1. Open create plan modal
+2. Click goal dropdown
+3. View options
+
+**Expected Result**:
+- ✅ 4 options: Weight Loss, Muscle Gain, Maintenance, Performance
+- ✅ Can select any option
+- ✅ Selection saved in form
+- ✅ Default value shown
+
+### Test Case 22.22: Macro Input Fields
+
+**Steps**:
+1. Open create plan modal
+2. Enter macro values
+3. Test numeric input
+
+**Expected Result**:
+- ✅ Calories field accepts numbers
+- ✅ Protein field accepts numbers
+- ✅ Carbs field accepts numbers
+- ✅ Fats field accepts numbers
+- ✅ Values save correctly
+- ✅ Default values pre-filled
+
+### Test Case 22.23: Duration Field
+
+**Steps**:
+1. Open create plan modal
+2. Set duration to 30 days
+3. Create plan
+4. Check dates
+
+**Expected Result**:
+- ✅ Duration field accepts number
+- ✅ Start date: today
+- ✅ End date: today + 30 days
+- ✅ Dates calculated automatically
+- ✅ Dates displayed in plan details
+
+### Test Case 22.24: Plan Details Display
+
+**Steps**:
+1. Edit a meal plan
+2. View plan details section
+3. Check all fields
+
+**Expected Result**:
+- ✅ Goal displayed
+- ✅ Duration displayed
+- ✅ Daily calories displayed
+- ✅ Macros displayed (P/C/F breakdown)
+- ✅ Gray background for section
+- ✅ Clean grid layout
+
+### Test Case 22.25: Meal Type Badges
+
+**Steps**:
+1. Add meals of different types
+2. View meal cards
+3. Check badges
+
+**Expected Result**:
+- ✅ Breakfast badge displayed
+- ✅ Lunch badge displayed
+- ✅ Dinner badge displayed
+- ✅ Snack badge displayed
+- ✅ Color coding consistent
+- ✅ Badge text readable
+
+### Test Case 22.26: Integration - Trainer Dashboard
+
+**Steps**:
+1. Login as trainer
+2. Navigate to trainer dashboard
+3. Check for Meal Planning tab
+
+**Expected Result**:
+- ✅ "Meal Planning" tab visible
+- ✅ Tab in correct position (3rd, after Training Programs)
+- ✅ Tab clickable
+- ✅ Component loads correctly
+- ✅ Data displays
+- ✅ No navigation errors
+
+### Test Case 22.27: Empty State - No Plans
+
+**Steps**:
+1. New trainer with no meal plans
+2. View Meal Planning tab
+3. Check empty state
+
+**Expected Result**:
+- ✅ Empty state icon shown
+- ✅ "No meal plans yet" message
+- ✅ Helpful subtext
+- ✅ Create button still accessible
+- ✅ Stats show 0s
+- ✅ No errors
+
+### Test Case 22.28: Data Persistence
+
+**Steps**:
+1. Create meal plan with meals
+2. Refresh browser
+3. Navigate back to Meal Planning
+
+**Expected Result**:
+- ✅ Plans persist
+- ✅ Meals persist
+- ✅ All data intact
+- ✅ localStorage working
+- ✅ No data loss
+
+### Test Case 22.29: Multiple Plans for Same Client
+
+**Steps**:
+1. Create plan for Client A
+2. Complete that plan
+3. Create new plan for Client A
+
+**Expected Result**:
+- ✅ Both plans exist
+- ✅ First plan: Completed status
+- ✅ Second plan: Active status
+- ✅ Both visible in list
+- ✅ Client count still 1 (same client)
+- ✅ Total plans: 2
+
+### Test Case 22.30: Meal Details in Library
+
+**Steps**:
+1. Open meal library
+2. Check "Baked Salmon with Sweet Potato"
+3. Verify all details
+
+**Expected Result**:
+- ✅ Name: "Baked Salmon with Sweet Potato"
+- ✅ Type: Dinner
+- ✅ Description shown
+- ✅ Calories: 500
+- ✅ Protein: 40g
+- ✅ Carbs: 45g
+- ✅ Fats: 18g
+- ✅ Ingredients: salmon, sweet potato, broccoli, lemon, herbs
+- ✅ Instructions visible
+
+### Quick Checklist for Step 22:
+
+- [x] Dashboard with 4 KPI cards
+- [x] Stats calculated correctly
+- [x] View all meal plans
+- [x] Filter by status (All/Active/Completed)
+- [x] Create meal plan modal opens
+- [x] Form validation works
+- [x] Client selection dropdown
+- [x] Goal selection
+- [x] Macro input fields functional
+- [x] Duration configuration
+- [x] Plan creation successful
+- [x] Edit meal plan modal opens
+- [x] Plan details displayed
+- [x] Weekly tabs (Monday-Sunday)
+- [x] Meal library modal opens
+- [x] 10 meals in library
+- [x] Add meal to plan works
+- [x] Multiple meals per day supported
+- [x] Remove meal from plan works
+- [x] Empty day state handled
+- [x] Complete plan functionality
+- [x] Delete plan with confirmation
+- [x] Meal type badges displayed
+- [x] Integration with trainer dashboard
+- [x] Empty state for no plans
+- [x] Data persists correctly
+- [x] Multiple plans per client supported
+- [x] Tab navigation smooth
+- [x] All meals have full details
+- [x] No performance issues
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-21  
-**Total Test Cases**: 440+
+**Steps Tested**: 1-22  
+**Total Test Cases**: 470+
