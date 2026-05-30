@@ -7499,6 +7499,501 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 
 ---
 
+## STEP 24: Body Composition & Measurements Tracking (30 Test Cases)
+
+### Test Case 24.1: View Body Composition Dashboard
+
+**Steps**:
+1. Login as member
+2. Navigate to "Body Composition" tab
+3. View dashboard
+
+**Expected Result**:
+- ✅ 4 KPI cards displayed (Weight Change, Body Fat %, Muscle Mass, Total Entries)
+- ✅ Progress charts section shown
+- ✅ Latest measurements displayed
+- ✅ Measurement history timeline
+- ✅ Add Entry button visible
+- ✅ Time range selector present
+
+### Test Case 24.2: View Progress Stats
+
+**Steps**:
+1. Member has 5 entries over 60 days
+2. Weight: 82.5kg → 78.8kg (-3.7kg)
+3. Body Fat: 22.5% → 19.8% (-2.7%)
+4. Muscle Mass: 36.2kg → 37.8kg (+1.6kg)
+5. View stats cards
+
+**Expected Result**:
+- ✅ Weight Change: -3.7kg (green, downward trend)
+- ✅ Body Fat %: -2.7% (green, downward trend)
+- ✅ Muscle Mass: +1.6kg (green, upward trend)
+- ✅ Total Entries: 5
+- ✅ Trend indicators correct
+- ✅ Colors match trend direction
+
+### Test Case 24.3: View Weight Progress Chart
+
+**Steps**:
+1. Member has multiple entries
+2. View weight chart
+3. Hover over data points
+
+**Expected Result**:
+- ✅ Line chart displayed
+- ✅ X-axis shows dates
+- ✅ Y-axis shows weight (kg)
+- ✅ Trend line visible
+- ✅ Tooltips show exact values on hover
+- ✅ Chart responsive to screen size
+
+### Test Case 24.4: View Body Composition Chart
+
+**Steps**:
+1. Member has entries with body fat and muscle mass
+2. View body composition chart
+3. Check dual metrics
+
+**Expected Result**:
+- ✅ Line chart with 2 lines displayed
+- ✅ Body Fat % line (red)
+- ✅ Muscle Mass line (green)
+- ✅ Legend shows both metrics
+- ✅ Tooltips work for both lines
+- ✅ Y-axis scaled appropriately
+
+### Test Case 24.5: Change Time Range
+
+**Steps**:
+1. View dashboard with 90-day range
+2. Change to 30 days
+3. Change to 180 days
+4. Check data updates
+
+**Expected Result**:
+- ✅ Time range selector works
+- ✅ 30 days: Shows last month only
+- ✅ 60 days: Shows last 2 months
+- ✅ 90 days: Shows last 3 months (default)
+- ✅ 180 days: Shows last 6 months
+- ✅ Charts update immediately
+- ✅ Stats recalculated for selected range
+
+### Test Case 24.6: View Latest Measurements
+
+**Steps**:
+1. Member has recent entry with all measurements
+2. View "Latest Measurements" section
+3. Check displayed data
+
+**Expected Result**:
+- ✅ Date of measurement shown
+- ✅ Weight displayed
+- ✅ Body Fat % shown (if available)
+- ✅ Muscle Mass shown (if available)
+- ✅ BMI shown (if available)
+- ✅ Waist measurement shown (if available)
+- ✅ Other measurements in grid layout
+- ✅ Units displayed (kg, %, cm)
+
+### Test Case 24.7: View Measurement History
+
+**Steps**:
+1. Member has 5 entries
+2. Scroll to measurement history
+3. Check timeline
+
+**Expected Result**:
+- ✅ All 5 entries displayed
+- ✅ Sorted by date (newest first)
+- ✅ Date shown for each entry
+- ✅ Key metrics visible (weight, body fat, muscle, waist)
+- ✅ Mood displayed if logged
+- ✅ Notes shown if present
+- ✅ Delete button on each entry
+
+### Test Case 24.8: Open Add Entry Modal
+
+**Steps**:
+1. Click "Add Entry" button
+2. Modal should open
+3. Check form sections
+
+**Expected Result**:
+- ✅ Modal opens successfully
+- ✅ "Add Body Composition Entry" title shown
+- ✅ Date field present (defaults to today)
+- ✅ Weight & Body Composition section
+- ✅ Body Measurements section
+- ✅ Wellness Metrics section
+- ✅ Notes textarea
+- ✅ Cancel and Save buttons
+
+### Test Case 24.9: Add Entry - Weight Only
+
+**Steps**:
+1. Open add entry modal
+2. Enter weight: 80.5 kg
+3. Leave all other fields empty
+4. Save entry
+
+**Expected Result**:
+- ✅ Entry created successfully
+- ✅ Modal closes
+- ✅ Entry appears in history
+- ✅ Weight shown in charts
+- ✅ Other metrics show as N/A or hidden
+- ✅ Minimal entry accepted
+
+### Test Case 24.10: Add Entry - Complete Measurements
+
+**Steps**:
+1. Open add entry modal
+2. Fill in all fields:
+   - Weight: 79.0 kg
+   - Body Fat: 20.5%
+   - Muscle Mass: 37.5 kg
+   - BMI: 24.7
+   - Waist: 85 cm
+   - Other measurements
+   - Mood: Excellent
+   - Energy: 8
+   - Sleep: 7.5 hours
+   - Notes: "Feeling great!"
+3. Save entry
+
+**Expected Result**:
+- ✅ Entry created with all data
+- ✅ All metrics stored correctly
+- ✅ Appears in latest measurements
+- ✅ Charts updated
+- ✅ Full data displayed in history
+
+### Test Case 24.11: Add Entry - Form Validation
+
+**Steps**:
+1. Open add entry modal
+2. Leave weight field empty
+3. Click Save
+
+**Expected Result**:
+- ✅ Alert shown: "Please enter at least weight"
+- ✅ Entry not created
+- ✅ Modal remains open
+- ✅ No data saved
+
+### Test Case 24.12: Delete Entry
+
+**Steps**:
+1. Click delete button on entry
+2. Confirmation dialog appears
+3. Confirm deletion
+
+**Expected Result**:
+- ✅ Confirmation prompt shown
+- ✅ Entry deleted from database
+- ✅ Entry removed from history
+- ✅ Charts updated
+- ✅ Stats recalculated
+- ✅ Total entries count decreased
+
+### Test Case 24.13: Trend Calculation - Weight Decreasing
+
+**Steps**:
+1. First entry: 82.5 kg
+2. Latest entry: 78.8 kg
+3. Change: -3.7 kg
+4. Check trend
+
+**Expected Result**:
+- ✅ Trend: Decreasing
+- ✅ Icon: Downward arrow
+- ✅ Color: Green (positive for weight loss)
+- ✅ Value: -3.7 kg displayed
+- ✅ Sign: negative shown
+
+### Test Case 24.14: Trend Calculation - Muscle Increasing
+
+**Steps**:
+1. First entry: 36.2 kg muscle
+2. Latest entry: 37.8 kg muscle
+3. Change: +1.6 kg
+4. Check trend
+
+**Expected Result**:
+- ✅ Trend: Increasing
+- ✅ Icon: Upward arrow
+- ✅ Color: Green (positive for muscle gain)
+- ✅ Value: +1.6 kg displayed
+- ✅ Sign: positive shown
+
+### Test Case 24.15: Trend Calculation - Stable
+
+**Steps**:
+1. First entry: 80.0 kg
+2. Latest entry: 80.3 kg
+3. Change: +0.3 kg (within 0.5 threshold)
+4. Check trend
+
+**Expected Result**:
+- ✅ Trend: Stable
+- ✅ Icon: Horizontal line
+- ✅ Color: Gray (neutral)
+- ✅ Small change not considered significant
+
+### Test Case 24.16: Average Weekly Weight Change
+
+**Steps**:
+1. First entry: 82.5 kg (60 days ago)
+2. Latest entry: 78.8 kg (today)
+3. Change: -3.7 kg over 60 days
+4. Calculate weekly average
+
+**Expected Result**:
+- ✅ Days: 60
+- ✅ Weeks: ~8.57
+- ✅ Weekly change: -3.7 / 8.57 ≈ -0.43 kg/week
+- ✅ Calculation accurate
+- ✅ Displayed in stats
+
+### Test Case 24.17: Body Measurements - Left/Right
+
+**Steps**:
+1. Add entry with measurements
+2. Left Bicep: 33.5 cm
+3. Right Bicep: 34.0 cm
+4. Save and view
+
+**Expected Result**:
+- ✅ Both values saved
+- ✅ Displayed separately
+- ✅ Can track bilateral differences
+- ✅ Useful for symmetry tracking
+
+### Test Case 24.18: Wellness Metrics - Mood
+
+**Steps**:
+1. Add entry with mood: "Excellent"
+2. Save entry
+3. View in history
+
+**Expected Result**:
+- ✅ Mood: Excellent displayed
+- ✅ Shown in entry details
+- ✅ Correlates with progress
+- ✅ Provides context
+
+### Test Case 24.19: Wellness Metrics - Energy and Sleep
+
+**Steps**:
+1. Add entry with:
+   - Energy Level: 8/10
+   - Sleep Hours: 7.5
+2. Save and view
+
+**Expected Result**:
+- ✅ Energy level saved
+- ✅ Sleep hours saved
+- ✅ Both displayed in entry
+- ✅ Helps identify patterns
+
+### Test Case 24.20: Notes Field
+
+**Steps**:
+1. Add entry with notes: "Felt great today! Waist measurement improved"
+2. Save entry
+3. View in history
+
+**Expected Result**:
+- ✅ Notes saved correctly
+- ✅ Displayed in italic in history
+- ✅ Provides context for measurements
+- ✅ Helps remember circumstances
+
+### Test Case 24.21: Empty State - No Entries
+
+**Steps**:
+1. New member with no entries
+2. View body composition tab
+3. Check empty state
+
+**Expected Result**:
+- ✅ Empty state icon shown
+- ✅ "No entries yet" message
+- ✅ Helpful subtext
+- ✅ Add Entry button still accessible
+- ✅ Charts show empty state
+- ✅ No errors thrown
+
+### Test Case 24.22: Demo Data - Progressive Weight Loss
+
+**Steps**:
+1. Clear database
+2. Initialize demo data
+3. Check body composition entries
+
+**Expected Result**:
+- ✅ 5 entries created
+- ✅ Dates: 60, 45, 30, 15 days ago, today
+- ✅ Weight decreases progressively
+- ✅ Body fat decreases
+- ✅ Muscle mass increases
+- ✅ Realistic progression
+- ✅ All measurements included
+
+### Test Case 24.23: Chart Data Preparation
+
+**Steps**:
+1. 5 entries in database
+2. View charts
+3. Check data points
+
+**Expected Result**:
+- ✅ 5 data points on chart
+- ✅ Dates on X-axis formatted (MMM DD)
+- ✅ Values on Y-axis accurate
+- ✅ Lines connect all points
+- ✅ No gaps or missing data
+
+### Test Case 24.24: Optional Fields Handling
+
+**Steps**:
+1. Entry 1: Weight only
+2. Entry 2: Weight + body fat
+3. Entry 3: All measurements
+4. View charts
+
+**Expected Result**:
+- ✅ Weight chart shows all 3 entries
+- ✅ Body fat chart shows entry 2 & 3 only
+- ✅ Missing data handled gracefully
+- ✅ No broken lines
+- ✅ Tooltips show available data only
+
+### Test Case 24.25: Date Selection
+
+**Steps**:
+1. Open add entry modal
+2. Change date to 7 days ago
+3. Save entry
+4. Check positioning in history
+
+**Expected Result**:
+- ✅ Date picker works
+- ✅ Can backdate entries
+- ✅ Entry sorted correctly by date
+- ✅ Appears in chronological order in history
+- ✅ Charts show at correct position
+
+### Test Case 24.26: Measurements Grid Layout
+
+**Steps**:
+1. View latest measurements section
+2. Check grid display
+3. Resize browser
+
+**Expected Result**:
+- ✅ Grid layout (2 cols mobile, 4 cols desktop)
+- ✅ Responsive design
+- ✅ Each metric in card with gray background
+- ✅ Label and value clearly separated
+- ✅ Units shown
+- ✅ Clean visual presentation
+
+### Test Case 24.27: Visceral Fat Tracking
+
+**Steps**:
+1. Add entry with visceral fat: Level 5
+2. Save entry
+3. View in latest measurements
+
+**Expected Result**:
+- ✅ Visceral fat saved as number
+- ✅ Displayed as "Level 5"
+- ✅ Important health metric tracked
+- ✅ Shows in measurements grid
+
+### Test Case 24.28: BMR and BMI
+
+**Steps**:
+1. Add entry with:
+   - BMR: 1840 calories
+   - BMI: 24.6
+2. Save and view
+
+**Expected Result**:
+- ✅ BMR saved and displayed
+- ✅ BMI saved and displayed
+- ✅ Both shown in latest measurements
+- ✅ Useful for nutrition planning
+
+### Test Case 24.29: Integration - Member Dashboard
+
+**Steps**:
+1. Login as member
+2. Navigate to member dashboard
+3. Check for Body Composition tab
+
+**Expected Result**:
+- ✅ "Body Composition" tab visible
+- ✅ Tab in correct position (after My Progress)
+- ✅ Tab clickable
+- ✅ Component loads correctly
+- ✅ Data displays
+- ✅ No navigation errors
+
+### Test Case 24.30: Data Persistence
+
+**Steps**:
+1. Add multiple entries
+2. Refresh browser
+3. Check data still exists
+
+**Expected Result**:
+- ✅ All entries persist
+- ✅ Charts still show data
+- ✅ Stats still calculated
+- ✅ localStorage working
+- ✅ No data loss
+- ✅ All relationships preserved
+
+### Quick Checklist for Step 24:
+
+- [x] Dashboard with 4 KPI cards
+- [x] Weight change stat with trend
+- [x] Body fat change stat with trend
+- [x] Muscle mass change stat with trend
+- [x] Total entries count
+- [x] Weight progress chart
+- [x] Body composition chart (fat/muscle)
+- [x] Time range selector (30/60/90/180 days)
+- [x] Latest measurements display
+- [x] Measurement history timeline
+- [x] Add entry modal opens
+- [x] Comprehensive form (30+ fields)
+- [x] Weight field required
+- [x] All other fields optional
+- [x] Body measurements section
+- [x] Wellness metrics (mood/energy/sleep)
+- [x] Notes field
+- [x] Form validation works
+- [x] Entry creation successful
+- [x] Delete entry with confirmation
+- [x] Trend calculation accurate
+- [x] Trend icons displayed
+- [x] Color coding correct
+- [x] Average weekly change calculated
+- [x] Empty state handled
+- [x] Demo data realistic
+- [x] Charts responsive
+- [x] Optional fields handled
+- [x] Date selection works
+- [x] Integration with member dashboard
+- [x] Data persists in localStorage
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-23  
-**Total Test Cases**: 500+
+**Steps Tested**: 1-24  
+**Total Test Cases**: 530+

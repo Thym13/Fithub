@@ -10,6 +10,7 @@ import { SubmitReview } from './submit-review';
 import { MemberProfile } from './member-profile';
 import { MemberCheckInHistory } from './member-checkin-history';
 import { MemberNutrition } from './member-nutrition';
+import { BodyCompositionTracking } from './body-composition-tracking';
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from './dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -102,6 +103,7 @@ export function MemberDashboard() {
     { id: 'reviews', label: 'Submit Reviews', path: '#reviews' },
     { id: 'classes', label: 'Browse All Classes', path: '#classes' },
     { id: 'progress', label: 'My Progress', path: '#progress' },
+    { id: 'body-comp', label: 'Body Composition', path: '#body-comp' },
     { id: 'nutrition', label: 'Nutrition Plan', path: '#nutrition' },
     { id: 'checkins', label: 'My Check-Ins', path: '#checkins' },
     { id: 'schedule', label: 'My Schedule', path: '#schedule' },
@@ -706,6 +708,10 @@ export function MemberDashboard() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="body-comp" className="space-y-6">
+          <BodyCompositionTracking />
         </TabsContent>
 
         <TabsContent value="nutrition" className="space-y-6">

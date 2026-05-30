@@ -405,6 +405,50 @@ export interface MaintenanceLog {
   updatedAt: string;
 }
 
+export interface BodyCompositionEntry {
+  id: string;
+  userId: string;
+  userName: string;
+  trainerId?: string;
+  trainerName?: string;
+  date: string;
+  // Weight and Body Composition
+  weight: number; // kg
+  bodyFatPercentage?: number;
+  muscleMass?: number; // kg
+  boneMass?: number; // kg
+  waterPercentage?: number;
+  visceralFat?: number; // level 1-59
+  bmr?: number; // Basal Metabolic Rate (calories)
+  bmi?: number; // Body Mass Index
+  // Body Measurements (cm)
+  neck?: number;
+  shoulders?: number;
+  chest?: number;
+  waist?: number;
+  hips?: number;
+  leftBicep?: number;
+  rightBicep?: number;
+  leftForearm?: number;
+  rightForearm?: number;
+  leftThigh?: number;
+  rightThigh?: number;
+  leftCalf?: number;
+  rightCalf?: number;
+  // Progress Photos
+  frontPhoto?: string; // base64 or URL
+  sidePhoto?: string;
+  backPhoto?: string;
+  // Additional Data
+  notes?: string;
+  mood?: 'Excellent' | 'Good' | 'Neutral' | 'Tired' | 'Poor';
+  energyLevel?: number; // 1-10
+  sleepHours?: number;
+  // Metadata
+  createdAt: string;
+  updatedAt: string;
+}
+
 export class MockDatabase {
   private static instance: MockDatabase;
 
@@ -427,6 +471,7 @@ export class MockDatabase {
   private NUTRITION_LOGS_KEY = 'fithub_nutrition_logs';
   private EQUIPMENT_KEY = 'fithub_equipment';
   private MAINTENANCE_LOGS_KEY = 'fithub_maintenance_logs';
+  private BODY_COMPOSITION_KEY = 'fithub_body_composition';
 
   static getInstance(): MockDatabase {
     if (!MockDatabase.instance) {
@@ -2448,6 +2493,169 @@ export class MockDatabase {
     return stats;
   }
 
+  // ==================== Body Composition Tracking ====================
+
+  createBodyCompositionEntry(data: Omit<BodyCompositionEntry, 'id' | 'createdAt' | 'updatedAt'>): BodyCompositionEntry {
+    const entry: BodyCompositionEntry = {
+      ...data,
+      id: `body-comp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // Calculate BMI if not provided
+    if (!entry.bmi && entry.weight) {
+      // Assuming height is stored in user profile, for now we'll skip auto-calculation
+      // BMI = weight(kg) / height(m)²
+    }
+
+    const allEntries = this.getAllBodyCompositionEntries();
+    allEntries.push(entry);
+    localStorage.setItem(this.BODY_COMPOSITION_KEY, JSON.stringify(allEntries));
+
+    return entry;
+  }
+
+  getAllBodyCompositionEntries(): BodyCompositionEntry[] {
+    const data = localStorage.getItem(this.BODY_COMPOSITION_KEY);
+    return data ? JSON.parse(data) : [];
+  }
+
+  getBodyCompositionEntryById(id: string): BodyCompositionEntry | undefined {
+    return this.getAllBodyCompositionEntries().find(e => e.id === id);
+  }
+
+  getBodyCompositionEntriesByUser(userId: string): BodyCompositionEntry[] {
+    return this.getAllBodyCompositionEntries()
+      .filter(e => e.userId === userId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+
+  getBodyCompositionEntriesByTrainer(trainerId: string): BodyCompositionEntry[] {
+    return this.getAllBodyCompositionEntries()
+      .filter(e => e.trainerId === trainerId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+
+  getBodyCompositionEntriesByDateRange(userId: string, startDate: string, endDate: string): BodyCompositionEntry[] {
+    return this.getAllBodyCompositionEntries()
+      .filter(e => e.userId === userId && e.date >= startDate && e.date <= endDate)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }
+
+  getLatestBodyCompositionEntry(userId: string): BodyCompositionEntry | undefined {
+    const entries = this.getBodyCompositionEntriesByUser(userId);
+    return entries.length > 0 ? entries[0] : undefined;
+  }
+
+  updateBodyCompositionEntry(id: string, updates: Partial<BodyCompositionEntry>): BodyCompositionEntry | null {
+    const allEntries = this.getAllBodyCompositionEntries();
+    const index = allEntries.findIndex(e => e.id === id);
+
+    if (index === -1) return null;
+
+    allEntries[index] = {
+      ...allEntries[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+
+    localStorage.setItem(this.BODY_COMPOSITION_KEY, JSON.stringify(allEntries));
+    return allEntries[index];
+  }
+
+  deleteBodyCompositionEntry(id: string): boolean {
+    const allEntries = this.getAllBodyCompositionEntries();
+    const filtered = allEntries.filter(e => e.id !== id);
+
+    if (filtered.length === allEntries.length) return false;
+
+    localStorage.setItem(this.BODY_COMPOSITION_KEY, JSON.stringify(filtered));
+    return true;
+  }
+
+  getBodyCompositionProgress(userId: string, days: number = 90): {
+    totalEntries: number;
+    firstEntry?: BodyCompositionEntry;
+    latestEntry?: BodyCompositionEntry;
+    weightChange?: number;
+    bodyFatChange?: number;
+    muscleMassChange?: number;
+    avgWeeklyWeightChange?: number;
+    measurements: {
+      dates: string[];
+      weights: number[];
+      bodyFats: number[];
+      muscleMasses: number[];
+    };
+    trends: {
+      weight: 'increasing' | 'decreasing' | 'stable';
+      bodyFat: 'increasing' | 'decreasing' | 'stable';
+      muscleMass: 'increasing' | 'decreasing' | 'stable';
+    };
+  } {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    const cutoffStr = cutoffDate.toISOString().split('T')[0];
+
+    const entries = this.getAllBodyCompositionEntries()
+      .filter(e => e.userId === userId && e.date >= cutoffStr)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    const progress = {
+      totalEntries: entries.length,
+      firstEntry: entries[0],
+      latestEntry: entries[entries.length - 1],
+      weightChange: undefined as number | undefined,
+      bodyFatChange: undefined as number | undefined,
+      muscleMassChange: undefined as number | undefined,
+      avgWeeklyWeightChange: undefined as number | undefined,
+      measurements: {
+        dates: entries.map(e => e.date),
+        weights: entries.map(e => e.weight),
+        bodyFats: entries.map(e => e.bodyFatPercentage || 0),
+        muscleMasses: entries.map(e => e.muscleMass || 0)
+      },
+      trends: {
+        weight: 'stable' as 'increasing' | 'decreasing' | 'stable',
+        bodyFat: 'stable' as 'increasing' | 'decreasing' | 'stable',
+        muscleMass: 'stable' as 'increasing' | 'decreasing' | 'stable'
+      }
+    };
+
+    if (entries.length >= 2) {
+      const first = entries[0];
+      const latest = entries[entries.length - 1];
+
+      progress.weightChange = latest.weight - first.weight;
+      if (latest.bodyFatPercentage && first.bodyFatPercentage) {
+        progress.bodyFatChange = latest.bodyFatPercentage - first.bodyFatPercentage;
+      }
+      if (latest.muscleMass && first.muscleMass) {
+        progress.muscleMassChange = latest.muscleMass - first.muscleMass;
+      }
+
+      // Calculate avg weekly weight change
+      const daysDiff = Math.ceil((new Date(latest.date).getTime() - new Date(first.date).getTime()) / (1000 * 60 * 60 * 24));
+      const weeks = daysDiff / 7;
+      if (weeks > 0 && progress.weightChange !== undefined) {
+        progress.avgWeeklyWeightChange = progress.weightChange / weeks;
+      }
+
+      // Determine trends
+      if (progress.weightChange > 0.5) progress.trends.weight = 'increasing';
+      else if (progress.weightChange < -0.5) progress.trends.weight = 'decreasing';
+
+      if (progress.bodyFatChange && progress.bodyFatChange > 0.5) progress.trends.bodyFat = 'increasing';
+      else if (progress.bodyFatChange && progress.bodyFatChange < -0.5) progress.trends.bodyFat = 'decreasing';
+
+      if (progress.muscleMassChange && progress.muscleMassChange > 0.5) progress.trends.muscleMass = 'increasing';
+      else if (progress.muscleMassChange && progress.muscleMassChange < -0.5) progress.trends.muscleMass = 'decreasing';
+    }
+
+    return progress;
+  }
+
   clearAllData(): void {
     localStorage.removeItem(this.USERS_KEY);
     localStorage.removeItem(this.MEMBERSHIPS_KEY);
@@ -2468,6 +2676,7 @@ export class MockDatabase {
     localStorage.removeItem(this.NUTRITION_LOGS_KEY);
     localStorage.removeItem(this.EQUIPMENT_KEY);
     localStorage.removeItem(this.MAINTENANCE_LOGS_KEY);
+    localStorage.removeItem(this.BODY_COMPOSITION_KEY);
   }
 
   // Initialize demo data
@@ -3951,6 +4160,174 @@ export class MockDatabase {
           });
 
           console.log('✅ Demo maintenance logs initialized');
+        }
+      }
+
+      // Create demo body composition entries
+      const bodyCompEntries = this.getAllBodyCompositionEntries();
+      if (bodyCompEntries.length === 0) {
+        const memberUser = this.findUserByEmail('member@fithub.com');
+        const trainerUser = this.findUserByEmail('trainer@fithub.com');
+
+        if (memberUser && trainerUser) {
+          // Entry 1 - 60 days ago (baseline)
+          const date1 = new Date();
+          date1.setDate(date1.getDate() - 60);
+          this.createBodyCompositionEntry({
+            userId: memberUser.id,
+            userName: memberUser.name,
+            trainerId: trainerUser.id,
+            trainerName: trainerUser.name,
+            date: date1.toISOString().split('T')[0],
+            weight: 82.5,
+            bodyFatPercentage: 22.5,
+            muscleMass: 36.2,
+            boneMass: 3.1,
+            waterPercentage: 55.2,
+            visceralFat: 9,
+            bmr: 1780,
+            bmi: 25.8,
+            neck: 38,
+            shoulders: 115,
+            chest: 102,
+            waist: 91,
+            hips: 100,
+            leftBicep: 33,
+            rightBicep: 33.5,
+            leftForearm: 28,
+            rightForearm: 28,
+            leftThigh: 58,
+            rightThigh: 58,
+            leftCalf: 38,
+            rightCalf: 38,
+            notes: 'Baseline measurements - starting weight loss program',
+            mood: 'Good',
+            energyLevel: 7,
+            sleepHours: 7
+          });
+
+          // Entry 2 - 45 days ago
+          const date2 = new Date();
+          date2.setDate(date2.getDate() - 45);
+          this.createBodyCompositionEntry({
+            userId: memberUser.id,
+            userName: memberUser.name,
+            trainerId: trainerUser.id,
+            trainerName: trainerUser.name,
+            date: date2.toISOString().split('T')[0],
+            weight: 81.2,
+            bodyFatPercentage: 21.8,
+            muscleMass: 36.5,
+            boneMass: 3.1,
+            waterPercentage: 55.8,
+            visceralFat: 8,
+            bmr: 1795,
+            bmi: 25.4,
+            waist: 89,
+            hips: 99,
+            notes: 'Good progress, seeing results',
+            mood: 'Excellent',
+            energyLevel: 8,
+            sleepHours: 7.5
+          });
+
+          // Entry 3 - 30 days ago
+          const date3 = new Date();
+          date3.setDate(date3.getDate() - 30);
+          this.createBodyCompositionEntry({
+            userId: memberUser.id,
+            userName: memberUser.name,
+            trainerId: trainerUser.id,
+            trainerName: trainerUser.name,
+            date: date3.toISOString().split('T')[0],
+            weight: 80.3,
+            bodyFatPercentage: 21.2,
+            muscleMass: 36.8,
+            boneMass: 3.1,
+            waterPercentage: 56.1,
+            visceralFat: 7,
+            bmr: 1805,
+            bmi: 25.1,
+            neck: 37.5,
+            shoulders: 116,
+            chest: 103,
+            waist: 87,
+            hips: 98,
+            leftBicep: 33.5,
+            rightBicep: 34,
+            leftForearm: 28.5,
+            rightForearm: 28.5,
+            leftThigh: 57,
+            rightThigh: 57,
+            leftCalf: 38,
+            rightCalf: 38,
+            notes: 'Waist measurement improving significantly',
+            mood: 'Excellent',
+            energyLevel: 8,
+            sleepHours: 8
+          });
+
+          // Entry 4 - 15 days ago
+          const date4 = new Date();
+          date4.setDate(date4.getDate() - 15);
+          this.createBodyCompositionEntry({
+            userId: memberUser.id,
+            userName: memberUser.name,
+            trainerId: trainerUser.id,
+            trainerName: trainerUser.name,
+            date: date4.toISOString().split('T')[0],
+            weight: 79.5,
+            bodyFatPercentage: 20.5,
+            muscleMass: 37.2,
+            boneMass: 3.1,
+            waterPercentage: 56.5,
+            visceralFat: 6,
+            bmr: 1820,
+            bmi: 24.9,
+            waist: 85,
+            hips: 97,
+            notes: 'Breaking through plateau',
+            mood: 'Good',
+            energyLevel: 7,
+            sleepHours: 7
+          });
+
+          // Entry 5 - Today (current)
+          const today = new Date().toISOString().split('T')[0];
+          this.createBodyCompositionEntry({
+            userId: memberUser.id,
+            userName: memberUser.name,
+            trainerId: trainerUser.id,
+            trainerName: trainerUser.name,
+            date: today,
+            weight: 78.8,
+            bodyFatPercentage: 19.8,
+            muscleMass: 37.8,
+            boneMass: 3.1,
+            waterPercentage: 57.0,
+            visceralFat: 5,
+            bmr: 1840,
+            bmi: 24.6,
+            neck: 37,
+            shoulders: 117,
+            chest: 104,
+            waist: 83,
+            hips: 96,
+            leftBicep: 34,
+            rightBicep: 34.5,
+            leftForearm: 29,
+            rightForearm: 29,
+            leftThigh: 56,
+            rightThigh: 56,
+            leftCalf: 38,
+            rightCalf: 38,
+            notes: 'Excellent progress! Lost 3.7kg, gained muscle, reduced body fat significantly',
+            mood: 'Excellent',
+            energyLevel: 9,
+            sleepHours: 8
+          });
+
+          console.log('✅ Demo body composition entries initialized');
         }
       }
     }
