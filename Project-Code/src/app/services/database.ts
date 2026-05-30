@@ -78,6 +78,38 @@ export interface ClassBooking {
   bookedAt: string;
 }
 
+export interface TrainingProgram {
+  id: string;
+  name: string;
+  description: string;
+  trainerId: string;
+  trainerName: string;
+  clientId: string;
+  clientName: string;
+  goal: string;
+  duration: number; // Duration in weeks
+  startDate: string;
+  endDate: string;
+  status: 'Active' | 'Completed' | 'Cancelled';
+  exercises: Exercise[];
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Exercise {
+  id: string;
+  name: string;
+  category: 'Cardio' | 'Strength' | 'Flexibility' | 'Balance' | 'HIIT' | 'Other';
+  sets?: number;
+  reps?: string;
+  duration?: string; // e.g., "30 minutes" or "5 minutes"
+  intensity?: 'Low' | 'Medium' | 'High';
+  instructions?: string;
+  day: string; // e.g., "Monday", "Tuesday" or "Day 1", "Day 2"
+  completed?: boolean;
+}
+
 class MockDatabase {
   private USERS_KEY = 'fithub_users';
   private MEMBERSHIPS_KEY = 'fithub_memberships';
@@ -85,6 +117,7 @@ class MockDatabase {
   private GOALS_KEY = 'fithub_goals';
   private CLASSES_KEY = 'fithub_classes';
   private BOOKINGS_KEY = 'fithub_bookings';
+  private PROGRAMS_KEY = 'fithub_programs';
 
   // User Operations
 
@@ -346,6 +379,77 @@ class MockDatabase {
     return true;
   }
 
+  // Training Program Operations
+
+  getAllPrograms(): TrainingProgram[] {
+    const programs = localStorage.getItem(this.PROGRAMS_KEY);
+    return programs ? JSON.parse(programs) : [];
+  }
+
+  savePrograms(programs: TrainingProgram[]): void {
+    localStorage.setItem(this.PROGRAMS_KEY, JSON.stringify(programs));
+  }
+
+  findProgramById(id: string): TrainingProgram | null {
+    const programs = this.getAllPrograms();
+    return programs.find(p => p.id === id) || null;
+  }
+
+  getProgramsByTrainer(trainerId: string): TrainingProgram[] {
+    const programs = this.getAllPrograms();
+    return programs.filter(p => p.trainerId === trainerId);
+  }
+
+  getProgramsByClient(clientId: string): TrainingProgram[] {
+    const programs = this.getAllPrograms();
+    return programs.filter(p => p.clientId === clientId);
+  }
+
+  createProgram(programData: Omit<TrainingProgram, 'id' | 'createdAt' | 'updatedAt'>): TrainingProgram {
+    const programs = this.getAllPrograms();
+
+    const newProgram: TrainingProgram = {
+      ...programData,
+      id: this.generateId(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    programs.push(newProgram);
+    this.savePrograms(programs);
+    return newProgram;
+  }
+
+  updateProgram(id: string, updates: Partial<TrainingProgram>): TrainingProgram | null {
+    const programs = this.getAllPrograms();
+    const index = programs.findIndex(p => p.id === id);
+
+    if (index === -1) {
+      return null;
+    }
+
+    programs[index] = {
+      ...programs[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+
+    this.savePrograms(programs);
+    return programs[index];
+  }
+
+  deleteProgram(id: string): boolean {
+    const programs = this.getAllPrograms();
+    const filteredPrograms = programs.filter(p => p.id !== id);
+
+    if (filteredPrograms.length === programs.length) {
+      return false;
+    }
+
+    this.savePrograms(filteredPrograms);
+    return true;
+  }
+
   // Utility Methods
 
   generateId(): string {
@@ -363,6 +467,7 @@ class MockDatabase {
     localStorage.removeItem(this.GOALS_KEY);
     localStorage.removeItem(this.CLASSES_KEY);
     localStorage.removeItem(this.BOOKINGS_KEY);
+    localStorage.removeItem(this.PROGRAMS_KEY);
   }
 
   // Initialize demo data

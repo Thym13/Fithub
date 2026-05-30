@@ -32,12 +32,13 @@ import {
 } from 'lucide-react';
 import { mockTrainerClients, mockClasses } from '../utils/mockData';
 import { ClientProgressTracking } from './client-progress-tracking';
+import { TrainingProgramManagement } from './training-program-management';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 const trainerTabs = [
   { id: 'clients', label: 'My Clients', path: '#clients' },
-  { id: 'programs', label: 'Workout Plans', path: '#programs' },
+  { id: 'programs', label: 'Training Programs', path: '#programs' },
   { id: 'schedule', label: 'Schedule', path: '#schedule' },
   { id: 'progress', label: 'Progress Tracking', path: '#progress' },
   { id: 'contracts', label: 'Contracts', path: '#contracts' },
@@ -796,114 +797,7 @@ export function TrainerDashboard() {
         </TabsContent>
 
         <TabsContent value="programs" className="space-y-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Workout Plans</CardTitle>
-              <Button onClick={handleStartCreation}>
-                <Plus className="size-4 mr-2" />
-                Create Plan
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* Muscle Building Program */}
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Dumbbell className="size-5 text-blue-600" />
-                      <h3 className="font-medium">Muscle Building Program</h3>
-                    </div>
-                    <Badge variant="outline">1 active client</Badge>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-3">
-                    12-week progressive overload program focused on hypertrophy
-                  </p>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Duration:</span>
-                      <span>12 weeks</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Sessions/week:</span>
-                      <span>4-5 sessions</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Focus:</span>
-                      <span>Strength & Hypertrophy</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 mt-4">
-                    <Button variant="outline" size="sm">Edit Program</Button>
-                    <Button variant="outline" size="sm">Assign to Client</Button>
-                  </div>
-                </div>
-
-                {/* Weight Loss Program */}
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Target className="size-5 text-green-600" />
-                      <h3 className="font-medium">Weight Loss Program</h3>
-                    </div>
-                    <Badge variant="outline">1 active client</Badge>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-3">
-                    8-week cardio and strength training for fat loss
-                  </p>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Duration:</span>
-                      <span>8 weeks</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Sessions/week:</span>
-                      <span>5-6 sessions</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Focus:</span>
-                      <span>Cardio & Fat Loss</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 mt-4">
-                    <Button variant="outline" size="sm">Edit Program</Button>
-                    <Button variant="outline" size="sm">Assign to Client</Button>
-                  </div>
-                </div>
-
-                {/* Athletic Performance */}
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Activity className="size-5 text-purple-600" />
-                      <h3 className="font-medium">Athletic Performance</h3>
-                    </div>
-                    <Badge variant="outline">1 active client</Badge>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Performance-focused training for speed, power, and endurance
-                  </p>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Duration:</span>
-                      <span>10 weeks</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Sessions/week:</span>
-                      <span>4-6 sessions</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Focus:</span>
-                      <span>Speed & Power</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 mt-4">
-                    <Button variant="outline" size="sm">Edit Program</Button>
-                    <Button variant="outline" size="sm">Assign to Client</Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <TrainingProgramManagement />
         </TabsContent>
 
         <TabsContent value="schedule" className="space-y-6">

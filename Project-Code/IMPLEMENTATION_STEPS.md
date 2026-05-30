@@ -1451,18 +1451,334 @@ JSON.parse(localStorage.getItem('fithub_sent_emails')).filter(e => e.subject.inc
 
 ---
 
+## ✅ STEP 9: Training Program Creation (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: UC-3 Δημιουργία Προγράμματος Εκγύμνασης (Training Program Creation)  
+**Reference**: Trainers create personalized training programs for clients
+
+### Files Added:
+
+1. **`src/app/components/training-program-management.tsx`** - Training program CRUD component
+   - ✅ Create personalized training programs for clients
+   - ✅ Exercise management (add, edit, remove exercises)
+   - ✅ Edit existing programs
+   - ✅ Delete programs
+   - ✅ View all trainer's programs in grid layout
+   - ✅ Program details (name, description, client, goal, duration, dates, notes)
+   - ✅ Exercise details (name, category, sets, reps, duration, intensity, instructions, day)
+   - ✅ Email notifications to clients
+
+### Files Modified:
+
+1. **`src/app/services/database.ts`**
+   - ✅ Added TrainingProgram interface with all properties
+   - ✅ Added Exercise interface
+   - ✅ Added program CRUD operations (create, getAll, getByTrainer, getByClient, update, delete)
+   - ✅ Added programs to clearAllData
+
+2. **`src/app/components/trainer-dashboard.tsx`**
+   - ✅ Renamed "Workout Plans" tab to "Training Programs"
+   - ✅ Integrated TrainingProgramManagement component
+   - ✅ Removed mock workout plans
+   - ✅ Imported TrainingProgramManagement
+
+### Features Implemented:
+
+**Training Program Properties**:
+```typescript
+{
+  id: string
+  name: string
+  description: string
+  trainerId: string
+  trainerName: string
+  clientId: string
+  clientName: string
+  goal: string
+  duration: number (weeks)
+  startDate: string
+  endDate: string
+  status: 'Active' | 'Completed' | 'Cancelled'
+  exercises: Exercise[]
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+```
+
+**Exercise Properties**:
+```typescript
+{
+  id: string
+  name: string
+  category: 'Cardio' | 'Strength' | 'Flexibility' | 'Balance' | 'HIIT' | 'Other'
+  sets?: number
+  reps?: string
+  duration?: string
+  intensity?: 'Low' | 'Medium' | 'High'
+  instructions?: string
+  day: string (e.g., "Monday", "Tuesday", "Daily")
+  completed?: boolean
+}
+```
+
+**Create Program Flow**:
+- ✅ Program name (required)
+- ✅ Description (optional)
+- ✅ Select client from dropdown (required)
+- ✅ Goal selection (Weight Loss, Muscle Building, Endurance, Flexibility, General Fitness)
+- ✅ Duration in weeks (required)
+- ✅ Start date (required, auto-calculates end date)
+- ✅ Notes for client (optional)
+- ✅ Exercise management:
+  - Add exercises one by one
+  - Configure sets, reps, duration
+  - Set intensity level
+  - Add instructions
+  - Assign to specific day
+- ✅ Validation on all required fields
+- ✅ Email notification sent to client
+
+**Edit Program Flow**:
+- ✅ Click edit button on program card
+- ✅ Pre-filled form with current values
+- ✅ Update any field including exercises
+- ✅ Add/remove exercises
+- ✅ Validation on save
+- ✅ Updates timestamp
+
+**Delete Program Flow**:
+- ✅ Click delete button
+- ✅ Confirmation modal with program details
+- ✅ Warning message
+- ✅ Permanent deletion
+
+**Program Display**:
+- ✅ Grid layout (3 columns on desktop)
+- ✅ Card per program with:
+  - Program name
+  - Client name with icon
+  - Goal with target icon
+  - Duration in weeks
+  - Date range (start - end)
+  - Exercise count
+  - Status badge (Active/Completed/Cancelled)
+  - Edit and delete actions
+
+**Exercise Modal**:
+- ✅ Add exercises to program
+- ✅ Exercise name (required)
+- ✅ Category selection (6 categories)
+- ✅ Day assignment (required)
+- ✅ Sets, Reps, Duration (optional, based on exercise type)
+- ✅ Intensity level (Low/Medium/High)
+- ✅ Instructions (optional)
+- ✅ Visual list of added exercises
+- ✅ Remove exercise functionality
+
+**Empty State**:
+- ✅ Shows when no programs exist
+- ✅ Dumbbell icon
+- ✅ Helpful message to create first program
+
+### Database Operations:
+
+**Program CRUD**:
+```typescript
+db.createProgram(programData): TrainingProgram
+db.getAllPrograms(): TrainingProgram[]
+db.getProgramsByTrainer(trainerId): TrainingProgram[]
+db.getProgramsByClient(clientId): TrainingProgram[]
+db.updateProgram(id, updates): TrainingProgram | null
+db.deleteProgram(id): boolean
+```
+
+### Email Notifications:
+
+**Program Creation Email**:
+- ✅ Sent to client when program created
+- ✅ Program details (name, goal, duration, dates)
+- ✅ Exercise count
+- ✅ Trainer name
+- ✅ Motivational message
+
+### Category Color Coding:
+
+- **Cardio**: Blue badge
+- **Strength**: Orange badge
+- **Flexibility**: Green badge
+- **Balance**: Purple badge
+- **HIIT**: Red badge
+- **Other**: Gray badge
+
+### Intensity Color Coding:
+
+- **Low**: Green badge
+- **Medium**: Yellow badge
+- **High**: Red badge
+
+### Status Color Coding:
+
+- **Active**: Green badge
+- **Completed**: Blue badge
+- **Cancelled**: Red badge
+
+### Access Control:
+
+- **Trainer**: Full access to create and manage programs for their clients
+- **Client**: View only (future step)
+- **Manager/Secretary**: View only (future step)
+
+### Validation Rules:
+
+1. Program name is required
+2. Client selection is required
+3. Goal is required
+4. Duration must be > 0 weeks
+5. Start date is required
+6. At least one exercise must be added
+7. Each exercise must have:
+   - Name (required)
+   - Category (required)
+   - Day (required)
+
+### UI/UX Features:
+
+**Modals**:
+- Create program modal with comprehensive form
+- Exercise modal for adding/editing exercises
+- Edit program modal with pre-filled data
+- Delete confirmation modal
+
+**Form Elements**:
+- Text inputs for name, description, notes
+- Select dropdowns for client, goal, category, intensity, day
+- Number inputs for duration, sets
+- Text inputs for reps, duration, instructions
+- Date picker for start date
+- Textarea for description and notes
+
+**Grid Display**:
+- Responsive grid (1 col mobile, 2 col tablet, 3 col desktop)
+- Card-based layout
+- Color-coded badges
+- Icon indicators (user, target, calendar, dumbbell)
+- Inline actions (edit, delete)
+
+### Testing:
+
+To test training program creation:
+
+**Test 1: Create Program**
+1. Login as trainer (you may need to create a trainer account)
+2. Go to "Training Programs" tab
+3. Click "Create Training Program"
+4. Fill in program details:
+   - Name: "6-Week Strength Builder"
+   - Description: "Build muscle and increase strength"
+   - Select a client
+   - Goal: Muscle Building
+   - Duration: 6 weeks
+   - Start date: Today
+   - Notes: "Focus on compound movements"
+5. Click "Add Exercise" and add exercises:
+   - Squats: Strength, 4 sets, 8-10 reps, High intensity, Monday
+   - Bench Press: Strength, 4 sets, 8-10 reps, High intensity, Monday
+   - Deadlifts: Strength, 3 sets, 5 reps, High intensity, Wednesday
+6. Click "Create Program"
+
+**Expected Result**:
+- ✅ Program created successfully
+- ✅ Appears in grid
+- ✅ Saved to localStorage
+- ✅ Email sent to client
+- ✅ Modal closes
+
+**Test 2: Edit Program**
+1. Click edit button on any program
+2. Modify program details
+3. Add or remove exercises
+4. Click "Update Program"
+
+**Expected Result**:
+- ✅ Program updated
+- ✅ Changes visible in grid
+- ✅ Timestamp updated
+
+**Test 3: Delete Program**
+1. Click delete button
+2. Confirm deletion
+
+**Expected Result**:
+- ✅ Program removed from grid
+- ✅ Deleted from localStorage
+
+**Test 4: Validation**
+1. Try to create program without required fields
+2. Try to create program without exercises
+
+**Expected Result**:
+- ❌ Error messages displayed
+- ❌ Cannot submit
+
+**Test 5: Client Selection**
+1. Open create modal
+2. Select different clients
+3. Observe client display
+
+**Expected Result**:
+- ✅ Dropdown shows all members
+- ✅ Selected client displayed properly
+
+### Check Data in Console:
+
+```javascript
+// View all programs
+JSON.parse(localStorage.getItem('fithub_programs'))
+
+// View program creation emails
+JSON.parse(localStorage.getItem('fithub_sent_emails')).filter(e => e.subject.includes('Training Program'))
+```
+
+### Integration Points:
+
+**Current**:
+- ✅ Integrated into Trainer Dashboard
+- ✅ Uses database service for CRUD operations
+- ✅ Uses email service for notifications
+- ✅ Uses authentication for trainer identification
+
+**Future Enhancements** (Upcoming Steps):
+- 📋 Client view of assigned programs
+- 📋 Exercise completion tracking
+- 📋 Progress photos and notes
+- 📋 Program templates
+- 📋 Exercise library with videos
+- 📋 Weekly plan view
+- 📋 Print program functionality
+
+---
+
 ## 📋 Upcoming Steps:
 
-### STEP 9: Waitlist Management Enhancements
-- View waitlist position
-- Waitlist notifications dashboard
-- Waitlist analytics for admins
+### STEP 10: Client View of Training Programs
+- View assigned programs
+- Exercise completion tracking
+- Progress logging
+- Trainer feedback
 
-### STEP 6: Member Dashboard (UC-2 Book Class)
-- Class browsing
-- Class booking system
-- Waitlist management
-- Booking cancellation
+### STEP 11: Task Assignment System
+- Create and assign tasks
+- Task categories
+- Due dates and priorities
+- Task completion tracking
+
+### STEP 12: Campaign Management
+- Create marketing campaigns
+- Member targeting
+- Email campaigns
+- Campaign analytics
 
 ... and more!
 
@@ -1480,10 +1796,12 @@ JSON.parse(localStorage.getItem('fithub_sent_emails')).filter(e => e.subject.inc
 | 6 | ✅ | All | Protected Routes & Auth Guards |
 | 7 | ✅ | UC-2 | Class Management (Creation & Scheduling) |
 | 8 | ✅ | UC-2 | Class Booking System (Browse, Book, Cancel, Waitlist) |
-| 9 | 🔜 | UC-3 | Training Program Creation |
-| 10 | 🔜 | UC-4 | Task Assignment |
+| 9 | ✅ | UC-3 | Training Program Creation |
+| 10 | 🔜 | UC-3 | Client View of Training Programs |
+| 11 | 🔜 | UC-4 | Task Assignment System |
+| 12 | 🔜 | UC-5 | Campaign Management |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 8 (32%)  
-**Steps Remaining**: 17
+**Steps Completed**: 9 (36%)  
+**Steps Remaining**: 16

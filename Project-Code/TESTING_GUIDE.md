@@ -1775,11 +1775,377 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 - [x] Sessions saved and validated
 - [x] Classes saved in localStorage
 - [x] Class changes persist
-- [ ] Bookings saved in localStorage
-- [ ] Booking changes persist
+- [x] Bookings saved in localStorage
+- [x] Booking changes persist
+- [x] Training programs saved in localStorage
+- [x] Program changes persist
+
+---
+
+## ✅ STEP 9: Training Program Creation
+
+### Test Case: Access Training Programs (Trainer)
+1. Login as trainer (create one if needed, or use demo account)
+2. Navigate to "Training Programs" tab
+
+**Expected Result**:
+- ✅ Tab loads successfully
+- ✅ Shows empty state if no programs (or existing programs)
+- ✅ "Create Training Program" button visible
+
+### Test Case: Create Training Program (Full Flow)
+1. Click "Create Training Program"
+2. Fill in program details:
+   - **Name**: 6-Week Strength Builder
+   - **Description**: Build muscle and increase strength
+   - **Client**: Select a member from dropdown
+   - **Goal**: Muscle Building
+   - **Duration**: 6 weeks
+   - **Start Date**: Today's date
+   - **Notes**: Focus on compound movements
+3. Click "Add Exercise"
+4. Add first exercise:
+   - **Name**: Squats
+   - **Category**: Strength
+   - **Day**: Monday
+   - **Sets**: 4
+   - **Reps**: 8-10
+   - **Intensity**: High
+   - **Instructions**: Keep back straight, go below parallel
+5. Add second exercise:
+   - **Name**: Bench Press
+   - **Category**: Strength
+   - **Day**: Monday
+   - **Sets**: 4
+   - **Reps**: 8-10
+   - **Intensity**: High
+6. Add third exercise:
+   - **Name**: Deadlifts
+   - **Category**: Strength
+   - **Day**: Wednesday
+   - **Sets**: 3
+   - **Reps**: 5
+   - **Intensity**: High
+7. Click "Create Program"
+
+**Expected Result**:
+- ✅ Program created successfully
+- ✅ Appears in grid layout
+- ✅ Shows all program details (client, goal, duration, dates, exercise count)
+- ✅ Status badge shows "Active" (green)
+- ✅ Email sent to client
+- ✅ Saved to localStorage
+- ✅ Modal closes
+
+### Test Case: Validation on Create
+1. Click "Create Training Program"
+2. Try to submit without filling required fields
+
+**Expected Result**:
+- ❌ Error: "Please fill all required fields"
+- ❌ Cannot proceed
+
+3. Fill all fields except exercises
+4. Try to submit
+
+**Expected Result**:
+- ❌ Error: "Please add at least one exercise to the program"
+- ❌ Cannot create program without exercises
+
+### Test Case: Add Multiple Exercises
+1. Create program
+2. Add 5-6 different exercises with various categories:
+   - Cardio: Running (30 min duration)
+   - Strength: Squats (4 sets, 10 reps)
+   - Flexibility: Stretching (15 min duration)
+   - HIIT: Burpees (3 sets, 20 reps)
+
+**Expected Result**:
+- ✅ All exercises appear in list
+- ✅ Each exercise shows correct details
+- ✅ Category badges color-coded correctly
+- ✅ Can remove exercises individually
+
+### Test Case: Edit Training Program
+1. Click edit button on any program
+2. Modal opens with pre-filled data
+3. Change program name to "Updated Program Name"
+4. Add a new exercise
+5. Remove an existing exercise
+6. Change duration from 6 to 8 weeks
+7. Click "Update Program"
+
+**Expected Result**:
+- ✅ Program updated successfully
+- ✅ Changes visible in grid
+- ✅ Exercise count updated if changed
+- ✅ End date recalculated based on new duration
+- ✅ Updated timestamp saved
+
+### Test Case: Delete Training Program
+1. Click delete button on program card
+2. Confirmation modal appears
+3. Modal shows program name and warning
+4. Click "Delete Program"
+
+**Expected Result**:
+- ✅ Program removed from grid
+- ✅ Deleted from localStorage
+- ✅ Modal closes
+
+### Test Case: Cancel Delete
+1. Click delete button
+2. Click "Cancel" in modal
+
+**Expected Result**:
+- ✅ Modal closes
+- ✅ Program NOT deleted
+- ✅ Program still visible in grid
+
+### Test Case: Client Selection
+1. Create program
+2. Open client dropdown
+
+**Expected Result**:
+- ✅ Shows all members
+- ✅ No trainers/secretaries/managers in list
+- ✅ Client names displayed clearly
+
+3. Select a client
+
+**Expected Result**:
+- ✅ Client name appears in form
+- ✅ Client saved to program
+
+### Test Case: Goal Options
+1. Click "Goal" dropdown
+
+**Expected Result**:
+- ✅ 5 goals available:
+  - Weight Loss
+  - Muscle Building
+  - Endurance
+  - Flexibility
+  - General Fitness
+
+### Test Case: Exercise Categories
+1. Add exercise
+2. Click "Category" dropdown
+
+**Expected Result**:
+- ✅ 6 categories available:
+  - Cardio (blue badge)
+  - Strength (orange badge)
+  - Flexibility (green badge)
+  - Balance (purple badge)
+  - HIIT (red badge)
+  - Other (gray badge)
+
+### Test Case: Intensity Levels
+1. Add exercise
+2. Click "Intensity" dropdown
+
+**Expected Result**:
+- ✅ 3 levels available:
+  - Low (green)
+  - Medium (yellow)
+  - High (red)
+
+### Test Case: Exercise Day Assignment
+1. Add exercise
+2. Click "Day" dropdown
+
+**Expected Result**:
+- ✅ 7 days available (Monday - Sunday)
+- ✅ Plus "Daily" option
+
+### Test Case: Email Notification
+1. Create a training program
+2. Open DevTools → Application → Local Storage
+3. Check `fithub_sent_emails`
+
+**Expected Result**:
+```json
+{
+  "to": "client@example.com",
+  "subject": "New Training Program Assigned: [Program Name]",
+  "body": "Contains program details, exercises, trainer name",
+  "sentAt": "2026-05-27T..."
+}
+```
+
+### Test Case: Program Grid Display
+1. Create multiple programs (3-4)
+
+**Expected Result**:
+- ✅ Programs display in grid (3 columns on desktop, 2 on tablet, 1 on mobile)
+- ✅ Each card shows:
+  - Program name
+  - Client name with user icon
+  - Goal with target icon
+  - Duration (X weeks)
+  - Date range (start - end)
+  - Exercise count with dumbbell icon
+  - Status badge
+  - Edit and delete buttons
+
+### Test Case: Status Badge Colors
+1. View programs with different statuses
+
+**Expected Result**:
+- ✅ Active: Green badge
+- ✅ Completed: Blue badge
+- ✅ Cancelled: Red badge
+
+### Test Case: Empty State
+1. Delete all programs (or start fresh)
+
+**Expected Result**:
+- ✅ Shows dumbbell icon
+- ✅ "No Programs Yet" message
+- ✅ Helpful text about creating first program
+- ✅ "Create Training Program" button visible
+
+### Test Case: Date Calculations
+1. Create program with:
+   - Start date: 2026-05-27
+   - Duration: 6 weeks
+2. Check program card
+
+**Expected Result**:
+- ✅ End date calculated correctly (2026-07-08)
+- ✅ Displays as "May 27, 2026 - Jul 8, 2026"
+
+### Test Case: Exercise Instructions (Optional Field)
+1. Add exercise without instructions
+
+**Expected Result**:
+- ✅ Can create exercise without instructions
+- ✅ Instructions are optional
+
+2. Add exercise with detailed instructions
+
+**Expected Result**:
+- ✅ Instructions saved
+- ✅ Instructions visible in exercise list
+
+### Test Case: Sets/Reps vs Duration
+1. Add strength exercise with sets/reps (e.g., 4 sets, 10 reps)
+2. Add cardio exercise with duration (e.g., 30 min)
+
+**Expected Result**:
+- ✅ Both formats supported
+- ✅ Can use sets/reps for strength exercises
+- ✅ Can use duration for cardio/flexibility
+
+### Test Case: Multiple Programs for Same Client
+1. Create 2 different programs for the same client
+
+**Expected Result**:
+- ✅ Both programs created successfully
+- ✅ Client can have multiple programs
+- ✅ No conflicts
+
+### Test Case: Program Persistence
+1. Create a program
+2. Refresh page
+3. Navigate away and back to "Training Programs" tab
+4. Logout and login again
+
+**Expected Result**:
+- ✅ Program persists after page refresh
+- ✅ Program persists after navigation
+- ✅ Program persists after logout/login
+- ✅ All program data intact
+
+### Test Case: Remove Exercise from Program
+1. Edit a program
+2. Click "X" button on an exercise in the list
+
+**Expected Result**:
+- ✅ Exercise removed from list immediately
+- ✅ Exercise count decreases
+- ✅ Can still save program with fewer exercises
+
+### Test Case: Validation - Exercise Name Required
+1. Create program
+2. Try to add exercise without name
+
+**Expected Result**:
+- ❌ Error: "Exercise name is required"
+- ❌ Cannot add exercise
+
+### Test Case: Check Data in Console
+1. Create several programs
+2. Open DevTools → Console
+3. Run:
+   ```javascript
+   JSON.parse(localStorage.getItem('fithub_programs'))
+   ```
+
+**Expected Result**:
+```json
+[
+  {
+    "id": "...",
+    "name": "6-Week Strength Builder",
+    "description": "Build muscle...",
+    "trainerId": "...",
+    "trainerName": "Sarah Johnson",
+    "clientId": "...",
+    "clientName": "John Doe",
+    "goal": "Muscle Building",
+    "duration": 6,
+    "startDate": "2026-05-27",
+    "endDate": "2026-07-08",
+    "status": "Active",
+    "exercises": [...],
+    "notes": "Focus on compound movements",
+    "createdAt": "...",
+    "updatedAt": "..."
+  }
+]
+```
+
+### Test Case: Access Restriction (Member tries to access)
+1. Login as member
+2. Try to navigate to /trainer
+
+**Expected Result**:
+- ❌ Redirected to /login
+- ❌ Cannot access trainer dashboard
+- ❌ Cannot create programs
+
+---
+
+## 🔍 Final Testing Checklist (Step 9 Added)
+
+### Training Program Management
+- [x] Trainer can access Training Programs tab
+- [x] Create program with all required fields
+- [x] Add multiple exercises to program
+- [x] Edit existing program
+- [x] Delete program with confirmation
+- [x] Client selection works
+- [x] Goal selection works (5 options)
+- [x] Exercise categories work (6 options)
+- [x] Intensity levels work (3 options)
+- [x] Day assignment works (7 days + Daily)
+- [x] Sets/Reps fields work
+- [x] Duration field works
+- [x] Instructions field (optional)
+- [x] Email notification sent to client
+- [x] Programs display in grid layout
+- [x] Status badges color-coded
+- [x] Empty state displays correctly
+- [x] Date calculations correct
+- [x] Program data persists in localStorage
+- [x] Remove exercise from program works
+- [x] Validation prevents empty programs
+- [x] Members cannot access trainer features
 
 ---
 
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-8  
-**Total Test Cases**: 105+
+**Steps Tested**: 1-9  
+**Total Test Cases**: 140+
