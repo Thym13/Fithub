@@ -301,6 +301,66 @@ export interface CheckIn {
   createdAt: string;
 }
 
+export interface Meal {
+  id: string;
+  name: string;
+  type: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
+  description: string;
+  calories: number;
+  protein: number; // grams
+  carbs: number; // grams
+  fats: number; // grams
+  ingredients: string[];
+  instructions?: string;
+}
+
+export interface MealPlan {
+  id: string;
+  name: string;
+  description: string;
+  trainerId: string;
+  trainerName: string;
+  clientId: string;
+  clientName: string;
+  goal: 'Weight Loss' | 'Muscle Gain' | 'Maintenance' | 'Performance';
+  dailyCalories: number;
+  dailyProtein: number;
+  dailyCarbs: number;
+  dailyFats: number;
+  duration: number; // weeks
+  startDate: string;
+  endDate: string;
+  status: 'Active' | 'Completed' | 'Cancelled';
+  meals: { [day: string]: Meal[] }; // e.g., { "Monday": [meal1, meal2, ...] }
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NutritionLog {
+  id: string;
+  userId: string;
+  userName: string;
+  mealPlanId?: string;
+  date: string; // ISO date
+  meals: {
+    mealId?: string;
+    name: string;
+    type: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
+    calories: number;
+    protein: number;
+    carbs: number;
+    fats: number;
+  }[];
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFats: number;
+  waterIntake: number; // ml
+  notes?: string;
+  createdAt: string;
+}
+
 export class MockDatabase {
   private static instance: MockDatabase;
 
@@ -319,6 +379,8 @@ export class MockDatabase {
   private REVIEWS_KEY = 'fithub_reviews';
   private SUPPORT_TICKETS_KEY = 'fithub_support_tickets';
   private CHECKINS_KEY = 'fithub_checkins';
+  private MEAL_PLANS_KEY = 'fithub_meal_plans';
+  private NUTRITION_LOGS_KEY = 'fithub_nutrition_logs';
 
   static getInstance(): MockDatabase {
     if (!MockDatabase.instance) {
@@ -1732,6 +1794,332 @@ export class MockDatabase {
     return checkIns.reduce((sum, c) => sum + (c.duration || 0), 0);
   }
 
+  // Meal Plan Operations
+
+  private saveMealPlans(mealPlans: MealPlan[]): void {
+    localStorage.setItem(this.MEAL_PLANS_KEY, JSON.stringify(mealPlans));
+  }
+
+  getAllMealPlans(): MealPlan[] {
+    const mealPlans = localStorage.getItem(this.MEAL_PLANS_KEY);
+    return mealPlans ? JSON.parse(mealPlans) : [];
+  }
+
+  getMealPlanById(id: string): MealPlan | null {
+    const mealPlans = this.getAllMealPlans();
+    return mealPlans.find(m => m.id === id) || null;
+  }
+
+  getMealPlansByTrainer(trainerId: string): MealPlan[] {
+    const mealPlans = this.getAllMealPlans();
+    return mealPlans.filter(m => m.trainerId === trainerId);
+  }
+
+  getMealPlansByClient(clientId: string): MealPlan[] {
+    const mealPlans = this.getAllMealPlans();
+    return mealPlans.filter(m => m.clientId === clientId);
+  }
+
+  getActiveMealPlanForClient(clientId: string): MealPlan | null {
+    const mealPlans = this.getMealPlansByClient(clientId);
+    const active = mealPlans.filter(m => m.status === 'Active');
+    return active.length > 0 ? active[0] : null;
+  }
+
+  createMealPlan(data: {
+    name: string;
+    description: string;
+    trainerId: string;
+    trainerName: string;
+    clientId: string;
+    clientName: string;
+    goal: 'Weight Loss' | 'Muscle Gain' | 'Maintenance' | 'Performance';
+    dailyCalories: number;
+    dailyProtein: number;
+    dailyCarbs: number;
+    dailyFats: number;
+    duration: number;
+    startDate: string;
+    endDate: string;
+    meals?: { [day: string]: Meal[] };
+    notes?: string;
+  }): MealPlan {
+    const mealPlan: MealPlan = {
+      id: this.generateId(),
+      name: data.name,
+      description: data.description,
+      trainerId: data.trainerId,
+      trainerName: data.trainerName,
+      clientId: data.clientId,
+      clientName: data.clientName,
+      goal: data.goal,
+      dailyCalories: data.dailyCalories,
+      dailyProtein: data.dailyProtein,
+      dailyCarbs: data.dailyCarbs,
+      dailyFats: data.dailyFats,
+      duration: data.duration,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      status: 'Active',
+      meals: data.meals || {},
+      notes: data.notes,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const mealPlans = this.getAllMealPlans();
+    mealPlans.push(mealPlan);
+    this.saveMealPlans(mealPlans);
+
+    // Send notification to client
+    this.sendEmail({
+      to: data.clientName,
+      subject: 'New Meal Plan Created',
+      body: `Your trainer ${data.trainerName} has created a new meal plan for you: "${data.name}". Check it out in your dashboard!`,
+    });
+
+    return mealPlan;
+  }
+
+  updateMealPlan(id: string, updates: Partial<MealPlan>): MealPlan | null {
+    const mealPlans = this.getAllMealPlans();
+    const index = mealPlans.findIndex(m => m.id === id);
+
+    if (index === -1) return null;
+
+    mealPlans[index] = {
+      ...mealPlans[index],
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.saveMealPlans(mealPlans);
+    return mealPlans[index];
+  }
+
+  addMealToPlan(planId: string, day: string, meal: Meal): MealPlan | null {
+    const mealPlan = this.getMealPlanById(planId);
+    if (!mealPlan) return null;
+
+    if (!mealPlan.meals[day]) {
+      mealPlan.meals[day] = [];
+    }
+
+    mealPlan.meals[day].push(meal);
+    return this.updateMealPlan(planId, { meals: mealPlan.meals });
+  }
+
+  removeMealFromPlan(planId: string, day: string, mealId: string): MealPlan | null {
+    const mealPlan = this.getMealPlanById(planId);
+    if (!mealPlan || !mealPlan.meals[day]) return null;
+
+    mealPlan.meals[day] = mealPlan.meals[day].filter(m => m.id !== mealId);
+    return this.updateMealPlan(planId, { meals: mealPlan.meals });
+  }
+
+  completeMealPlan(id: string): MealPlan | null {
+    return this.updateMealPlan(id, { status: 'Completed' });
+  }
+
+  deleteMealPlan(id: string): boolean {
+    const mealPlans = this.getAllMealPlans();
+    const filtered = mealPlans.filter(m => m.id !== id);
+
+    if (filtered.length === mealPlans.length) {
+      return false;
+    }
+
+    this.saveMealPlans(filtered);
+    return true;
+  }
+
+  // Nutrition Log Operations
+
+  private saveNutritionLogs(logs: NutritionLog[]): void {
+    localStorage.setItem(this.NUTRITION_LOGS_KEY, JSON.stringify(logs));
+  }
+
+  getAllNutritionLogs(): NutritionLog[] {
+    const logs = localStorage.getItem(this.NUTRITION_LOGS_KEY);
+    return logs ? JSON.parse(logs) : [];
+  }
+
+  getNutritionLogById(id: string): NutritionLog | null {
+    const logs = this.getAllNutritionLogs();
+    return logs.find(l => l.id === id) || null;
+  }
+
+  getNutritionLogsByUser(userId: string): NutritionLog[] {
+    const logs = this.getAllNutritionLogs();
+    return logs.filter(l => l.userId === userId).sort((a, b) =>
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  }
+
+  getNutritionLogByDate(userId: string, date: string): NutritionLog | null {
+    const logs = this.getNutritionLogsByUser(userId);
+    return logs.find(l => l.date === date) || null;
+  }
+
+  getNutritionLogsByDateRange(userId: string, startDate: string, endDate: string): NutritionLog[] {
+    const logs = this.getNutritionLogsByUser(userId);
+    return logs.filter(l => {
+      const logDate = new Date(l.date);
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      return logDate >= start && logDate <= end;
+    });
+  }
+
+  createNutritionLog(data: {
+    userId: string;
+    userName: string;
+    mealPlanId?: string;
+    date: string;
+    meals: {
+      mealId?: string;
+      name: string;
+      type: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
+      calories: number;
+      protein: number;
+      carbs: number;
+      fats: number;
+    }[];
+    waterIntake?: number;
+    notes?: string;
+  }): NutritionLog {
+    const totalCalories = data.meals.reduce((sum, m) => sum + m.calories, 0);
+    const totalProtein = data.meals.reduce((sum, m) => sum + m.protein, 0);
+    const totalCarbs = data.meals.reduce((sum, m) => sum + m.carbs, 0);
+    const totalFats = data.meals.reduce((sum, m) => sum + m.fats, 0);
+
+    const log: NutritionLog = {
+      id: this.generateId(),
+      userId: data.userId,
+      userName: data.userName,
+      mealPlanId: data.mealPlanId,
+      date: data.date,
+      meals: data.meals,
+      totalCalories,
+      totalProtein,
+      totalCarbs,
+      totalFats,
+      waterIntake: data.waterIntake || 0,
+      notes: data.notes,
+      createdAt: new Date().toISOString(),
+    };
+
+    const logs = this.getAllNutritionLogs();
+    logs.push(log);
+    this.saveNutritionLogs(logs);
+
+    return log;
+  }
+
+  updateNutritionLog(id: string, updates: Partial<NutritionLog>): NutritionLog | null {
+    const logs = this.getAllNutritionLogs();
+    const index = logs.findIndex(l => l.id === id);
+
+    if (index === -1) return null;
+
+    // Recalculate totals if meals are updated
+    if (updates.meals) {
+      updates.totalCalories = updates.meals.reduce((sum, m) => sum + m.calories, 0);
+      updates.totalProtein = updates.meals.reduce((sum, m) => sum + m.protein, 0);
+      updates.totalCarbs = updates.meals.reduce((sum, m) => sum + m.carbs, 0);
+      updates.totalFats = updates.meals.reduce((sum, m) => sum + m.fats, 0);
+    }
+
+    logs[index] = {
+      ...logs[index],
+      ...updates,
+    };
+
+    this.saveNutritionLogs(logs);
+    return logs[index];
+  }
+
+  addMealToLog(logId: string, meal: {
+    mealId?: string;
+    name: string;
+    type: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
+    calories: number;
+    protein: number;
+    carbs: number;
+    fats: number;
+  }): NutritionLog | null {
+    const log = this.getNutritionLogById(logId);
+    if (!log) return null;
+
+    log.meals.push(meal);
+    return this.updateNutritionLog(logId, { meals: log.meals });
+  }
+
+  deleteNutritionLog(id: string): boolean {
+    const logs = this.getAllNutritionLogs();
+    const filtered = logs.filter(l => l.id !== id);
+
+    if (filtered.length === logs.length) {
+      return false;
+    }
+
+    this.saveNutritionLogs(filtered);
+    return true;
+  }
+
+  // Nutrition Analytics
+
+  getNutritionStats(userId: string, days: number = 7): {
+    averageCalories: number;
+    averageProtein: number;
+    averageCarbs: number;
+    averageFats: number;
+    averageWater: number;
+    totalLogs: number;
+    adherenceRate: number;
+  } {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const logs = this.getNutritionLogsByDateRange(
+      userId,
+      startDate.toISOString().split('T')[0],
+      endDate.toISOString().split('T')[0]
+    );
+
+    const totalLogs = logs.length;
+
+    if (totalLogs === 0) {
+      return {
+        averageCalories: 0,
+        averageProtein: 0,
+        averageCarbs: 0,
+        averageFats: 0,
+        averageWater: 0,
+        totalLogs: 0,
+        adherenceRate: 0,
+      };
+    }
+
+    const averageCalories = Math.round(logs.reduce((sum, l) => sum + l.totalCalories, 0) / totalLogs);
+    const averageProtein = Math.round(logs.reduce((sum, l) => sum + l.totalProtein, 0) / totalLogs);
+    const averageCarbs = Math.round(logs.reduce((sum, l) => sum + l.totalCarbs, 0) / totalLogs);
+    const averageFats = Math.round(logs.reduce((sum, l) => sum + l.totalFats, 0) / totalLogs);
+    const averageWater = Math.round(logs.reduce((sum, l) => sum + l.waterIntake, 0) / totalLogs);
+    const adherenceRate = Math.round((totalLogs / days) * 100);
+
+    return {
+      averageCalories,
+      averageProtein,
+      averageCarbs,
+      averageFats,
+      averageWater,
+      totalLogs,
+      adherenceRate,
+    };
+  }
+
   // Utility Methods
 
   generateId(): string {
@@ -1767,6 +2155,8 @@ export class MockDatabase {
     localStorage.removeItem(this.REVIEWS_KEY);
     localStorage.removeItem(this.SUPPORT_TICKETS_KEY);
     localStorage.removeItem(this.CHECKINS_KEY);
+    localStorage.removeItem(this.MEAL_PLANS_KEY);
+    localStorage.removeItem(this.NUTRITION_LOGS_KEY);
   }
 
   // Initialize demo data
@@ -2829,6 +3219,151 @@ export class MockDatabase {
         this.saveCheckIns(allCheckIns);
 
         console.log('✅ Demo check-ins initialized');
+      }
+    }
+
+    // Meal Plans and Nutrition Demo Data
+    const mealPlans = this.getAllMealPlans();
+    if (mealPlans.length === 0) {
+      const memberUser = users.find(u => u.role === 'member');
+      const trainerUser = users.find(u => u.role === 'trainer');
+
+      if (memberUser && trainerUser) {
+        // Create demo meal plan
+        const demoMealPlan = this.createMealPlan({
+          name: 'Muscle Building Nutrition Plan',
+          description: 'High-protein meal plan designed to support muscle growth and recovery',
+          trainerId: trainerUser.id,
+          trainerName: trainerUser.name,
+          clientId: memberUser.id,
+          clientName: memberUser.name,
+          goal: 'Muscle Gain',
+          dailyCalories: 2800,
+          dailyProtein: 180,
+          dailyCarbs: 300,
+          dailyFats: 80,
+          duration: 8,
+          startDate: '2026-05-01',
+          endDate: '2026-06-26',
+          notes: 'Focus on lean proteins, complex carbs, and healthy fats. Stay hydrated!',
+        });
+
+        // Add meals to the plan
+        const mondayMeals: Meal[] = [
+          {
+            id: this.generateId(),
+            name: 'Protein Oatmeal Bowl',
+            type: 'Breakfast',
+            description: 'Oatmeal with protein powder, banana, and almond butter',
+            calories: 550,
+            protein: 35,
+            carbs: 70,
+            fats: 15,
+            ingredients: ['Oats (1 cup)', 'Protein powder (1 scoop)', 'Banana (1 medium)', 'Almond butter (1 tbsp)', 'Cinnamon'],
+            instructions: 'Cook oats, mix in protein powder, top with sliced banana and almond butter',
+          },
+          {
+            id: this.generateId(),
+            name: 'Grilled Chicken & Rice',
+            type: 'Lunch',
+            description: 'Grilled chicken breast with brown rice and steamed vegetables',
+            calories: 700,
+            protein: 55,
+            carbs: 80,
+            fats: 12,
+            ingredients: ['Chicken breast (200g)', 'Brown rice (1 cup cooked)', 'Broccoli (1 cup)', 'Olive oil (1 tsp)'],
+            instructions: 'Grill chicken, cook rice, steam broccoli, season to taste',
+          },
+          {
+            id: this.generateId(),
+            name: 'Greek Yogurt & Berries',
+            type: 'Snack',
+            description: 'High-protein greek yogurt with mixed berries and honey',
+            calories: 250,
+            protein: 20,
+            carbs: 35,
+            fats: 5,
+            ingredients: ['Greek yogurt (200g)', 'Mixed berries (1 cup)', 'Honey (1 tsp)'],
+          },
+          {
+            id: this.generateId(),
+            name: 'Salmon & Sweet Potato',
+            type: 'Dinner',
+            description: 'Baked salmon with roasted sweet potato and asparagus',
+            calories: 650,
+            protein: 50,
+            carbs: 60,
+            fats: 20,
+            ingredients: ['Salmon fillet (200g)', 'Sweet potato (1 large)', 'Asparagus (1 cup)', 'Lemon', 'Herbs'],
+            instructions: 'Bake salmon and sweet potato, roast asparagus, season with lemon and herbs',
+          },
+        ];
+
+        this.updateMealPlan(demoMealPlan.id, {
+          meals: {
+            Monday: mondayMeals,
+            Tuesday: mondayMeals, // Reuse for demo
+            Wednesday: mondayMeals,
+            Thursday: mondayMeals,
+            Friday: mondayMeals,
+            Saturday: mondayMeals,
+            Sunday: mondayMeals,
+          },
+        });
+
+        // Create demo nutrition logs for the past 3 days
+        const today = new Date();
+
+        for (let i = 0; i < 3; i++) {
+          const logDate = new Date(today);
+          logDate.setDate(logDate.getDate() - i);
+          const dateStr = logDate.toISOString().split('T')[0];
+
+          this.createNutritionLog({
+            userId: memberUser.id,
+            userName: memberUser.name,
+            mealPlanId: demoMealPlan.id,
+            date: dateStr,
+            meals: [
+              {
+                name: 'Protein Oatmeal Bowl',
+                type: 'Breakfast',
+                calories: 550,
+                protein: 35,
+                carbs: 70,
+                fats: 15,
+              },
+              {
+                name: 'Grilled Chicken & Rice',
+                type: 'Lunch',
+                calories: 700,
+                protein: 55,
+                carbs: 80,
+                fats: 12,
+              },
+              {
+                name: 'Greek Yogurt & Berries',
+                type: 'Snack',
+                calories: 250,
+                protein: 20,
+                carbs: 35,
+                fats: 5,
+              },
+              {
+                name: 'Salmon & Sweet Potato',
+                type: 'Dinner',
+                calories: 650,
+                protein: 50,
+                carbs: 60,
+                fats: 20,
+              },
+            ],
+            waterIntake: 2500, // 2.5L
+            notes: i === 0 ? 'Felt great today! Energy levels were high.' : undefined,
+          });
+        }
+
+        console.log('✅ Demo meal plans and nutrition logs initialized');
       }
     }
   }

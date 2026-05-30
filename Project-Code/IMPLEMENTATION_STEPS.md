@@ -3774,6 +3774,275 @@ The dashboard aggregates data from:
 
 ---
 
+## ✅ STEP 21: Nutrition & Meal Planning System (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: Additional Feature - Nutrition and Meal Planning  
+**Reference**: Extends training program functionality with nutrition support
+
+### Overview:
+
+A comprehensive nutrition and meal planning system that enables trainers to create customized meal plans for clients and helps members track their daily nutrition intake. This feature integrates with the training program system to provide a complete fitness solution.
+
+### Files Added:
+
+1. **`src/app/components/member-nutrition.tsx`** - Member nutrition tracking interface
+   - ✅ Active meal plan overview
+   - ✅ Daily macro targets display (calories, protein, carbs, fats)
+   - ✅ Today's nutrition progress with visual progress bars
+   - ✅ 7-day nutrition summary with averages
+   - ✅ Weekly meal plan viewer with day selector
+   - ✅ Detailed meal cards with ingredients and instructions
+   - ✅ Nutrition logging modal
+   - ✅ Water intake tracking
+   - ✅ Notes section for each log
+   - ✅ Empty state handling for no active meal plan
+   - ✅ Adherence rate calculation
+
+### Files Modified:
+
+1. **`src/app/services/database.ts`**
+   - ✅ Added `Meal` interface (name, type, calories, protein, carbs, fats, ingredients, instructions)
+   - ✅ Added `MealPlan` interface (trainer-created plan with daily macro targets and weekly meals)
+   - ✅ Added `NutritionLog` interface (daily nutrition tracking with meals and totals)
+   - ✅ Added `MEAL_PLANS_KEY` and `NUTRITION_LOGS_KEY` storage constants
+   
+   **Meal Plan Operations**:
+   - ✅ `createMealPlan()` - Create new meal plan with trainer/client assignment
+   - ✅ `getMealPlansByTrainer()` - Retrieve all plans created by a trainer
+   - ✅ `getMealPlansByClient()` - Retrieve all plans for a client
+   - ✅ `getActiveMealPlanForClient()` - Get current active meal plan
+   - ✅ `updateMealPlan()` - Update meal plan details
+   - ✅ `addMealToPlan()` - Add meal to specific day in plan
+   - ✅ `removeMealFromPlan()` - Remove meal from plan
+   - ✅ `completeMealPlan()` - Mark plan as completed
+   - ✅ `deleteMealPlan()` - Delete meal plan
+   
+   **Nutrition Log Operations**:
+   - ✅ `createNutritionLog()` - Create daily nutrition log
+   - ✅ `getNutritionLogsByUser()` - Get all logs for a user
+   - ✅ `getNutritionLogByDate()` - Get log for specific date
+   - ✅ `getNutritionLogsByDateRange()` - Get logs within date range
+   - ✅ `updateNutritionLog()` - Update existing log
+   - ✅ `addMealToLog()` - Add meal to daily log
+   - ✅ `deleteNutritionLog()` - Delete nutrition log
+   
+   **Analytics**:
+   - ✅ `getNutritionStats()` - Calculate 7-day averages and adherence rate
+   
+   **Demo Data**:
+   - ✅ 1 complete meal plan with 4 meals per day for all 7 days
+   - ✅ 3 nutrition logs for the past 3 days
+   - ✅ Realistic meal data (Scrambled Eggs, Grilled Chicken Salad, Baked Salmon, etc.)
+   - ✅ Accurate macro calculations
+
+2. **`src/app/components/member-dashboard-complete.tsx`**
+   - ✅ Added import for `MemberNutrition` component
+   - ✅ Added "Nutrition Plan" tab to memberTabs array
+   - ✅ Added TabsContent section for nutrition view
+
+### Features Implemented:
+
+**1. Meal Plan Management**:
+- 📋 Trainer-created customized meal plans
+- 🎯 Goal-specific nutrition (Weight Loss, Muscle Gain, Maintenance, Performance)
+- 📅 Weekly meal organization (7 days)
+- 🍽️ Multiple meals per day (Breakfast, Lunch, Dinner, Snack)
+- 📊 Daily macro targets (calories, protein, carbs, fats)
+- 📝 Meal ingredients and cooking instructions
+- ⏰ Duration-based plans with start/end dates
+- ✅ Plan status tracking (Active, Completed, Cancelled)
+
+**2. Member Nutrition Tracking**:
+- 🔍 View active meal plan overview
+- 📈 Today's nutrition progress with visual indicators
+- 📊 7-day nutrition summary with averages
+- 📅 Weekly meal plan viewer with day selector
+- 🍽️ Detailed meal information cards
+- 💧 Water intake tracking
+- 📝 Daily notes for nutrition logs
+- 📊 Adherence rate calculation (comparing actual vs targets)
+
+**3. Data Models**:
+
+**Meal Interface**:
+```typescript
+{
+  id: string;
+  name: string;
+  type: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
+  description: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  ingredients: string[];
+  instructions?: string;
+}
+```
+
+**MealPlan Interface**:
+```typescript
+{
+  id: string;
+  name: string;
+  description: string;
+  trainerId: string;
+  trainerName: string;
+  clientId: string;
+  clientName: string;
+  goal: 'Weight Loss' | 'Muscle Gain' | 'Maintenance' | 'Performance';
+  dailyCalories: number;
+  dailyProtein: number;
+  dailyCarbs: number;
+  dailyFats: number;
+  duration: number; // days
+  startDate: string;
+  endDate: string;
+  status: 'Active' | 'Completed' | 'Cancelled';
+  meals: { [day: string]: Meal[] }; // Organized by day of week
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+**NutritionLog Interface**:
+```typescript
+{
+  id: string;
+  userId: string;
+  userName: string;
+  mealPlanId?: string;
+  date: string;
+  meals: Array<{
+    mealId?: string;
+    name: string;
+    type: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
+    calories: number;
+    protein: number;
+    carbs: number;
+    fats: number;
+  }>;
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFats: number;
+  waterIntake: number; // glasses
+  notes?: string;
+  createdAt: string;
+}
+```
+
+### Business Value:
+
+1. **Holistic Fitness Approach**: Combines workout programs with nutrition planning
+2. **Client Results**: Better outcomes through integrated training and nutrition
+3. **Trainer Value**: Adds nutrition planning to trainer services
+4. **Member Engagement**: Daily nutrition tracking keeps members engaged
+5. **Accountability**: Adherence tracking helps members stay on track
+6. **Personalization**: Goal-specific meal plans for each client
+7. **Progress Visibility**: 7-day summaries show nutrition trends
+8. **Educational**: Ingredient lists and instructions educate members
+
+### User Experience:
+
+**Member Workflow**:
+1. Member navigates to "Nutrition Plan" tab
+2. Views active meal plan overview with daily targets
+3. Checks today's nutrition progress
+4. Reviews 7-day nutrition summary
+5. Browses weekly meal plan by day
+6. Logs today's meals with macro information
+7. Tracks water intake
+8. Adds notes about nutrition experience
+9. Monitors adherence rate over time
+
+**Visual Design**:
+- Clean card-based layout
+- Color-coded progress bars (green for on-track progress)
+- Tab navigation for day selection
+- Macro breakdown in grid layout
+- Detailed meal cards with ingredients
+- Empty state for no active plan
+- Badge indicators for meal types
+- Water glass icons for intake tracking
+
+**Progress Tracking**:
+- Real-time progress bars for macros
+- Percentage calculations vs targets
+- 7-day averages (calories, protein, carbs, fats)
+- Adherence rate calculation
+- Visual feedback on goal alignment
+
+### Technical Implementation:
+
+**Component Architecture**:
+- React functional component with hooks
+- State management for day selection and modals
+- useEffect for data loading
+- Conditional rendering for empty states
+- Progress bar calculations
+
+**Data Management**:
+- localStorage-based persistence
+- CRUD operations for meal plans
+- CRUD operations for nutrition logs
+- Date-based filtering
+- Aggregation calculations (7-day averages)
+- Adherence rate formula: (actual / target) * 100
+
+**User Interface**:
+- Responsive grid layouts
+- Card-based organization
+- Interactive day selector
+- Modal forms for logging
+- Progress visualization
+- Icon usage (Apple, Flame, Drumstick, Wheat, Droplets)
+
+### Future Enhancements:
+
+**Trainer Interface**:
+- Create trainer meal planning component
+- Meal plan templates library
+- Recipe database
+- Meal plan assignment workflow
+- Client nutrition progress dashboard
+- Meal plan editing and versioning
+- Bulk meal operations
+
+**Advanced Features**:
+- Barcode scanning for food items
+- Food database integration (USDA, etc.)
+- Meal photo uploads
+- Calorie calculator
+- Macro calculator based on goals
+- Recipe sharing between trainers
+- Shopping list generation
+- Meal prep instructions
+- Portion size guidance
+- Micronutrient tracking (vitamins, minerals)
+- Hydration reminders
+- Meal timing recommendations
+- Restaurant meal database
+
+**Analytics**:
+- Long-term nutrition trends
+- Correlation with weight progress
+- Macro distribution charts
+- Compliance reports
+- Goal achievement tracking
+- Comparison with training intensity
+
+**Integrations**:
+- Fitness tracker sync (calories burned)
+- Smart scale integration
+- MyFitnessPal import
+- Recipe API integration
+- Grocery delivery services
+
+---
+
 ## 📋 Upcoming Steps:
 
 ... and more!
@@ -3804,8 +4073,9 @@ The dashboard aggregates data from:
 | 18 | ✅ | Additional | Member Profile Management |
 | 19 | ✅ | Additional | Member Check-In System |
 | 20 | ✅ | Additional | Manager Analytics Dashboard |
+| 21 | ✅ | Additional | Nutrition & Meal Planning System |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 20 (80%)  
-**Steps Remaining**: 5
+**Steps Completed**: 21 (84%)  
+**Steps Remaining**: 4

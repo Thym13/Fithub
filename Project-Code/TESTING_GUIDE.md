@@ -6013,6 +6013,506 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 
 ---
 
+## STEP 21: Nutrition & Meal Planning System (30 Test Cases)
+
+### Test Case 21.1: View Active Meal Plan Overview
+
+**Steps**:
+1. Login as member with active meal plan
+2. Navigate to "Nutrition Plan" tab
+3. View meal plan overview section
+
+**Expected Result**:
+- ✅ Active meal plan name displayed
+- ✅ Goal type shown (Weight Loss, Muscle Gain, etc.)
+- ✅ Trainer name visible
+- ✅ Daily calorie target displayed
+- ✅ Daily protein target displayed
+- ✅ Daily carbs target displayed
+- ✅ Daily fats target displayed
+- ✅ Plan dates shown (start/end)
+
+### Test Case 21.2: View Today's Nutrition Progress
+
+**Steps**:
+1. Member has logged meals for today
+2. View "Today's Progress" section
+3. Check macro progress bars
+
+**Expected Result**:
+- ✅ Calories consumed displayed
+- ✅ Calories target shown
+- ✅ Progress bar shows percentage
+- ✅ Protein progress displayed
+- ✅ Carbs progress displayed
+- ✅ Fats progress displayed
+- ✅ All percentages calculated correctly
+- ✅ Color coding appropriate (green for on-track)
+
+### Test Case 21.3: View 7-Day Nutrition Summary
+
+**Steps**:
+1. Member has logs for past 7 days
+2. Scroll to "7-Day Summary" section
+3. View statistics
+
+**Expected Result**:
+- ✅ Average calories displayed
+- ✅ Average protein displayed
+- ✅ Average carbs displayed
+- ✅ Average fats displayed
+- ✅ Adherence rate shown as percentage
+- ✅ Calculations based on last 7 days of logs
+- ✅ Values accurate vs nutrition logs
+
+### Test Case 21.4: Browse Weekly Meal Plan
+
+**Steps**:
+1. View "This Week's Meal Plan" section
+2. Click through day tabs (Monday-Sunday)
+3. Check meal listings
+
+**Expected Result**:
+- ✅ 7 day tabs displayed
+- ✅ Current day pre-selected
+- ✅ Meals for selected day shown
+- ✅ Breakfast, Lunch, Dinner, Snack separated
+- ✅ Meal names displayed
+- ✅ Macro information shown per meal
+- ✅ Day tabs switch content correctly
+
+### Test Case 21.5: View Meal Details
+
+**Steps**:
+1. Select a day in meal plan
+2. View meal cards
+3. Check detailed information
+
+**Expected Result**:
+- ✅ Meal name displayed
+- ✅ Meal type badge shown (Breakfast, Lunch, etc.)
+- ✅ Description present
+- ✅ Calories listed
+- ✅ Protein (g) listed
+- ✅ Carbs (g) listed
+- ✅ Fats (g) listed
+- ✅ Ingredients list displayed
+- ✅ Instructions shown (if available)
+
+### Test Case 21.6: View Meal Ingredients
+
+**Steps**:
+1. Open a meal card
+2. View ingredients section
+3. Check ingredient details
+
+**Expected Result**:
+- ✅ Ingredients list displayed
+- ✅ All ingredients shown
+- ✅ Formatted as bullet list
+- ✅ Readable and clear
+- ✅ Quantities included
+
+### Test Case 21.7: Open Log Meals Modal
+
+**Steps**:
+1. Click "Log Today's Meals" button
+2. Modal should open
+3. Check modal contents
+
+**Expected Result**:
+- ✅ Modal opens successfully
+- ✅ "Log Meals for Today" title shown
+- ✅ Date displayed
+- ✅ Water intake field present
+- ✅ Notes textarea present
+- ✅ Cancel button present
+- ✅ Save Log button present
+
+### Test Case 21.8: Log Water Intake
+
+**Steps**:
+1. Open log meals modal
+2. Enter water intake (e.g., 8 glasses)
+3. Save log
+4. Check saved data
+
+**Expected Result**:
+- ✅ Water intake field accepts numbers
+- ✅ Value saves correctly
+- ✅ Displays in nutrition log
+- ✅ Modal closes after save
+- ✅ Success feedback shown
+
+### Test Case 21.9: Add Notes to Nutrition Log
+
+**Steps**:
+1. Open log meals modal
+2. Enter notes (e.g., "Felt energized all day")
+3. Save log
+4. Retrieve log
+
+**Expected Result**:
+- ✅ Notes field accepts text
+- ✅ Text saves correctly
+- ✅ Notes stored in log
+- ✅ Can view notes later
+- ✅ Character limit appropriate
+
+### Test Case 21.10: Empty State - No Active Meal Plan
+
+**Steps**:
+1. Login as member without meal plan
+2. Navigate to Nutrition Plan tab
+3. View empty state
+
+**Expected Result**:
+- ✅ Empty state message displayed
+- ✅ "No active meal plan" text shown
+- ✅ Helpful message present
+- ✅ Suggestion to contact trainer
+- ✅ No error thrown
+- ✅ UI gracefully handles empty state
+
+### Test Case 21.11: Create Meal Plan (Database)
+
+**Steps**:
+1. Call `createMealPlan()` with valid data
+2. Include trainer, client, goals, macros
+3. Retrieve created plan
+
+**Expected Result**:
+- ✅ Plan created successfully
+- ✅ Unique ID generated
+- ✅ All fields saved correctly
+- ✅ Status set to 'Active'
+- ✅ Created/updated timestamps set
+- ✅ Empty meals object initialized
+- ✅ Retrievable by ID
+
+### Test Case 21.12: Add Meal to Plan
+
+**Steps**:
+1. Create meal plan
+2. Call `addMealToPlan()` with meal data
+3. Specify day (Monday-Sunday)
+4. Retrieve plan
+
+**Expected Result**:
+- ✅ Meal added to correct day
+- ✅ Meal appears in meals array for that day
+- ✅ Meal data preserved
+- ✅ Other days unaffected
+- ✅ Multiple meals can be added per day
+- ✅ updatedAt timestamp refreshed
+
+### Test Case 21.13: Remove Meal from Plan
+
+**Steps**:
+1. Plan with multiple meals
+2. Call `removeMealFromPlan()` for specific meal
+3. Verify removal
+
+**Expected Result**:
+- ✅ Specified meal removed
+- ✅ Other meals remain
+- ✅ Day structure preserved
+- ✅ No errors thrown
+- ✅ updatedAt timestamp updated
+
+### Test Case 21.14: Get Active Meal Plan for Client
+
+**Steps**:
+1. Create multiple meal plans for client
+2. Set one as 'Active', others 'Completed'
+3. Call `getActiveMealPlanForClient()`
+
+**Expected Result**:
+- ✅ Returns only active plan
+- ✅ Completed plans ignored
+- ✅ Cancelled plans ignored
+- ✅ Correct plan returned
+- ✅ Returns undefined if no active plan
+
+### Test Case 21.15: Get Meal Plans by Trainer
+
+**Steps**:
+1. Trainer creates plans for 3 clients
+2. Another trainer creates plans
+3. Call `getMealPlansByTrainer()` for first trainer
+
+**Expected Result**:
+- ✅ Returns all plans by that trainer
+- ✅ Other trainers' plans excluded
+- ✅ Count: 3 plans
+- ✅ Client names visible
+- ✅ All statuses included
+
+### Test Case 21.16: Create Nutrition Log
+
+**Steps**:
+1. Call `createNutritionLog()` with meal data
+2. Include multiple meals
+3. Include water intake and notes
+4. Retrieve log
+
+**Expected Result**:
+- ✅ Log created successfully
+- ✅ Unique ID assigned
+- ✅ All meals saved
+- ✅ Total macros calculated correctly
+- ✅ Water intake saved
+- ✅ Notes saved
+- ✅ Date set correctly
+- ✅ Timestamp created
+
+### Test Case 21.17: Get Nutrition Log by Date
+
+**Steps**:
+1. Create logs for different dates
+2. Call `getNutritionLogByDate()` for specific date
+3. Check returned log
+
+**Expected Result**:
+- ✅ Returns correct date's log
+- ✅ Other dates' logs not returned
+- ✅ Returns undefined if no log for date
+- ✅ Date matching works correctly
+
+### Test Case 21.18: Get Nutrition Logs by Date Range
+
+**Steps**:
+1. Create logs for 10 days
+2. Call `getNutritionLogsByDateRange()` for 7-day range
+3. Check results
+
+**Expected Result**:
+- ✅ Returns logs within range
+- ✅ Logs outside range excluded
+- ✅ Count: 7 logs
+- ✅ Sorted by date (newest first)
+- ✅ All log data intact
+
+### Test Case 21.19: Calculate Nutrition Stats
+
+**Steps**:
+1. Create 7 nutrition logs
+2. Vary calorie/macro intake
+3. User has active meal plan with targets
+4. Call `getNutritionStats()`
+
+**Expected Result**:
+- ✅ 7-day average calories calculated
+- ✅ 7-day average protein calculated
+- ✅ 7-day average carbs calculated
+- ✅ 7-day average fats calculated
+- ✅ Adherence rate calculated correctly
+- ✅ Formula: (actual/target) * 100
+- ✅ Returns 0 if no logs
+
+### Test Case 21.20: Adherence Rate Calculation
+
+**Steps**:
+1. Meal plan target: 2000 calories/day
+2. Logs average: 1800 calories/day
+3. Calculate adherence
+
+**Expected Result**:
+- ✅ Adherence rate: 90%
+- ✅ Calculation: (1800/2000) * 100
+- ✅ Shown as percentage
+- ✅ Rounded appropriately
+- ✅ Displayed in UI
+
+### Test Case 21.21: Update Nutrition Log
+
+**Steps**:
+1. Create nutrition log
+2. Call `updateNutritionLog()` with changes
+3. Modify water intake and notes
+4. Retrieve log
+
+**Expected Result**:
+- ✅ Log updated successfully
+- ✅ New values saved
+- ✅ Original data preserved where not changed
+- ✅ ID unchanged
+- ✅ Retrievable with new data
+
+### Test Case 21.22: Add Meal to Existing Log
+
+**Steps**:
+1. Log has 2 meals
+2. Call `addMealToLog()` with 3rd meal
+3. Check log
+
+**Expected Result**:
+- ✅ 3rd meal added to meals array
+- ✅ Original meals preserved
+- ✅ Total macros recalculated
+- ✅ New totals include all 3 meals
+- ✅ Calories sum correctly
+- ✅ Protein/carbs/fats sum correctly
+
+### Test Case 21.23: Complete Meal Plan
+
+**Steps**:
+1. Active meal plan with duration 30 days
+2. 30 days pass
+3. Call `completeMealPlan()`
+4. Check status
+
+**Expected Result**:
+- ✅ Status changed to 'Completed'
+- ✅ All other data preserved
+- ✅ updatedAt refreshed
+- ✅ No longer returned by getActiveMealPlanForClient
+- ✅ Still retrievable by ID
+
+### Test Case 21.24: Demo Data - Meal Plan
+
+**Steps**:
+1. Clear database
+2. Initialize demo data
+3. Check for demo meal plan
+
+**Expected Result**:
+- ✅ 1 meal plan created
+- ✅ Plan assigned to demo member
+- ✅ Created by demo trainer
+- ✅ Status: Active
+- ✅ All 7 days have meals
+- ✅ Each day has 4 meals (Breakfast, Lunch, Dinner, Snack)
+- ✅ Realistic meal names and macros
+
+### Test Case 21.25: Demo Data - Nutrition Logs
+
+**Steps**:
+1. Initialize demo data
+2. Check nutrition logs
+3. Verify dates
+
+**Expected Result**:
+- ✅ 3 nutrition logs created
+- ✅ Logs for past 3 days
+- ✅ Each log has multiple meals
+- ✅ Water intake included
+- ✅ Totals calculated correctly
+- ✅ Linked to demo member
+
+### Test Case 21.26: Macro Progress Bars
+
+**Steps**:
+1. Today's log: 1500 cal, 100g protein
+2. Target: 2000 cal, 150g protein
+3. View progress section
+
+**Expected Result**:
+- ✅ Calories: 75% progress bar
+- ✅ Protein: 67% progress bar
+- ✅ Progress bars colored appropriately
+- ✅ Percentage text shown
+- ✅ Consumed/target values displayed
+- ✅ Visual feedback clear
+
+### Test Case 21.27: Weekly Meal Plan Tab Switching
+
+**Steps**:
+1. View Monday's meals
+2. Click Tuesday tab
+3. Click Sunday tab
+4. Navigate through all days
+
+**Expected Result**:
+- ✅ Monday meals shown initially
+- ✅ Tuesday meals shown after click
+- ✅ Sunday meals shown after click
+- ✅ Each day's meals unique
+- ✅ No lag or delay
+- ✅ Tab highlights active day
+- ✅ Content updates immediately
+
+### Test Case 21.28: Meal Type Badges
+
+**Steps**:
+1. View meals for any day
+2. Check meal type indicators
+3. Verify badge display
+
+**Expected Result**:
+- ✅ Breakfast badge: blue
+- ✅ Lunch badge: green
+- ✅ Dinner badge: orange
+- ✅ Snack badge: purple
+- ✅ All badges visible
+- ✅ Color coding consistent
+- ✅ Text readable
+
+### Test Case 21.29: Integration - Member Dashboard
+
+**Steps**:
+1. Login as member
+2. Navigate to member dashboard
+3. Check for Nutrition Plan tab
+
+**Expected Result**:
+- ✅ "Nutrition Plan" tab visible
+- ✅ Tab in correct position (after Progress)
+- ✅ Tab clickable
+- ✅ Nutrition component loads
+- ✅ Data displays correctly
+- ✅ No navigation errors
+
+### Test Case 21.30: Data Persistence
+
+**Steps**:
+1. Create meal plan and logs
+2. Refresh browser
+3. Check data still exists
+
+**Expected Result**:
+- ✅ Meal plan persists
+- ✅ Nutrition logs persist
+- ✅ All data intact
+- ✅ localStorage working
+- ✅ No data loss
+- ✅ Relationships preserved
+
+### Quick Checklist for Step 21:
+
+- [x] Member can view active meal plan
+- [x] Daily macro targets displayed
+- [x] Today's nutrition progress shown
+- [x] Progress bars functional
+- [x] 7-day nutrition summary calculated
+- [x] Adherence rate displayed
+- [x] Weekly meal plan viewer works
+- [x] Day tabs switch content
+- [x] Meal details shown (name, type, macros)
+- [x] Ingredients list displayed
+- [x] Instructions shown
+- [x] Log meals modal opens
+- [x] Water intake tracking works
+- [x] Notes can be added
+- [x] Empty state handled gracefully
+- [x] Meal plan CRUD operations work
+- [x] Nutrition log CRUD operations work
+- [x] Add meal to plan functional
+- [x] Remove meal from plan functional
+- [x] Get active plan works
+- [x] Get plans by trainer works
+- [x] Get logs by date works
+- [x] Get logs by date range works
+- [x] Nutrition stats calculation accurate
+- [x] Demo data created correctly
+- [x] Macro progress calculations correct
+- [x] Meal type badges displayed
+- [x] Integration with member dashboard
+- [x] Data persists in localStorage
+- [x] No performance issues
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-20  
-**Total Test Cases**: 410+
+**Steps Tested**: 1-21  
+**Total Test Cases**: 440+
