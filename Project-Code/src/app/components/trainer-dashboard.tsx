@@ -35,6 +35,8 @@ import { ClientProgressTracking } from './client-progress-tracking';
 import { TrainingProgramManagement } from './training-program-management';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { MockDatabase } from '../services/database';
+import { authService } from '../services/auth';
 
 const trainerTabs = [
   { id: 'clients', label: 'My Clients', path: '#clients' },
@@ -144,32 +146,17 @@ export function TrainerDashboard() {
   const [showTaskAlert, setShowTaskAlert] = useState(true);
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [showTaskDetails, setShowTaskDetails] = useState(false);
-  const [myTasks, setMyTasks] = useState([
-    {
-      id: '1',
-      title: 'Update Class Schedule Board',
-      description: 'Update the weekly class schedule on the main board',
-      type: 'Administrative',
-      assignedBy: 'Manager - John Smith',
-      deadline: '2026-04-25',
-      frequency: 'Weekly',
-      status: 'Pending',
-      assignedAt: '2026-04-22 09:00 AM',
-      isNew: true
-    },
-    {
-      id: '2',
-      title: 'Equipment Maintenance Check',
-      description: 'Inspect all cardio and strength equipment for safety and functionality',
-      type: 'Maintenance',
-      assignedBy: 'Manager - John Smith',
-      deadline: '2026-04-24',
-      frequency: 'Weekly',
-      status: 'In Progress',
-      assignedAt: '2026-04-20 10:30 AM',
-      isNew: false
+  const [myTasks, setMyTasks] = useState<any[]>([]);
+
+  // Load tasks from database
+  useEffect(() => {
+    const user = authService.getCurrentUser();
+    if (user) {
+      const db = MockDatabase.getInstance();
+      const tasks = db.getTasksByAssignee(user.id);
+      setMyTasks(tasks);
     }
-  ]);
+  }, []);
 
   // Mock exercises list
   const exercisesList = [
@@ -1197,7 +1184,7 @@ export function TrainerDashboard() {
                           <div>Frequency: {task.frequency}</div>
                         </div>
                         <p className="text-xs text-gray-500">
-                          Assigned by {task.assignedBy} on {task.assignedAt}
+                          Assigned by {task.assignedByName} on {new Date(task.assignedAt).toLocaleString('en-GB')}
                         </p>
                       </div>
                       <div className="flex gap-2">
@@ -1216,6 +1203,8 @@ export function TrainerDashboard() {
                           <Button
                             size="sm"
                             onClick={() => {
+                              const db = MockDatabase.getInstance();
+                              db.updateTask(task.id, { status: 'In Progress', isNew: false });
                               const updatedTasks = myTasks.map(t =>
                                 t.id === task.id ? { ...t, status: 'In Progress', isNew: false } : t
                               );
@@ -1231,8 +1220,10 @@ export function TrainerDashboard() {
                             size="sm"
                             className="bg-green-600 hover:bg-green-700"
                             onClick={() => {
+                              const db = MockDatabase.getInstance();
+                              db.updateTask(task.id, { status: 'Completed', completedAt: new Date().toISOString(), isNew: false });
                               const updatedTasks = myTasks.map(t =>
-                                t.id === task.id ? { ...t, status: 'Completed', completedAt: new Date().toLocaleString(), isNew: false } : t
+                                t.id === task.id ? { ...t, status: 'Completed', completedAt: new Date().toISOString(), isNew: false } : t
                               );
                               setMyTasks(updatedTasks);
                               setSuccessMessage('Task marked as completed!');
@@ -1317,8 +1308,8 @@ export function TrainerDashboard() {
                     </div>
                     <div>
                       <Label className="text-gray-500">Assigned By</Label>
-                      <p className="font-medium">{selectedTask.assignedBy}</p>
-                      <p className="text-xs text-gray-500 mt-1">on {selectedTask.assignedAt}</p>
+                      <p className="font-medium">{selectedTask.assignedByName}</p>
+                      <p className="text-xs text-gray-500 mt-1">on {new Date(selectedTask.assignedAt).toLocaleString('en-GB')}</p>
                     </div>
                     {selectedTask.completedAt && (
                       <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -1342,8 +1333,10 @@ export function TrainerDashboard() {
                         <Button
                           className="flex-1 bg-green-600 hover:bg-green-700"
                           onClick={() => {
+                            const db = MockDatabase.getInstance();
+                            db.updateTask(selectedTask.id, { status: 'Completed', completedAt: new Date().toISOString(), isNew: false });
                             const updatedTasks = myTasks.map(t =>
-                              t.id === selectedTask.id ? { ...t, status: 'Completed', completedAt: new Date().toLocaleString(), isNew: false } : t
+                              t.id === selectedTask.id ? { ...t, status: 'Completed', completedAt: new Date().toISOString(), isNew: false } : t
                             );
                             setMyTasks(updatedTasks);
                             setShowTaskDetails(false);

@@ -14,6 +14,7 @@ import { Calendar as CalendarComponent } from './ui/calendar';
 import { PromotionAnalytics } from './promotion-analytics';
 import { PendingRegistrations } from './pending-registrations';
 import { ClassManagement } from './class-management';
+import { TaskAssignmentManagement } from './task-assignment-management';
 import {
   Users,
   Calendar,
@@ -654,133 +655,7 @@ export function ManagerDashboard() {
         </TabsContent>
 
         <TabsContent value="tasks" className="space-y-6">
-          {/* Mobile-Optimized Task Assignment Section */}
-          <div className="space-y-4">
-            {/* Header with Add Task Button */}
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-medium">Task Assignment</h2>
-              <Button 
-                onClick={() => setShowCreateTask(true)}
-                className="bg-black text-white hover:bg-gray-800"
-                size="sm"
-              >
-                <Plus className="size-4 mr-1" />
-                Add Task
-              </Button>
-            </div>
-
-            {/* Stats Row */}
-            <div className="flex items-center justify-between p-4 bg-white rounded-lg border">
-              <div className="flex items-center gap-2">
-                <ClipboardList className="size-4 text-gray-500" />
-                <span className="text-sm text-gray-600">Total Tasks: {taskStats.total}</span>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="text-gray-600"
-              >
-                <RefreshCw className="size-4 mr-1" />
-                Refresh
-              </Button>
-            </div>
-
-            {/* Status Cards - Mobile Optimized */}
-            <div className="space-y-3">
-              <div className="p-4 bg-white rounded-lg border">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="size-5 text-green-500" />
-                  <span className="text-gray-700">Completed: {taskStats.completed}</span>
-                </div>
-              </div>
-              <div className="p-4 bg-white rounded-lg border">
-                <div className="flex items-center gap-2">
-                  <Clock className="size-5 text-blue-500" />
-                  <span className="text-gray-700">In Progress: {taskStats.inProgress}</span>
-                </div>
-              </div>
-              <div className="p-4 bg-white rounded-lg border">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="size-5 text-yellow-500" />
-                  <span className="text-gray-700">Pending: {taskStats.pending}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Task Cards - iPhone Style */}
-            <div className="space-y-4">
-              {tasks.map((task) => (
-                <Card key={task.id} className="overflow-hidden">
-                  <CardContent className="p-4 space-y-4">
-                    {/* Task Header with Avatar */}
-                    <div className="flex items-start gap-3">
-                      <div className="text-4xl">{task.type === 'Member Service' ? '👋' : task.type === 'Maintenance' ? '🔧' : task.type === 'Cleaning' ? '🧹' : '📋'}</div>
-                      <div className="flex-1">
-                        <h3 className="font-medium text-base mb-1">{task.title}</h3>
-                        <Badge variant="outline" className="text-xs">
-                          {task.type}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => {
-                          setSelectedTask(task);
-                          setShowReassignModal(true);
-                        }}
-                      >
-                        <RefreshCw className="size-4 mr-1" />
-                        Reassign
-                      </Button>
-                      {task.status !== 'Completed' && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => handleCompleteTask(task.id)}
-                        >
-                          <CheckCircle className="size-4 mr-1" />
-                          Complete
-                        </Button>
-                      )}
-                    </div>
-
-                    {/* Task Details Grid */}
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm pt-3 border-t">
-                      <div>
-                        <div className="text-gray-500 text-xs mb-1">Description</div>
-                        <div className="text-gray-900 line-clamp-2">{task.description}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-500 text-xs mb-1">Assigned To</div>
-                        <div className="text-gray-900">{task.assignedTo}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-500 text-xs mb-1">Deadline</div>
-                        <div className="text-gray-900">{task.deadline}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-500 text-xs mb-1">Frequency</div>
-                        <div className="text-gray-900">{task.frequency}</div>
-                      </div>
-                    </div>
-
-                    {/* Status Badge */}
-                    {task.completedAt && (
-                      <div className="text-xs text-gray-500 pt-2 border-t">
-                        ✓ Completed: {task.completedAt}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
+          <TaskAssignmentManagement />
         </TabsContent>
 
         <TabsContent value="applications" className="space-y-6">

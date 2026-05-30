@@ -110,6 +110,25 @@ export interface Exercise {
   completed?: boolean;
 }
 
+export interface Task {
+  id: string;
+  title: string;
+  description: string;
+  type: 'Administrative' | 'Maintenance' | 'Training' | 'Customer Service' | 'Marketing' | 'Other';
+  assignedTo: string; // User ID
+  assignedToName: string;
+  assignedBy: string; // User ID
+  assignedByName: string;
+  deadline: string; // ISO date string
+  priority: 'Low' | 'Medium' | 'High';
+  frequency: 'One-time' | 'Daily' | 'Weekly' | 'Monthly';
+  status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled';
+  assignedAt: string; // ISO date string
+  completedAt?: string;
+  isNew: boolean;
+  notes?: string;
+}
+
 class MockDatabase {
   private USERS_KEY = 'fithub_users';
   private MEMBERSHIPS_KEY = 'fithub_memberships';
@@ -118,6 +137,7 @@ class MockDatabase {
   private CLASSES_KEY = 'fithub_classes';
   private BOOKINGS_KEY = 'fithub_bookings';
   private PROGRAMS_KEY = 'fithub_programs';
+  private TASKS_KEY = 'fithub_tasks';
 
   // User Operations
 
@@ -450,6 +470,72 @@ class MockDatabase {
     return true;
   }
 
+  // Task Operations
+
+  getAllTasks(): Task[] {
+    const tasks = localStorage.getItem(this.TASKS_KEY);
+    return tasks ? JSON.parse(tasks) : [];
+  }
+
+  saveTasks(tasks: Task[]): void {
+    localStorage.setItem(this.TASKS_KEY, JSON.stringify(tasks));
+  }
+
+  createTask(taskData: Omit<Task, 'id' | 'assignedAt' | 'isNew'>): Task {
+    const task: Task = {
+      ...taskData,
+      id: this.generateId(),
+      assignedAt: new Date().toISOString(),
+      isNew: true
+    };
+
+    const tasks = this.getAllTasks();
+    tasks.push(task);
+    this.saveTasks(tasks);
+
+    return task;
+  }
+
+  getTaskById(id: string): Task | null {
+    const tasks = this.getAllTasks();
+    return tasks.find(t => t.id === id) || null;
+  }
+
+  getTasksByAssignee(userId: string): Task[] {
+    const tasks = this.getAllTasks();
+    return tasks.filter(t => t.assignedTo === userId);
+  }
+
+  getTasksByAssigner(userId: string): Task[] {
+    const tasks = this.getAllTasks();
+    return tasks.filter(t => t.assignedBy === userId);
+  }
+
+  updateTask(id: string, updates: Partial<Task>): Task | null {
+    const tasks = this.getAllTasks();
+    const index = tasks.findIndex(t => t.id === id);
+
+    if (index === -1) {
+      return null;
+    }
+
+    tasks[index] = { ...tasks[index], ...updates };
+    this.saveTasks(tasks);
+    return tasks[index];
+  }
+
+  deleteTask(id: string): boolean {
+    const tasks = this.getAllTasks();
+    const filteredTasks = tasks.filter(t => t.id !== id);
+
+    if (filteredTasks.length === tasks.length) {
+      return false;
+    }
+
+    this.saveTasks(filteredTasks);
+    return true;
+  }
+
   // Utility Methods
 
   generateId(): string {
@@ -468,6 +554,7 @@ class MockDatabase {
     localStorage.removeItem(this.CLASSES_KEY);
     localStorage.removeItem(this.BOOKINGS_KEY);
     localStorage.removeItem(this.PROGRAMS_KEY);
+    localStorage.removeItem(this.TASKS_KEY);
   }
 
   // Initialize demo data
@@ -769,6 +856,66 @@ class MockDatabase {
       });
 
       console.log('✅ Demo training programs initialized');
+    }
+
+    // Initialize demo tasks
+    const tasks = this.getAllTasks();
+    if (tasks.length === 0) {
+      // Get manager user for task assignment
+      const manager = this.findUserByEmail('manager@fithub.gr');
+      const trainer = this.findUserByEmail('trainer@fithub.gr');
+
+      if (manager && trainer) {
+        const demoTasks = [
+          {
+            title: 'Update Class Schedule Board',
+            description: 'Update the weekly class schedule on the main board in the reception area',
+            type: 'Administrative' as const,
+            assignedTo: trainer.id,
+            assignedToName: trainer.name,
+            assignedBy: manager.id,
+            assignedByName: manager.name,
+            deadline: '2026-05-30',
+            priority: 'Medium' as const,
+            frequency: 'Weekly' as const,
+            status: 'Pending' as const,
+            notes: 'Make sure to highlight new classes'
+          },
+          {
+            title: 'Equipment Maintenance Check',
+            description: 'Inspect all cardio and strength equipment for safety and functionality',
+            type: 'Maintenance' as const,
+            assignedTo: trainer.id,
+            assignedToName: trainer.name,
+            assignedBy: manager.id,
+            assignedByName: manager.name,
+            deadline: '2026-05-28',
+            priority: 'High' as const,
+            frequency: 'Weekly' as const,
+            status: 'In Progress' as const,
+            notes: 'Pay special attention to the treadmills'
+          },
+          {
+            title: 'Client Follow-up Calls',
+            description: 'Call clients who haven\'t visited in the last 2 weeks to check in',
+            type: 'Customer Service' as const,
+            assignedTo: trainer.id,
+            assignedToName: trainer.name,
+            assignedBy: manager.id,
+            assignedByName: manager.name,
+            deadline: '2026-06-01',
+            priority: 'Low' as const,
+            frequency: 'Weekly' as const,
+            status: 'Pending' as const
+          }
+        ];
+
+        demoTasks.forEach(taskData => {
+          this.createTask(taskData);
+        });
+
+        console.log('✅ Demo tasks initialized');
+      }
     }
   }
 }

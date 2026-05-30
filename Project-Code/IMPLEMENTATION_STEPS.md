@@ -1991,13 +1991,201 @@ This component integrates with:
 
 ---
 
-## 📋 Upcoming Steps:
+---
 
-### STEP 11: Task Assignment System
-- Create and assign tasks
-- Task categories
-- Due dates and priorities
-- Task completion tracking
+## ✅ STEP 11: Task Assignment System (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: UC-4 Task Assignment & Management  
+**Reference**: Manager/Secretary assign tasks to staff, staff view and complete tasks
+
+### Files Added:
+
+1. **`src/app/components/task-assignment-management.tsx`** - Task assignment and management component
+   - ✅ Create and assign tasks to staff members
+   - ✅ Task CRUD operations (Create, Read, Update, Delete)
+   - ✅ Task filtering by status and assignee
+   - ✅ Statistics dashboard (total, pending, in progress, completed, high priority)
+   - ✅ Task detail view modal
+   - ✅ Edit task functionality
+   - ✅ Delete task with confirmation
+   - ✅ Email notifications on task assignment
+   - ✅ Comprehensive task form with all fields
+   - ✅ Color-coded badges (type, status, priority)
+   - ✅ Responsive grid layout
+
+### Files Modified:
+
+1. **`src/app/services/database.ts`**
+   - ✅ Added Task interface with all required fields:
+     - id, title, description, type, assignedTo, assignedToName
+     - assignedBy, assignedByName, deadline, priority, frequency
+     - status, assignedAt, completedAt, isNew, notes
+   - ✅ Added TASKS_KEY storage key
+   - ✅ Implemented task CRUD operations:
+     - `getAllTasks()`, `saveTasks()`, `createTask()`
+     - `getTaskById()`, `getTasksByAssignee()`, `getTasksByAssigner()`
+     - `updateTask()`, `deleteTask()`
+   - ✅ Added clearAllData support for tasks
+   - ✅ Created 3 demo tasks assigned to trainer
+   - ✅ Demo tasks cover different types, priorities, and statuses
+
+2. **`src/app/components/trainer-dashboard.tsx`**
+   - ✅ Imported MockDatabase and authService
+   - ✅ Replaced hardcoded task data with database loading
+   - ✅ Added useEffect to load tasks by assignee
+   - ✅ Updated task status handlers to persist to database
+   - ✅ Fixed task display to use assignedByName instead of assignedBy
+   - ✅ Formatted dates properly (ISO to locale string)
+
+3. **`src/app/components/manager-dashboard.tsx`**
+   - ✅ Imported TaskAssignmentManagement component
+   - ✅ Replaced old task implementation with new component
+   - ✅ Integrated into "Task Assignment" tab
+
+### Features Implemented:
+
+**UC-4 Manager/Secretary Features**:
+- 📋 Create new task assignments
+- 👥 Assign tasks to staff (trainers, secretaries, managers)
+- 📝 Specify task details (title, description, type, notes)
+- 📅 Set deadlines with date picker
+- 🎯 Set priority levels (Low, Medium, High)
+- 🔄 Set frequency (One-time, Daily, Weekly, Monthly)
+- 📊 View task statistics dashboard
+- 🔍 Filter tasks by status and assignee
+- ✏️ Edit existing tasks
+- 🗑️ Delete tasks with confirmation
+- 👁️ View task details in modal
+- 📧 Email notifications sent to assignee
+
+**UC-4 Staff (Trainer) Features**:
+- 📋 View assigned tasks
+- ▶️ Start tasks (Pending → In Progress)
+- ✅ Complete tasks (In Progress → Completed)
+- 👁️ View task details
+- 🔔 New task notifications with alert banner
+- 📊 Task counts in dashboard navigation
+
+### Components & Features:
+
+**Task Assignment Management (Manager/Secretary)**:
+- Statistics cards showing task counts
+- Filter controls (status, assignee)
+- Task list with cards showing all details
+- Action buttons (View, Edit, Delete)
+- Create task modal with comprehensive form
+- Edit task modal with pre-filled data
+- View task details modal
+- Delete confirmation modal
+- Empty state for no tasks
+- Real-time task statistics
+
+**Form Fields (Create/Edit)**:
+- Task Title (required)
+- Description (required, textarea)
+- Task Type (required): Administrative, Maintenance, Training, Customer Service, Marketing, Other
+- Assign To (required): Staff member selector
+- Priority (required): Low, Medium, High
+- Frequency (required): One-time, Daily, Weekly, Monthly
+- Deadline (required): Date picker
+- Status: Pending, In Progress, Completed, Cancelled
+- Additional Notes (optional, textarea)
+
+**Task List View**:
+- Task cards with all information
+- Color-coded badges for type, status, priority
+- Grid showing assignee, deadline, frequency, assigned by
+- Quick actions: View, Edit, Delete
+- Empty state with helpful message
+
+**Trainer Task View**:
+- Tasks loaded from database
+- New task alert banner
+- Status update buttons (Start, Complete)
+- Task detail modal
+- Real-time status updates persisted to database
+- Task count badge in navigation
+
+### Data Model:
+
+**Task Interface**:
+```typescript
+{
+  id: string
+  title: string
+  description: string
+  type: 'Administrative' | 'Maintenance' | 'Training' | 'Customer Service' | 'Marketing' | 'Other'
+  assignedTo: string // User ID
+  assignedToName: string
+  assignedBy: string // User ID
+  assignedByName: string
+  deadline: string // ISO date
+  priority: 'Low' | 'Medium' | 'High'
+  frequency: 'One-time' | 'Daily' | 'Weekly' | 'Monthly'
+  status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled'
+  assignedAt: string // ISO date
+  completedAt?: string
+  isNew: boolean
+  notes?: string
+}
+```
+
+### Color System:
+
+**Type Colors**:
+- Administrative: Purple (`bg-purple-100 text-purple-800`)
+- Maintenance: Orange (`bg-orange-100 text-orange-800`)
+- Training: Green (`bg-green-100 text-green-800`)
+- Customer Service: Blue (`bg-blue-100 text-blue-800`)
+- Marketing: Pink (`bg-pink-100 text-pink-800`)
+- Other: Gray (`bg-gray-100 text-gray-800`)
+
+**Priority Colors**:
+- Low: Blue (`bg-blue-100 text-blue-800`)
+- Medium: Yellow (`bg-yellow-100 text-yellow-800`)
+- High: Red (`bg-red-100 text-red-800`)
+
+**Status Colors**:
+- Pending: Yellow (`bg-yellow-100 text-yellow-800`)
+- In Progress: Blue (`bg-blue-100 text-blue-800`)
+- Completed: Green (`bg-green-100 text-green-800`)
+- Cancelled: Red (`bg-red-100 text-red-800`)
+
+### Access Control:
+
+- **Manager**: Full access to create, edit, delete, and assign tasks
+- **Secretary**: Full access to create, edit, delete, and assign tasks (same as manager)
+- **Trainer/Staff**: View assigned tasks, update status (start, complete)
+- **Member**: No access to task system
+
+### Testing:
+
+See TESTING_GUIDE.md for comprehensive test cases.
+
+### Integration:
+
+This component integrates with:
+- **Manager Dashboard**: Task Assignment tab
+- **Trainer Dashboard**: My Tasks tab
+- **Database Service**: Full CRUD operations
+- **Email Service**: Notifications on task assignment
+- **Auth Service**: Gets current user for assignment/viewing
+
+### Future Enhancements:
+
+- 📋 Task comments/activity log
+- 📋 File attachments to tasks
+- 📋 Recurring task auto-creation
+- 📋 Task templates
+- 📋 Task reminders/notifications before deadline
+- 📋 Bulk task assignment
+- 📋 Task reports and analytics
+- 📋 Mobile push notifications
+
+---
+
+## 📋 Upcoming Steps:
 
 ### STEP 12: Campaign Management
 - Create marketing campaigns
@@ -2023,10 +2211,10 @@ This component integrates with:
 | 8 | ✅ | UC-2 | Class Booking System (Browse, Book, Cancel, Waitlist) |
 | 9 | ✅ | UC-3 | Training Program Creation |
 | 10 | ✅ | UC-3 | Client View of Training Programs |
-| 11 | 🔜 | UC-4 | Task Assignment System |
+| 11 | ✅ | UC-4 | Task Assignment System |
 | 12 | 🔜 | UC-5 | Campaign Management |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 10 (40%)  
-**Steps Remaining**: 15
+**Steps Completed**: 11 (44%)  
+**Steps Remaining**: 14

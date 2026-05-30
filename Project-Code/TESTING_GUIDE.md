@@ -2310,6 +2310,319 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 
 ---
 
+## ✅ STEP 11: Task Assignment System
+
+### Test Case 11.1: Access Task Assignment (Manager)
+1. Login as manager: `manager@fithub.gr` / `Manager123!`
+2. Navigate to "Task Assignment" tab
+
+**Expected Result**:
+- ✅ Task Assignment page loads
+- ✅ Statistics cards show correct counts
+- ✅ See demo tasks (3 tasks assigned to trainer)
+- ✅ "Assign New Task" button visible
+
+### Test Case 11.2: View Statistics Dashboard
+1. On Task Assignment page, check statistics
+
+**Expected Result**:
+- ✅ Total Tasks: 3
+- ✅ Pending: 2 (or current count)
+- ✅ In Progress: 1 (or current count)
+- ✅ Completed: 0 (initially)
+- ✅ High Priority: 1 (Equipment Maintenance)
+
+### Test Case 11.3: Create New Task
+1. Click "Assign New Task" button
+2. Fill in the form:
+   - Title: "Organize Locker Room"
+   - Description: "Clean and reorganize the locker room area"
+   - Type: Maintenance
+   - Assign To: Select a staff member (e.g., Sarah Johnson - trainer)
+   - Priority: Medium
+   - Frequency: Weekly
+   - Deadline: Select a future date
+   - Notes: "Check lost and found items"
+3. Click "Create Task"
+
+**Expected Result**:
+- ✅ Modal opens with empty form
+- ✅ All fields accept input
+- ✅ Assign To dropdown shows staff members (trainers, secretaries, managers only)
+- ✅ After creating:
+  - Modal closes
+  - New task appears in list
+  - Email sent to assignee
+  - Statistics update (Total Tasks increases)
+
+### Test Case 11.4: Filter Tasks by Status
+1. Use "Filter by Status" dropdown
+2. Select "Pending"
+
+**Expected Result**:
+- ✅ Only shows pending tasks
+- ✅ In Progress and Completed tasks hidden
+- ✅ Empty state if no pending tasks
+
+### Test Case 11.5: Filter Tasks by Assignee
+1. Use "Filter by Assignee" dropdown
+2. Select a specific staff member
+
+**Expected Result**:
+- ✅ Only shows tasks assigned to that person
+- ✅ Other tasks hidden
+- ✅ Empty state if no tasks for that person
+
+### Test Case 11.6: View Task Details
+1. Click "View" (eye icon) on any task
+
+**Expected Result**:
+- ✅ Detail modal opens
+- ✅ Shows all task information:
+  - Title, Description
+  - Type, Status, Priority badges (color-coded)
+  - Frequency
+  - Assigned To, Assigned By
+  - Deadline, Assigned On (formatted dates)
+  - Notes (if any)
+- ✅ "Close" button works
+
+### Test Case 11.7: Edit Task
+1. Click "Edit" (pencil icon) on any task
+2. Modify some fields:
+   - Change priority to High
+   - Update deadline
+   - Add notes
+3. Click "Update Task"
+
+**Expected Result**:
+- ✅ Edit modal opens with pre-filled data
+- ✅ All fields editable
+- ✅ After updating:
+  - Modal closes
+  - Task shows updated information
+  - Changes persist in database
+
+### Test Case 11.8: Delete Task
+1. Click "Delete" (trash icon) on any task
+2. Confirm deletion
+
+**Expected Result**:
+- ✅ Confirmation modal opens
+- ✅ Shows task title and assignee
+- ✅ Warning about irreversible action
+- ✅ After confirming:
+  - Modal closes
+  - Task removed from list
+  - Statistics update (Total Tasks decreases)
+
+### Test Case 11.9: Form Validation (Create Task)
+1. Click "Assign New Task"
+2. Leave required fields empty
+3. Click "Create Task"
+
+**Expected Result**:
+- ✅ Alert: "Please fill in all required fields"
+- ✅ Modal stays open
+- ✅ Task not created
+
+### Test Case 11.10: View Tasks as Trainer
+1. Logout and login as trainer: `trainer@fithub.gr` / `Trainer123!`
+2. Navigate to "My Tasks" tab
+
+**Expected Result**:
+- ✅ See tasks assigned to this trainer
+- ✅ New task alert banner if any tasks are new
+- ✅ Task count badge in navigation
+- ✅ Tasks display with all details
+- ✅ Status badges show current status
+
+### Test Case 11.11: Start Task (Trainer)
+1. As trainer, find a Pending task
+2. Click "Start" button
+
+**Expected Result**:
+- ✅ Task status changes to "In Progress"
+- ✅ Status badge updates to blue
+- ✅ "Start" button disappears
+- ✅ "Complete" button appears
+- ✅ Change persists after page refresh
+
+### Test Case 11.12: Complete Task (Trainer)
+1. As trainer, find an "In Progress" task
+2. Click "Complete" button
+
+**Expected Result**:
+- ✅ Task status changes to "Completed"
+- ✅ Status badge updates to green
+- ✅ "Complete" button disappears
+- ✅ Success message shown
+- ✅ completedAt timestamp recorded
+- ✅ Change persists in database
+
+### Test Case 11.13: Task Email Notification
+1. As manager, create a new task
+2. Check sent emails in DevTools → localStorage
+
+**Expected Result**:
+- ✅ Email sent to assignee
+- ✅ Subject: "New Task Assigned"
+- ✅ Body includes:
+  - Task title
+  - Type, Priority, Deadline
+  - Description
+  - Notes (if any)
+  - Assigned by name
+
+### Test Case 11.14: Empty State
+1. As manager, delete all tasks
+2. View task list
+
+**Expected Result**:
+- ✅ Empty state displayed
+- ✅ Icon (ClipboardList)
+- ✅ Message: "No Tasks Found"
+- ✅ Helpful text suggesting to create first task
+
+### Test Case 11.15: Task Types Display
+1. View tasks with different types
+
+**Expected Result**:
+- ✅ Administrative: Purple badge
+- ✅ Maintenance: Orange badge
+- ✅ Training: Green badge
+- ✅ Customer Service: Blue badge
+- ✅ Marketing: Pink badge
+- ✅ Other: Gray badge
+
+### Test Case 11.16: Priority Levels Display
+1. View tasks with different priorities
+
+**Expected Result**:
+- ✅ Low: Blue badge
+- ✅ Medium: Yellow badge
+- ✅ High: Red badge
+
+### Test Case 11.17: Frequency Options
+1. Create tasks with different frequencies
+
+**Expected Result**:
+- ✅ One-time option works
+- ✅ Daily option works
+- ✅ Weekly option works
+- ✅ Monthly option works
+- ✅ Frequency displays correctly in task list
+
+### Test Case 11.18: Demo Data Loading
+1. Fresh install/clear localStorage
+2. Reload page and login as manager
+
+**Expected Result**:
+- ✅ 3 demo tasks created automatically
+- ✅ All assigned to trainer (Sarah Johnson)
+- ✅ Different types: Administrative, Maintenance, Customer Service
+- ✅ Different priorities: Medium, High, Low
+- ✅ Different statuses: Pending, In Progress
+
+### Test Case 11.19: Combined Filters
+1. Set Status filter to "Pending"
+2. Set Assignee filter to specific person
+
+**Expected Result**:
+- ✅ Shows only tasks matching BOTH filters
+- ✅ Empty state if no matches
+- ✅ Filters work together correctly
+
+### Test Case 11.20: Data Persistence
+1. Create a task
+2. Navigate to another tab
+3. Return to Task Assignment tab
+
+**Expected Result**:
+- ✅ Task still exists
+- ✅ All data intact
+- ✅ Changes persisted in localStorage
+
+---
+
+## 🔍 Final Testing Checklist (Step 11 Added)
+
+### Training Program Management (Trainer - Step 9)
+- [x] Trainer can access Training Programs tab
+- [x] Create program with all required fields
+- [x] Add multiple exercises to program
+- [x] Edit existing program
+- [x] Delete program with confirmation
+- [x] Client selection works
+- [x] Goal selection works (5 options)
+- [x] Exercise categories work (6 options)
+- [x] Intensity levels work (3 options)
+- [x] Day assignment works (7 days + Daily)
+- [x] Sets/Reps fields work
+- [x] Duration field works
+- [x] Instructions field (optional)
+- [x] Email notification sent to client
+- [x] Programs display in grid layout
+- [x] Status badges color-coded
+- [x] Empty state displays correctly
+- [x] Date calculations correct
+- [x] Program data persists in localStorage
+- [x] Remove exercise from program works
+- [x] Validation prevents empty programs
+- [x] Members cannot access trainer features
+
+### Client Training Program View (Member - Step 10)
+- [x] Member can access Training Programs tab
+- [x] Program list displays correctly
+- [x] Statistics cards show accurate counts
+- [x] Program cards show all details
+- [x] Progress bars display correct percentage
+- [x] "View Program" opens detail modal
+- [x] Program info section complete
+- [x] Trainer notes displayed
+- [x] Exercises grouped by day
+- [x] Exercise completion toggle works
+- [x] Completed exercises have green background
+- [x] "Log Workout" button appears
+- [x] Log workout modal works
+- [x] Difficulty selector works
+- [x] Send feedback modal works
+- [x] Empty state displays for new users
+- [x] Progress updates in real-time
+- [x] Multiple programs display correctly
+- [x] Data persists across navigation
+- [x] Responsive design works
+- [x] Demo data loads correctly
+
+### Task Assignment System (Manager/Trainer - Step 11)
+- [x] Manager can access Task Assignment tab
+- [x] Statistics dashboard shows correct counts
+- [x] Create new task with all fields
+- [x] Task types work (6 options)
+- [x] Priority levels work (3 options)
+- [x] Frequency options work (4 options)
+- [x] Staff member selection works
+- [x] Deadline date picker works
+- [x] Edit existing task
+- [x] Delete task with confirmation
+- [x] View task details modal
+- [x] Filter by status works
+- [x] Filter by assignee works
+- [x] Combined filters work
+- [x] Email notification sent on assignment
+- [x] Trainer can view assigned tasks
+- [x] Trainer can start tasks (Pending → In Progress)
+- [x] Trainer can complete tasks (In Progress → Completed)
+- [x] Task status updates persist
+- [x] Color-coded badges for type, priority, status
+- [x] Empty state displays correctly
+- [x] Demo data loads (3 tasks)
+- [x] Data persists in localStorage
+- [x] Form validation works
+- [x] Members cannot access task system
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-10  
-**Total Test Cases**: 170+
+**Steps Tested**: 1-11  
+**Total Test Cases**: 190+
