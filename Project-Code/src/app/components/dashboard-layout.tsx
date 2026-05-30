@@ -154,9 +154,9 @@ export function DashboardLayout({ children, title, role, tabs, newTaskCount = 0 
       </header>
 
       {tabs && tabs.length > 0 && (
-        <div className="bg-white border-b hidden md:block">
+        <div className="bg-white border-b hidden md:block sticky top-[73px] z-[9]">
           <div className="px-6">
-            <nav className="flex gap-1 overflow-x-auto">
+            <nav className="flex gap-2 overflow-x-auto scrollbar-hide py-2">
               {tabs.map((tab) => {
                 const isActive = window.location.hash === tab.path;
                 return (
@@ -165,10 +165,10 @@ export function DashboardLayout({ children, title, role, tabs, newTaskCount = 0 
                     onClick={() => {
                       window.location.hash = tab.path;
                     }}
-                    className={`px-4 py-3 text-sm whitespace-nowrap border-b-2 transition-colors ${
+                    className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap rounded-lg transition-all duration-200 ${
                       isActive
-                        ? 'border-blue-600 text-blue-600'
-                        : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                        ? 'bg-blue-600 text-white shadow-md scale-105'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-102'
                     }`}
                   >
                     {tab.label}
