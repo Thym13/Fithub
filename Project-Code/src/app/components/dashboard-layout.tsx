@@ -155,27 +155,31 @@ export function DashboardLayout({ children, title, role, tabs, newTaskCount = 0 
 
       {tabs && tabs.length > 0 && (
         <div className="bg-white border-b hidden md:block sticky top-[73px] z-[9]">
-          <div className="px-6">
-            <nav className="flex gap-2 overflow-x-auto scrollbar-hide py-2">
-              {tabs.map((tab) => {
-                const isActive = window.location.hash === tab.path;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => {
-                      window.location.hash = tab.path;
-                    }}
-                    className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap rounded-lg transition-all duration-200 ${
-                      isActive
-                        ? 'bg-blue-600 text-white shadow-md scale-105'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-102'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </nav>
+          <div className="relative">
+            <div className="px-6 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin', scrollbarColor: '#cbd5e1 #f1f5f9' }}>
+              <nav className="flex gap-2 py-2 min-w-max">
+                {tabs.map((tab) => {
+                  const isActive = window.location.hash === tab.path;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        window.location.hash = tab.path;
+                      }}
+                      className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap rounded-lg transition-all duration-200 ${
+                        isActive
+                          ? 'bg-blue-600 text-white shadow-md scale-105'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-102'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+            {/* Gradient fade indicator on right edge */}
+            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none"></div>
           </div>
         </div>
       )}
