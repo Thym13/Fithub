@@ -16,6 +16,7 @@ import { PendingRegistrations } from './pending-registrations';
 import { ClassManagement } from './class-management';
 import { TaskAssignmentManagement } from './task-assignment-management';
 import { CampaignManagement } from './campaign-management';
+import { AnalyticsDashboard } from './analytics-dashboard';
 import {
   Users,
   Calendar,
@@ -43,6 +44,7 @@ import { cn } from './ui/utils';
 const managerTabs = [
   { id: 'registrations', label: 'Pending Registrations', path: '#registrations' },
   { id: 'class-management', label: 'Class Management', path: '#class-management' },
+  { id: 'analytics', label: 'Analytics & Reports', path: '#analytics' },
   { id: 'members', label: 'Member Profiles', path: '#members' },
   { id: 'schedules', label: 'Employee Schedules', path: '#schedules' },
   { id: 'classes', label: 'Class Schedule', path: '#classes' },
@@ -485,6 +487,10 @@ export function ManagerDashboard() {
 
         <TabsContent value="class-management" className="space-y-6">
           <ClassManagement onRefresh={() => {}} />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <AnalyticsDashboard />
         </TabsContent>
 
         <TabsContent value="members" className="space-y-6">

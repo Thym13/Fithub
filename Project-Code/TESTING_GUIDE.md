@@ -2884,7 +2884,237 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 
 ---
 
-## 🔍 Final Testing Checklist (Step 12 Added)
+## ✅ STEP 13: Analytics Dashboard
+
+### Test Case 13.1: Access Analytics Dashboard
+1. Login as manager (manager@fithub.gr / Manager123!)
+2. Navigate to manager dashboard
+3. Click "Analytics & Reports" tab
+
+**Expected Result**:
+- ✅ Analytics dashboard loads
+- ✅ Shows all analytics sections
+- ✅ Data loads from database
+
+### Test Case 13.2: Overview Statistics Display
+1. View overview statistics section at top of dashboard
+
+**Expected Result**:
+- ✅ 4 stat cards displayed:
+  - Total Members (with active member count)
+  - New This Month (last 30 days count)
+  - Total Revenue (all time)
+  - Monthly Revenue (last 30 days)
+- ✅ Color-coded icons (blue, green, purple, orange)
+- ✅ Numbers display correctly
+- ✅ Subtitle text shows context
+
+### Test Case 13.3: Membership Distribution
+1. View "Membership Distribution" section
+
+**Expected Result**:
+- ✅ 3 cards displayed:
+  - Premium Members with count and percentage
+  - Basic Members with count and percentage
+  - Active Members with count and percentage
+- ✅ Progress bars show correct percentages
+- ✅ Percentages calculated correctly (count/total * 100)
+- ✅ Subtitle shows "X% of total"
+
+### Test Case 13.4: Activity Metrics
+1. View "Activity Metrics" section
+
+**Expected Result**:
+- ✅ 4 metric cards displayed:
+  - Total Classes
+  - Class Bookings
+  - Training Programs (with active count)
+  - Campaigns Sent
+- ✅ Icon indicators for each metric
+- ✅ Correct counts from database
+- ✅ Subtitle text provides context
+
+### Test Case 13.5: Class Utilization Analysis
+1. Scroll to "Class Utilization" section
+
+**Expected Result**:
+- ✅ Shows top 10 classes by utilization
+- ✅ Each class shows:
+  - Name and category
+  - Enrolled/capacity count
+  - Utilization percentage badge
+  - Progress bar
+- ✅ Color-coded badges:
+  - Green: ≥80% utilization
+  - Yellow: ≥50% utilization
+  - Red: <50% utilization
+- ✅ Sorted by utilization (highest first)
+
+### Test Case 13.6: Revenue Trend Visualization
+1. View "Revenue Trend (Last 6 Months)" section
+
+**Expected Result**:
+- ✅ 6 months displayed (Jan-Jun)
+- ✅ Each month shows revenue amount
+- ✅ Progress bars show relative amounts
+- ✅ Amounts formatted as currency (€X,XXX)
+- ✅ Largest revenue gets 100% bar
+
+### Test Case 13.7: Task Completion Rate
+1. View "Operations" section → "Task Completion Rate" card
+
+**Expected Result**:
+- ✅ Shows completed task count
+- ✅ Shows pending task count
+- ✅ Shows total task count
+- ✅ Progress bar shows completion percentage
+- ✅ Percentage calculated correctly: (completed / total) * 100
+- ✅ Text shows "X% completion rate"
+
+### Test Case 13.8: Quick Stats
+1. View "Operations" section → "Quick Stats" card
+
+**Expected Result**:
+- ✅ Avg. Class Size calculated (total enrolled / number of classes)
+- ✅ Avg. Class Utilization calculated (average of all utilization percentages)
+- ✅ Avg. Revenue/Member calculated (total revenue / total members)
+- ✅ All averages rounded to whole numbers
+- ✅ Revenue shown with € symbol
+
+### Test Case 13.9: Real-time Data Updates
+1. Create a new member from secretary dashboard
+2. Navigate back to Analytics dashboard
+
+**Expected Result**:
+- ✅ Total Members count increased by 1
+- ✅ New This Month count increased by 1
+- ✅ Active Members updated
+- ✅ All calculations recalculated
+
+### Test Case 13.10: Handle No Data Scenarios
+1. Create new database or clear data
+2. View analytics dashboard
+
+**Expected Result**:
+- ✅ All counts show 0
+- ✅ Percentages show 0%
+- ✅ No division by zero errors
+- ✅ Class utilization shows "No classes available"
+- ✅ Progress bars handle 0 values
+
+### Test Case 13.11: Member Type Calculations
+1. View membership distribution
+2. Check that counts match database
+
+**Expected Result**:
+- ✅ Premium count = memberships with type "Premium"
+- ✅ Basic count = memberships with type "Basic"
+- ✅ Active count = users with accountStatus "Active"
+- ✅ Total = all members
+- ✅ Percentages add up correctly
+
+### Test Case 13.12: Revenue Calculations
+1. View revenue statistics
+
+**Expected Result**:
+- ✅ Total Revenue = sum of all completed transactions
+- ✅ Monthly Revenue = sum of completed transactions in last 30 days
+- ✅ Only "Completed" status transactions counted
+- ✅ Failed/Pending transactions excluded
+- ✅ Amounts displayed with thousand separators (€1,234)
+
+### Test Case 13.13: New Members This Month
+1. View "New This Month" statistic
+2. Check against database
+
+**Expected Result**:
+- ✅ Only counts members created in last 30 days
+- ✅ Uses createdAt timestamp
+- ✅ Calculation: new Date() - 30 days
+- ✅ Count updates daily automatically
+
+### Test Case 13.14: Loading State
+1. Reload analytics dashboard
+2. Observe loading behavior
+
+**Expected Result**:
+- ✅ Shows "Loading analytics..." message initially
+- ✅ Loading state displays briefly
+- ✅ Transitions to full dashboard when ready
+- ✅ No flash of empty content
+
+### Test Case 13.15: Responsive Design
+1. View analytics on different screen sizes:
+   - Desktop (1920px)
+   - Tablet (768px)
+   - Mobile (375px)
+
+**Expected Result**:
+- ✅ Desktop: 4 columns for overview stats
+- ✅ Tablet: 2 columns for overview stats
+- ✅ Mobile: 1 column (stacked)
+- ✅ All sections responsive
+- ✅ No horizontal scrolling
+- ✅ Cards resize properly
+
+### Test Case 13.16: Campaign Analytics Integration
+1. Send a campaign from Promotions tab
+2. Return to Analytics dashboard
+
+**Expected Result**:
+- ✅ Campaigns Sent count increased by 1
+- ✅ Data updates in real-time
+- ✅ Count matches database
+
+### Test Case 13.17: Class Utilization Edge Cases
+1. Create a class with 0 capacity
+2. View class utilization
+
+**Expected Result**:
+- ✅ Handles division by zero
+- ✅ Shows 0% or N/A
+- ✅ No errors in console
+
+### Test Case 13.18: Progress Bar Accuracy
+1. View multiple progress bars across dashboard
+
+**Expected Result**:
+- ✅ All progress bars show correct percentage
+- ✅ Progress fills from left to right
+- ✅ Color matches percentage:
+  - High (≥80%): Green
+  - Medium (≥50%): Yellow
+  - Low (<50%): Red
+- ✅ Visual representation matches number
+
+### Test Case 13.19: Icon Display
+1. Check all icons across dashboard
+
+**Expected Result**:
+- ✅ Total Members: Users icon (blue)
+- ✅ New Members: TrendingUp icon (green)
+- ✅ Total Revenue: DollarSign icon (purple)
+- ✅ Monthly Revenue: Activity icon (orange)
+- ✅ Premium Members: Award icon (yellow)
+- ✅ Basic Members: Target icon (blue)
+- ✅ Active Members: Activity icon (green)
+- ✅ All icons render correctly
+- ✅ Icons sized consistently
+
+### Test Case 13.20: Data Persistence
+1. View analytics dashboard
+2. Navigate to another tab
+3. Return to analytics dashboard
+
+**Expected Result**:
+- ✅ Data reloads from database
+- ✅ Fresh calculations performed
+- ✅ No stale data displayed
+- ✅ Always shows current state
+
+---
+
+## 🔍 Final Testing Checklist (Step 13 Added)
 
 ### Training Program Management (Trainer - Step 9)
 - [x] Trainer can access Training Programs tab
@@ -2986,8 +3216,48 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 - [x] Form validation works
 - [x] Sent campaigns cannot be edited
 
+### Analytics Dashboard (Manager - Step 13)
+- [x] Manager can access Analytics & Reports tab
+- [x] Overview statistics display correctly
+- [x] Total Members count accurate
+- [x] New This Month calculation (last 30 days)
+- [x] Total Revenue calculated correctly
+- [x] Monthly Revenue calculated correctly
+- [x] Membership distribution breakdown works
+- [x] Premium Members count and percentage
+- [x] Basic Members count and percentage
+- [x] Active Members count and percentage
+- [x] Progress bars show correct percentages
+- [x] Activity metrics display correctly
+- [x] Total Classes count accurate
+- [x] Class Bookings count accurate
+- [x] Training Programs count accurate
+- [x] Campaigns Sent count accurate
+- [x] Class utilization analysis works
+- [x] Top 10 classes displayed
+- [x] Utilization percentages calculated correctly
+- [x] Color-coded utilization badges (green/yellow/red)
+- [x] Revenue trend visualization works
+- [x] 6 months revenue displayed
+- [x] Progress bars for revenue amounts
+- [x] Task completion rate accurate
+- [x] Quick stats calculations correct
+- [x] Average class size calculated
+- [x] Average utilization calculated
+- [x] Average revenue per member calculated
+- [x] Real-time data updates
+- [x] Loading state displays
+- [x] Empty states handled (no data)
+- [x] No division by zero errors
+- [x] Responsive design works
+- [x] Icons display correctly
+- [x] Data persistence across navigation
+- [x] Currency formatting (€ with separators)
+- [x] Percentage calculations accurate
+- [x] All metrics aggregated from database
+
 ---
 
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-12  
-**Total Test Cases**: 210+
+**Steps Tested**: 1-13  
+**Total Test Cases**: 230+

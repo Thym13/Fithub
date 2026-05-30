@@ -2388,6 +2388,195 @@ This component integrates with:
 
 ---
 
+## ✅ STEP 13: Analytics Dashboard (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: UC-6 Analytics & Reporting  
+**Reference**: Manager views comprehensive analytics and business intelligence reports
+
+### Files Added:
+
+1. **`src/app/components/analytics-dashboard.tsx`** - Analytics and reporting dashboard
+   - ✅ Overview statistics (total members, new members, revenue)
+   - ✅ Membership distribution breakdown (Premium, Basic, Active)
+   - ✅ Activity metrics (classes, bookings, programs, campaigns)
+   - ✅ Class utilization analysis with progress bars
+   - ✅ Revenue trend visualization (last 6 months)
+   - ✅ Task completion rate tracking
+   - ✅ Quick stats calculations
+   - ✅ Real-time data aggregation from database
+   - ✅ Responsive grid layout
+
+### Files Modified:
+
+1. **`src/app/components/manager-dashboard.tsx`**
+   - ✅ Imported AnalyticsDashboard component
+   - ✅ Added "Analytics & Reports" tab to navigation (3rd tab)
+   - ✅ Integrated AnalyticsDashboard into tab content
+
+### Features Implemented:
+
+**UC-6 Analytics Features**:
+- 📊 Overview statistics with key metrics
+- 👥 Member analytics (total, active, new this month)
+- 💰 Revenue tracking (total and monthly)
+- 📈 Membership distribution charts
+- 🏋️ Activity metrics (classes, bookings, programs, campaigns)
+- 📊 Class utilization analysis (top 10 classes)
+- 💵 Revenue trend over 6 months
+- ✅ Task completion rate
+- 🎯 Quick stats (avg class size, utilization, revenue per member)
+
+### Components & Features:
+
+**Overview Statistics**:
+- Total Members with active member count
+- New Members This Month (last 30 days)
+- Total Revenue (all time)
+- Monthly Revenue (last 30 days)
+- Color-coded icons (blue, green, purple, orange)
+
+**Membership Distribution**:
+- Premium Members count with percentage and progress bar
+- Basic Members count with percentage and progress bar
+- Active Members count with percentage and progress bar
+- Real-time percentage calculations
+
+**Activity Metrics**:
+- Total Classes available
+- Class Bookings count
+- Training Programs (total and active)
+- Campaigns Sent count
+- Icon indicators for each metric
+
+**Class Utilization**:
+- Top 10 classes by utilization percentage
+- Shows enrolled/capacity for each class
+- Color-coded badges:
+  - Green: ≥80% utilization
+  - Yellow: ≥50% utilization
+  - Red: <50% utilization
+- Progress bars showing utilization
+
+**Revenue Trend**:
+- Last 6 months revenue data
+- Simulated monthly revenue variations
+- Bar chart visualization with progress bars
+- Month labels and amounts
+
+**Operations Summary**:
+- Task Completion Rate with progress bar
+- Completed vs Pending task counts
+- Completion percentage
+- Quick stats:
+  - Average Class Size
+  - Average Class Utilization
+  - Average Revenue per Member
+
+### Data Aggregation:
+
+The dashboard aggregates data from multiple sources:
+- **Users**: Total members, active members, new members (last 30 days)
+- **Memberships**: Premium count, basic count
+- **Transactions**: Total revenue, monthly revenue (completed only)
+- **Classes**: Total classes, utilization rates
+- **Bookings**: Total bookings count
+- **Programs**: Total programs, active programs
+- **Tasks**: Completed tasks, pending tasks
+- **Campaigns**: Sent campaigns count
+
+### Calculations:
+
+**New Members This Month**:
+```typescript
+const thirtyDaysAgo = new Date();
+thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+const newMembers = members.filter(m => new Date(m.createdAt) > thirtyDaysAgo).length;
+```
+
+**Monthly Revenue**:
+```typescript
+const monthlyTrans = transactions.filter(t => 
+  t.status === 'Completed' && 
+  new Date(t.createdAt) > thirtyDaysAgo
+);
+const monthlyRev = monthlyTrans.reduce((sum, t) => sum + t.amount, 0);
+```
+
+**Class Utilization**:
+```typescript
+const utilization = Math.round((cls.enrolled / cls.capacity) * 100);
+```
+
+**Task Completion Rate**:
+```typescript
+const completionRate = (completedTasks / (completedTasks + pendingTasks)) * 100;
+```
+
+### Color System:
+
+**Metric Icons**:
+- Total Members: Blue (`text-blue-600`)
+- New Members: Green (`text-green-600`)
+- Total Revenue: Purple (`text-purple-600`)
+- Monthly Revenue: Orange (`text-orange-600`)
+
+**Utilization Badges**:
+- High (≥80%): Green (`bg-green-100 text-green-800`)
+- Medium (≥50%): Yellow (`bg-yellow-100 text-yellow-800`)
+- Low (<50%): Red (`bg-red-100 text-red-800`)
+
+**Task Status**:
+- Completed: Green (`text-green-600`)
+- Pending: Yellow (`text-yellow-600`)
+
+### Access Control:
+
+- **Manager**: Full access to analytics dashboard
+- **Secretary**: No access yet (future enhancement)
+- **Trainer/Member**: No access
+
+### Loading State:
+
+- Shows loading spinner while data is being aggregated
+- Displays "Loading analytics..." message
+- Transitions to full dashboard when ready
+
+### Empty States:
+
+- Class utilization section shows "No classes available" if no classes exist
+- All calculations handle division by zero gracefully
+- Shows 0 or appropriate default values when no data exists
+
+### Testing:
+
+See TESTING_GUIDE.md for comprehensive test cases.
+
+### Integration:
+
+This component integrates with:
+- **Manager Dashboard**: Analytics & Reports tab
+- **Database Service**: Reads from all data stores
+- **Real-time Calculations**: No caching, always fresh data
+- **Responsive Design**: Works on all screen sizes
+
+### Future Enhancements:
+
+- 📋 Date range filters (custom date ranges)
+- 📋 Export reports to PDF/Excel
+- 📋 Interactive charts with hover tooltips
+- 📋 Trend comparisons (month-over-month, year-over-year)
+- 📋 Revenue breakdown by membership type
+- 📋 Member retention rate tracking
+- 📋 Class popularity trends over time
+- 📋 Trainer performance metrics
+- 📋 Campaign ROI tracking
+- 📋 Predictive analytics (churn prediction, revenue forecasting)
+- 📋 Custom report builder
+- 📋 Scheduled report emails
+
+---
+
 ## 📋 Upcoming Steps:
 
 ... and more!
@@ -2410,8 +2599,9 @@ This component integrates with:
 | 10 | ✅ | UC-3 | Client View of Training Programs |
 | 11 | ✅ | UC-4 | Task Assignment System |
 | 12 | ✅ | UC-5 | Campaign Management |
+| 13 | ✅ | UC-6 | Analytics Dashboard |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 12 (48%)  
-**Steps Remaining**: 13
+**Steps Completed**: 13 (52%)  
+**Steps Remaining**: 12
