@@ -1160,13 +1160,303 @@ JSON.parse(localStorage.getItem('fithub_classes'))
 
 ---
 
+## ✅ STEP 8: Class Booking System (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: UC-2 Κράτηση Τμήματος (Book Class)  
+**Reference**: UC-2 complete flow - Browse, book, confirm, cancel, waitlist
+
+### Files Added:
+
+1. **`src/app/components/class-booking.tsx`** - Complete booking system
+   - ✅ Browse all active classes
+   - ✅ Search and filter (by category, day, search term)
+   - ✅ Book available classes
+   - ✅ Join waitlist for full classes
+   - ✅ View my bookings (confirmed & waitlisted)
+   - ✅ Cancel bookings
+   - ✅ Automatic capacity management
+   - ✅ Automatic waitlist promotion
+   - ✅ Email notifications for all actions
+
+### Files Modified:
+
+1. **`src/app/components/member-dashboard-complete.tsx`**
+   - ✅ Added "Book Classes" tab (first functional tab)
+   - ✅ Integrated ClassBookingSystem component
+   - ✅ Updated tab navigation
+
+### Features Implemented:
+
+**UC-2 Βασική Ροή (Basic Flow)**:
+1. ✅ Member browses available classes
+2. ✅ Member selects class
+3. ✅ System checks capacity
+4. ✅ Member confirms booking
+5. ✅ System creates booking (Confirmed status)
+6. ✅ System updates enrolled count
+7. ✅ System sends confirmation email to member
+8. ✅ Member receives booking details
+
+**UC-2 Εναλλακτική Ροή 1 (Waitlist Flow)**:
+1. ✅ Class is full (enrolled >= capacity)
+2. ✅ System offers waitlist option
+3. ✅ Member joins waitlist
+4. ✅ System creates booking (Waitlisted status)
+5. ✅ System updates waitlist count
+6. ✅ System sends waitlist confirmation email
+7. ✅ When spot opens: auto-promote first waitlisted user
+8. ✅ System sends promotion notification email
+
+**Browse & Filter Features**:
+- 🔍 Search by class name or instructor
+- 📂 Filter by category (10 categories)
+- 📅 Filter by day of week
+- ✅ View only active classes
+- 🎨 Color-coded category badges
+- 📊 Real-time capacity display (enrolled/total)
+- 📋 Waitlist indicator
+
+**Booking Features**:
+- ✅ One-click booking for available classes
+- ✅ Automatic waitlist for full classes
+- ✅ Booking confirmation modal
+- ✅ Duplicate booking prevention
+- 🔄 Real-time data refresh
+- 📧 Email confirmations
+- 🔔 In-app notifications
+
+**My Bookings Tab**:
+- ✅ Separate sections for Confirmed and Waitlisted
+- ✅ Visual distinction (green border = confirmed, yellow = waitlisted)
+- ✅ Class details displayed
+- ✅ Cancel booking button
+- ✅ Cancel confirmation modal
+- ✅ Empty state when no bookings
+
+**Cancel Booking Features**:
+- ✅ Cancel confirmation modal
+- ✅ Warning about permanence
+- ✅ Updates enrolled/waitlist counts
+- ✅ Auto-promotes waitlisted user if applicable
+- ✅ Sends cancellation email
+- ✅ Sends promotion email to waitlisted user
+
+**Capacity Management**:
+```typescript
+// When booking:
+if (enrolled < capacity) {
+  status = 'Confirmed'
+  enrolled++
+  if (enrolled >= capacity) classStatus = 'Full'
+} else {
+  status = 'Waitlisted'
+  waitlist++
+}
+
+// When cancelling confirmed booking:
+enrolled--
+classStatus = 'Active' // if was full
+if (waitlist > 0) {
+  // Promote first waitlisted user
+  firstWaitlisted.status = 'Confirmed'
+  waitlist--
+  enrolled++
+  // Send promotion email
+}
+```
+
+**Email Notifications**:
+
+1. **Booking Confirmed Email**:
+   - Class details (name, instructor, day, time, duration, location)
+   - Status: Confirmed
+   - Motivational message
+
+2. **Waitlist Email**:
+   - Class details
+   - Status: Waitlisted
+   - Notice about promotion notification
+
+3. **Promotion Email** (when spot opens):
+   - "Great News!" message
+   - Class details
+   - Confirmation that booking is now confirmed
+
+4. **Cancellation Email**:
+   - Cancellation confirmation
+   - Class details
+   - Link to book another class
+
+**UI/UX Features**:
+
+**Browse Classes View**:
+- Grid layout (3 columns on desktop)
+- Card per class with:
+  - Class name and category badge
+  - Description
+  - Instructor with icon
+  - Day, time, duration with icons
+  - Location with map pin icon
+  - Capacity counter with users icon
+  - Book button (or "Join Waitlist" if full)
+  - Already booked indicator (blue border + badge)
+
+**My Bookings View**:
+- Tabbed interface (Browse / My Bookings)
+- Badge showing booking count
+- Separate sections for Confirmed and Waitlisted
+- Color-coded borders (green/yellow)
+- Status badges
+- Waitlist notice alert
+- Cancel buttons
+
+**Modals**:
+- Book confirmation modal with class details
+- Waitlist warning modal
+- Cancel confirmation modal with warning
+- Processing states with spinners
+
+### Access Control:
+
+- **Member**: Full access to browse and book classes
+- **Trainer**: View only (future enhancement)
+- **Secretary/Manager**: Manage classes (Step 7)
+
+### Business Logic:
+
+**Booking Rules**:
+1. Can only book if authenticated
+2. Can only book each class once
+3. If capacity available → Confirmed
+4. If full → Waitlisted
+5. No duplicate bookings allowed
+
+**Cancellation Rules**:
+1. Can cancel any booking (confirmed or waitlisted)
+2. Cancellation is permanent
+3. If confirmed booking cancelled and waitlist exists:
+   - First waitlisted user promoted to confirmed
+   - Notification sent to promoted user
+   - Waitlist count decremented
+   - Enrolled count maintained
+
+**Status Updates**:
+- Class status changes to "Full" when enrolled >= capacity
+- Class status changes to "Active" when spot opens (cancelled)
+- Booking status: Confirmed | Waitlisted | Cancelled
+
+### Testing:
+
+To test class booking system:
+
+**Test 1: Browse Classes**
+1. Login as member
+2. Go to "Book Classes" tab
+
+**Expected Result**:
+- ✅ Shows all active classes
+- ✅ Filters work (search, category, day)
+- ✅ Classes display with all details
+
+**Test 2: Book Available Class**
+1. Find class with capacity (e.g., "Morning Yoga Flow")
+2. Click "Book Class"
+3. Confirm in modal
+
+**Expected Result**:
+- ✅ Booking created with status "Confirmed"
+- ✅ Class enrolled count increased
+- ✅ Confirmation email sent
+- ✅ In-app notification created
+- ✅ Class shows as "Booked" with blue border
+- ✅ Appears in "My Bookings" → Confirmed section
+
+**Test 3: Join Waitlist (Full Class)**
+1. Book a class multiple times to fill capacity
+2. Try to book again
+
+**Expected Result**:
+- ✅ Button shows "Join Waitlist"
+- ✅ Booking created with status "Waitlisted"
+- ✅ Waitlist count increased
+- ✅ Waitlist email sent
+- ✅ Appears in "My Bookings" → Waitlisted section
+- ✅ Shows waitlist notice
+
+**Test 4: Cancel Booking (Confirmed)**
+1. Book a class
+2. Go to "My Bookings"
+3. Click "Cancel Booking"
+4. Confirm cancellation
+
+**Expected Result**:
+- ✅ Booking status → Cancelled
+- ✅ Class enrolled count decreased
+- ✅ Cancellation email sent
+- ✅ Removed from "My Bookings"
+- ✅ Class no longer shows as booked
+
+**Test 5: Waitlist Promotion**
+1. Fill a class to capacity
+2. Add user to waitlist
+3. Cancel a confirmed booking
+
+**Expected Result**:
+- ✅ First waitlisted user promoted to Confirmed
+- ✅ Waitlist count decreased
+- ✅ Enrolled count stays same (spot filled)
+- ✅ Promotion email sent to promoted user
+- ✅ Promoted user's booking moves to Confirmed section
+
+**Test 6: Duplicate Booking Prevention**
+1. Book a class
+2. Try to book same class again
+
+**Expected Result**:
+- ❌ Alert: "You have already booked this class!"
+- ❌ No duplicate booking created
+
+**Test 7: Search and Filter**
+1. Search for "Yoga"
+2. Filter by category "HIIT"
+3. Filter by day "Monday"
+
+**Expected Result**:
+- ✅ Search filters by class name and instructor
+- ✅ Category filter works
+- ✅ Day filter works
+- ✅ Filters can be combined
+
+**Test 8: Empty States**
+1. View "My Bookings" with no bookings
+
+**Expected Result**:
+- ✅ Shows calendar icon
+- ✅ "No Bookings Yet" message
+- ✅ Helpful message to browse classes
+
+### Check Data in Console:
+
+```javascript
+// View all bookings
+JSON.parse(localStorage.getItem('fithub_bookings'))
+
+// View updated class capacity
+JSON.parse(localStorage.getItem('fithub_classes'))
+
+// View booking emails
+JSON.parse(localStorage.getItem('fithub_sent_emails')).filter(e => e.subject.includes('Booking'))
+```
+
+---
+
 ## 📋 Upcoming Steps:
 
-### STEP 8: Class Booking System (UC-2 Part 2)
-- Member class browsing
-- Book class functionality
-- Booking confirmation
-- View my bookings
+### STEP 9: Waitlist Management Enhancements
+- View waitlist position
+- Waitlist notifications dashboard
+- Waitlist analytics for admins
 
 ### STEP 6: Member Dashboard (UC-2 Book Class)
 - Class browsing
@@ -1189,10 +1479,11 @@ JSON.parse(localStorage.getItem('fithub_classes'))
 | 5 | ✅ | All | Login System & Authentication |
 | 6 | ✅ | All | Protected Routes & Auth Guards |
 | 7 | ✅ | UC-2 | Class Management (Creation & Scheduling) |
-| 8 | 🔜 | UC-2 | Class Booking System |
-| 9 | 🔜 | UC-2 | Waitlist Management |
+| 8 | ✅ | UC-2 | Class Booking System (Browse, Book, Cancel, Waitlist) |
+| 9 | 🔜 | UC-3 | Training Program Creation |
+| 10 | 🔜 | UC-4 | Task Assignment |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 7 (28%)  
-**Steps Remaining**: 18
+**Steps Completed**: 8 (32%)  
+**Steps Remaining**: 17

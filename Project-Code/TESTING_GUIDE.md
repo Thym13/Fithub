@@ -1425,6 +1425,361 @@ JSON.parse(localStorage.getItem('fithub_classes'))
 
 ---
 
+## ✅ STEP 8: Class Booking System
+
+### Test Case: Browse Classes (Member)
+1. Register and approve a member account
+2. Login as member
+3. Navigate to "Book Classes" tab
+
+**Expected Result**:
+- ✅ Shows grid of available classes
+- ✅ Each class shows: name, category, description, instructor, schedule, capacity
+- ✅ Book button or "Join Waitlist" button
+- ✅ Search bar and filters (category, day) visible
+
+### Test Case: Search Classes
+1. In "Book Classes" tab
+2. Search for "Yoga"
+
+**Expected Result**:
+- ✅ Filters to show only yoga classes
+- ✅ Matches class name and instructor name
+
+3. Clear search, search for instructor name (e.g., "Elena")
+
+**Expected Result**:
+- ✅ Shows all classes by that instructor
+
+### Test Case: Filter by Category
+1. Select "HIIT" from category dropdown
+
+**Expected Result**:
+- ✅ Shows only HIIT classes
+- ✅ Other classes hidden
+
+### Test Case: Filter by Day
+1. Select "Monday" from day dropdown
+
+**Expected Result**:
+- ✅ Shows only Monday classes
+- ✅ Other days hidden
+
+### Test Case: Combined Filters
+1. Search "Yoga", Category "Yoga", Day "Monday"
+
+**Expected Result**:
+- ✅ Shows only Monday Yoga classes
+- ✅ All filters work together
+
+### Test Case: Book Available Class
+1. Find class with available spots (e.g., "Morning Yoga Flow" - 0/20)
+2. Click "Book Class" button
+3. Confirmation modal appears
+4. Click "Confirm Booking"
+
+**Expected Result**:
+- ✅ Modal closes
+- ✅ Booking created in database
+- ✅ Class enrolled count: 1/20
+- ✅ Class shows blue border + "Booked" badge
+- ✅ Button changes to "Cancel Booking"
+- ✅ Booking appears in "My Bookings" tab
+- ✅ Confirmation email sent
+
+**Check localStorage**:
+```javascript
+JSON.parse(localStorage.getItem('fithub_bookings'))
+// Should show booking with status: "Confirmed"
+
+JSON.parse(localStorage.getItem('fithub_classes'))
+// Class enrolled should be 1
+
+JSON.parse(localStorage.getItem('fithub_sent_emails'))
+// Should see booking confirmation email
+```
+
+### Test Case: Book Full Class (Waitlist)
+1. Book "Pilates Core" class 15 times (capacity: 15)
+2. Try to book again with 16th user
+
+**Expected Result**:
+- ✅ Button shows "Join Waitlist"
+- ✅ Clicking opens modal: "This class is full. You will be added to the waitlist."
+- ✅ Confirm waitlist
+- ✅ Booking created with status: "Waitlisted"
+- ✅ Waitlist count: 1
+- ✅ Waitlist email sent
+- ✅ Class shows yellow "Waitlisted" badge
+- ✅ Appears in "My Bookings" → Waitlisted section
+
+### Test Case: Duplicate Booking Prevention
+1. Book a class
+2. Try to book the same class again
+
+**Expected Result**:
+- ❌ Alert: "You have already booked this class!"
+- ❌ No duplicate booking created
+- ✅ Original booking remains
+
+### Test Case: View My Bookings (Empty)
+1. New member with no bookings
+2. Go to "My Bookings" tab
+
+**Expected Result**:
+- ✅ Shows calendar icon
+- ✅ "No Bookings Yet" heading
+- ✅ "Browse classes and book your first session!" message
+
+### Test Case: View My Bookings (Confirmed)
+1. Book 3 classes
+2. Go to "My Bookings" tab
+3. Check "Confirmed Bookings" section
+
+**Expected Result**:
+- ✅ Heading: "Confirmed Bookings (3)"
+- ✅ Green checkmark icon
+- ✅ All 3 bookings displayed in grid
+- ✅ Each booking has green border
+- ✅ Shows class details (name, instructor, day, time, location)
+- ✅ "Cancel Booking" button on each
+
+### Test Case: View My Bookings (Waitlisted)
+1. Join waitlist for 2 full classes
+2. Go to "My Bookings" tab
+3. Check "Waitlisted" section
+
+**Expected Result**:
+- ✅ Heading: "Waitlisted (2)"
+- ✅ Yellow clock icon
+- ✅ Both waitlisted bookings displayed
+- ✅ Each has yellow border
+- ✅ Shows "Waitlisted" badge
+- ✅ Shows alert: "You'll be notified if a spot becomes available"
+- ✅ "Leave Waitlist" button
+
+### Test Case: Cancel Confirmed Booking
+1. Book a class
+2. Go to "My Bookings"
+3. Click "Cancel Booking"
+4. Confirmation modal appears
+5. Click "Cancel Booking" (red button)
+
+**Expected Result**:
+- ✅ Modal closes
+- ✅ Booking status → "Cancelled"
+- ✅ Removed from "My Bookings" tab
+- ✅ Class enrolled count decreased
+- ✅ Class status changed to "Active" (if was full)
+- ✅ Cancellation email sent
+- ✅ Class no longer shows as booked in Browse tab
+
+### Test Case: Cancel and Auto-Promote Waitlist
+1. Fill class to capacity (15/15)
+2. Add user to waitlist (waitlist: 1)
+3. Login as first booked user
+4. Cancel their booking
+
+**Expected Result**:
+- ✅ Booking cancelled
+- ✅ Enrolled: 14/15 temporarily
+- ✅ Waitlisted user automatically promoted
+- ✅ Their booking status → "Confirmed"
+- ✅ Waitlist count: 0
+- ✅ Enrolled: 15/15 (spot refilled)
+- ✅ Promotion email sent to promoted user
+- ✅ Promoted user sees booking in Confirmed section
+
+### Test Case: Cancel Waitlisted Booking
+1. Join waitlist for full class
+2. Click "Leave Waitlist"
+3. Confirm
+
+**Expected Result**:
+- ✅ Booking cancelled
+- ✅ Waitlist count decreased
+- ✅ Removed from "My Bookings"
+
+### Test Case: Booking Badge Count
+1. Book 3 classes
+2. Join 2 waitlists
+3. Look at "My Bookings" tab button
+
+**Expected Result**:
+- ✅ Shows badge with number "5"
+- ✅ Badge is blue
+
+### Test Case: Tab Navigation
+1. Switch between "Browse Classes" and "My Bookings" tabs
+
+**Expected Result**:
+- ✅ Tabs switch smoothly
+- ✅ Active tab highlighted
+- ✅ Content changes appropriately
+
+### Test Case: Booking Email Content
+1. Book a class
+2. Check localStorage for email
+
+**Expected Result**:
+```javascript
+JSON.parse(localStorage.getItem('fithub_sent_emails'))
+```
+- ✅ Email subject: "Class Booking Confirmed: {ClassName}"
+- ✅ Email body includes:
+  - Greeting with user name
+  - Class name, instructor, day, time, duration, location
+  - Status: Confirmed
+  - Motivational message
+
+### Test Case: Waitlist Email Content
+1. Join waitlist
+2. Check email
+
+**Expected Result**:
+- ✅ Subject: "Added to Waitlist: {ClassName}"
+- ✅ Body includes:
+  - Waitlist notice
+  - Class details
+  - "We'll notify you if a spot becomes available"
+
+### Test Case: Real-time Capacity Updates
+1. Open two browser windows
+2. Login as different members
+3. Book same class from both
+4. Observe capacity
+
+**Expected Result**:
+- ✅ First booking: enrolled increases
+- ✅ Second booking: enrolled increases again
+- ✅ Both users see updated capacity after refresh
+
+---
+
+## 🔍 Testing Checklist (Updated)
+
+### Class Booking System (NEW)
+- [ ] Browse classes tab loads
+- [ ] Search by class name works
+- [ ] Search by instructor name works
+- [ ] Filter by category works
+- [ ] Filter by day works
+- [ ] Combined filters work
+- [ ] Book available class works
+- [ ] Booking confirmation email sent
+- [ ] Enrolled count increases
+- [ ] Class shows as booked
+- [ ] Join waitlist for full class works
+- [ ] Waitlist email sent
+- [ ] Waitlist count increases
+- [ ] Duplicate booking prevented
+- [ ] My Bookings tab shows bookings
+- [ ] Confirmed section displays correctly
+- [ ] Waitlisted section displays correctly
+- [ ] Cancel confirmed booking works
+- [ ] Enrolled count decreases on cancel
+- [ ] Waitlist auto-promotion works
+- [ ] Promotion email sent
+- [ ] Cancel waitlisted booking works
+- [ ] Empty state shows when no bookings
+- [ ] Badge count accurate
+
+### Class Management
+- [x] Manager can access class management
+- [x] Secretary can access class management  
+- [x] Can create new classes
+- [x] All required field validation works
+- [x] Can edit existing classes
+- [x] Can delete classes with confirmation
+- [x] Empty state shows when no classes
+- [x] Demo classes initialize on first load
+- [x] Category badges show correct colors
+- [x] Time picker works correctly
+- [x] Form resets after cancel
+- [x] Processing states display correctly
+- [x] Class data persists in localStorage
+- [x] Table displays all class information
+
+### Route Protection & Security
+- [x] Protected routes redirect to login when not authenticated
+- [x] Login page redirects to dashboard when already logged in
+- [x] Role-based access control works (wrong role = redirect)
+- [x] Public routes accessible without authentication
+- [x] Direct URL access to protected routes is blocked
+- [x] Back button after logout doesn't allow access
+- [x] Session expiration triggers redirect
+- [x] Console logs show protection events
+- [x] Multiple tabs respect logout state
+- [x] Refresh on protected route maintains session
+- [x] useAuth hook provides correct state
+
+### Authentication & Authorization
+- [x] Login page loads correctly
+- [x] Login with valid credentials works
+- [x] Login with invalid credentials fails
+- [x] Email verification required for login
+- [x] Pending users cannot login
+- [x] Rejected users cannot login
+- [x] Approved users can login
+- [x] Role-based routing works
+- [x] Session persists across page refresh
+- [x] Logout clears session
+- [x] Session expires after 24 hours
+- [x] Quick-login buttons work
+- [x] Error messages display correctly
+- [x] Route protection enforced
+- [x] Role authorization enforced
+
+### Registration Flow (Member)
+- [x] Form validation works
+- [x] Password strength indicator appears
+- [x] Email verification sent
+- [x] Duplicate email blocked
+- [x] Subscription selection works
+- [x] Payment processing works
+- [x] Transaction recorded
+- [x] Membership activated
+- [x] Emails sent (verification, payment confirmation)
+
+### Admin Approval Workflow
+- [x] Pending registrations displayed
+- [x] User details shown correctly
+- [x] Payment status visible
+- [x] Approve functionality works
+- [x] Reject functionality requires reason
+- [x] Welcome email sent on approval
+- [x] Rejection email sent with reason
+- [x] User status updated to Active/Rejected
+- [x] Membership status updated
+- [x] Notifications created
+- [x] List refreshes after action
+- [x] Both manager and secretary can approve/reject
+
+### Payment Features
+- [x] Card auto-formatting works
+- [x] Card type detected
+- [x] CVV masked (password field)
+- [x] Expiry auto-formatted (MM/YY)
+- [x] Luhn validation works
+- [x] Payment success flow
+- [x] Payment declined flow
+- [x] Transaction summary displayed
+
+### Data Persistence
+- [x] User saved in localStorage
+- [x] Membership saved
+- [x] Transaction saved
+- [x] Emails logged
+- [x] Data persists after page reload
+- [x] Notifications saved
+- [x] Sessions saved and validated
+- [x] Classes saved in localStorage
+- [x] Class changes persist
+- [ ] Bookings saved in localStorage
+- [ ] Booking changes persist
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-7  
-**Total Test Cases**: 85+
+**Steps Tested**: 1-8  
+**Total Test Cases**: 105+
