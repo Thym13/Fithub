@@ -1126,6 +1126,305 @@ console.log('Is Manager:', hasRole('manager'));
 
 ---
 
+## ✅ STEP 7: Class Management (Creation & Scheduling)
+
+### Test Case: Access Class Management (Manager)
+1. Login as manager (manager@fithub.gr / Manager123!)
+2. Navigate to "Class Management" tab
+
+**Expected Result**:
+- ✅ Tab loads successfully
+- ✅ Shows 7 demo classes in table
+- ✅ "Create Class" button visible
+- ✅ Table shows class details (name, instructor, schedule, capacity, status)
+
+### Test Case: Access Class Management (Secretary)
+1. Login as secretary (secretary@fithub.gr / Admin123!)
+2. Navigate to "Class Management" tab
+
+**Expected Result**:
+- ✅ Secretary has same access as manager
+- ✅ Can view all classes
+- ✅ Can create/edit/delete classes
+
+### Test Case: Create New Class
+1. Login as manager
+2. Go to "Class Management" tab
+3. Click "Create Class" button
+4. Fill in form:
+   - Name: "Evening Zumba"
+   - Description: "Dance fitness party"
+   - Category: "Dance"
+   - Instructor: "Maria Costa"
+   - Day: "Thursday"
+   - Time: "20:00"
+   - Duration: "60"
+   - Capacity: "30"
+   - Location: "Dance Studio"
+5. Click "Create Class"
+
+**Expected Result**:
+- ✅ Modal closes
+- ✅ New class appears in table
+- ✅ Has correct details
+- ✅ Status: "Active"
+- ✅ Enrolled: 0/30
+- ✅ Saved to localStorage
+
+**Check localStorage**:
+```javascript
+JSON.parse(localStorage.getItem('fithub_classes'))
+// Should show new class in array
+```
+
+### Test Case: Create Class (Validation)
+1. Click "Create Class"
+2. Leave all fields empty
+3. Click "Create Class"
+
+**Expected Result**:
+- ❌ Error: "Class name is required"
+
+4. Fill name only
+5. Click "Create Class"
+
+**Expected Result**:
+- ❌ Error: "Category is required"
+
+6. Continue filling required fields one by one
+
+**Expected Result**:
+- ❌ Each missing field shows appropriate error
+- ✅ Cannot create until all required fields filled
+
+### Test Case: Edit Existing Class
+1. Click edit button (pencil icon) on "Morning Yoga Flow"
+2. Edit modal opens with pre-filled data
+3. Change:
+   - Capacity: from 20 to 25
+   - Time: from 09:00 to 10:00
+4. Click "Update Class"
+
+**Expected Result**:
+- ✅ Modal closes
+- ✅ Table shows updated capacity: 0/25
+- ✅ Table shows updated time: 10:00
+- ✅ Changes saved to localStorage
+
+### Test Case: Delete Class
+1. Click delete button (trash icon) on "Boxing Fundamentals"
+2. Confirmation modal opens
+3. Shows class details
+4. Shows warning: "This action cannot be undone. All bookings for this class will also be cancelled."
+5. Click "Delete Class"
+
+**Expected Result**:
+- ✅ Modal closes
+- ✅ Class removed from table
+- ✅ Deleted from localStorage
+- ✅ Total class count decreases
+
+### Test Case: Cancel Delete
+1. Click delete button on any class
+2. Click "Cancel" in confirmation modal
+
+**Expected Result**:
+- ✅ Modal closes
+- ✅ Class NOT deleted
+- ✅ Still appears in table
+
+### Test Case: View Class Details in Table
+1. Look at any class row in table
+
+**Expected Result**:
+- ✅ Class name displayed
+- ✅ Category badge with color coding (e.g., purple for Yoga)
+- ✅ Location shown with map pin icon (if set)
+- ✅ Instructor name
+- ✅ Schedule: Day with calendar icon
+- ✅ Time and duration with clock icon
+- ✅ Capacity: enrolled/total with users icon
+- ✅ Status badge (green for Active)
+- ✅ Edit and delete buttons
+
+### Test Case: Empty State
+1. Delete all classes
+2. View Class Management tab
+
+**Expected Result**:
+- ✅ Shows dumbbell icon
+- ✅ "No Classes Yet" heading
+- ✅ "Create your first fitness class to get started" message
+- ✅ "Create Your First Class" button
+- ✅ Clicking button opens create modal
+
+### Test Case: Demo Classes
+1. Clear localStorage: `localStorage.clear()`
+2. Refresh page
+3. Login as manager
+4. Go to Class Management
+
+**Expected Result**:
+- ✅ 7 demo classes auto-created:
+  - Morning Yoga Flow (Monday 09:00)
+  - HIIT Cardio Blast (Monday 18:00)
+  - Pilates Core (Wednesday 10:00)
+  - Cycling Power Hour (Tuesday 19:00)
+  - Strength & Conditioning (Thursday 17:00)
+  - Boxing Fundamentals (Friday 18:30)
+  - Weekend Yoga (Saturday 11:00)
+
+### Test Case: Category Colors
+1. View classes in table
+2. Check category badge colors
+
+**Expected Result**:
+- ✅ Yoga: Purple badge
+- ✅ HIIT: Red badge
+- ✅ Pilates: Pink badge
+- ✅ Cycling: Blue badge
+- ✅ Strength: Orange badge
+- ✅ Cardio: Green badge (if any)
+
+### Test Case: Time Picker
+1. Create or edit class
+2. Click time field
+
+**Expected Result**:
+- ✅ Shows native time picker (HH:MM format)
+- ✅ Can select hour and minute
+- ✅ 24-hour format
+
+### Test Case: Form Reset on Cancel
+1. Click "Create Class"
+2. Fill in some fields
+3. Click "Cancel"
+4. Click "Create Class" again
+
+**Expected Result**:
+- ✅ All fields are empty
+- ✅ No data carried over from previous attempt
+
+### Test Case: Processing States
+1. Create or edit a class
+2. Click submit button
+3. Observe button state
+
+**Expected Result**:
+- ✅ Button disabled during processing
+- ✅ Shows "Creating..." or "Updating..." text
+- ✅ Shows spinning clock icon
+- ✅ Modal closes after success
+
+### Test Case: Multiple Classes Same Day
+1. Create multiple classes on Monday:
+   - Morning Yoga (09:00)
+   - HIIT Blast (18:00)
+   - Evening Stretch (20:00)
+
+**Expected Result**:
+- ✅ All classes created successfully
+- ✅ No conflicts
+- ✅ All appear in table
+
+---
+
+## 🔍 Testing Checklist (Updated)
+
+### Class Management (NEW)
+- [ ] Manager can access class management
+- [ ] Secretary can access class management  
+- [ ] Can create new classes
+- [ ] All required field validation works
+- [ ] Can edit existing classes
+- [ ] Can delete classes with confirmation
+- [ ] Empty state shows when no classes
+- [ ] Demo classes initialize on first load
+- [ ] Category badges show correct colors
+- [ ] Time picker works correctly
+- [ ] Form resets after cancel
+- [ ] Processing states display correctly
+- [ ] Class data persists in localStorage
+- [ ] Table displays all class information
+
+### Route Protection & Security
+- [x] Protected routes redirect to login when not authenticated
+- [x] Login page redirects to dashboard when already logged in
+- [x] Role-based access control works (wrong role = redirect)
+- [x] Public routes accessible without authentication
+- [x] Direct URL access to protected routes is blocked
+- [x] Back button after logout doesn't allow access
+- [x] Session expiration triggers redirect
+- [x] Console logs show protection events
+- [x] Multiple tabs respect logout state
+- [x] Refresh on protected route maintains session
+- [x] useAuth hook provides correct state
+
+### Authentication & Authorization
+- [x] Login page loads correctly
+- [x] Login with valid credentials works
+- [x] Login with invalid credentials fails
+- [x] Email verification required for login
+- [x] Pending users cannot login
+- [x] Rejected users cannot login
+- [x] Approved users can login
+- [x] Role-based routing works
+- [x] Session persists across page refresh
+- [x] Logout clears session
+- [x] Session expires after 24 hours
+- [x] Quick-login buttons work
+- [x] Error messages display correctly
+- [x] Route protection enforced
+- [x] Role authorization enforced
+
+### Registration Flow (Member)
+- [x] Form validation works
+- [x] Password strength indicator appears
+- [x] Email verification sent
+- [x] Duplicate email blocked
+- [x] Subscription selection works
+- [x] Payment processing works
+- [x] Transaction recorded
+- [x] Membership activated
+- [x] Emails sent (verification, payment confirmation)
+
+### Admin Approval Workflow
+- [x] Pending registrations displayed
+- [x] User details shown correctly
+- [x] Payment status visible
+- [x] Approve functionality works
+- [x] Reject functionality requires reason
+- [x] Welcome email sent on approval
+- [x] Rejection email sent with reason
+- [x] User status updated to Active/Rejected
+- [x] Membership status updated
+- [x] Notifications created
+- [x] List refreshes after action
+- [x] Both manager and secretary can approve/reject
+
+### Payment Features
+- [x] Card auto-formatting works
+- [x] Card type detected
+- [x] CVV masked (password field)
+- [x] Expiry auto-formatted (MM/YY)
+- [x] Luhn validation works
+- [x] Payment success flow
+- [x] Payment declined flow
+- [x] Transaction summary displayed
+
+### Data Persistence
+- [x] User saved in localStorage
+- [x] Membership saved
+- [x] Transaction saved
+- [x] Emails logged
+- [x] Data persists after page reload
+- [x] Notifications saved
+- [x] Sessions saved and validated
+- [ ] Classes saved in localStorage
+- [ ] Class changes persist
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-6  
-**Total Test Cases**: 70+
+**Steps Tested**: 1-7  
+**Total Test Cases**: 85+

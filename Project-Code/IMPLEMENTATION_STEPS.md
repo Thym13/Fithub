@@ -919,13 +919,254 @@ When login succeeds:
 
 ---
 
+## ✅ STEP 7: Class Management (Creation & Scheduling) (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: UC-2 Κράτηση Τμήματος (Book Class) - Part 1  
+**Reference**: UC-2 prerequisites - Classes must exist before members can book them
+
+### Files Added:
+
+1. **`src/app/components/class-management.tsx`** - Class CRUD component
+   - ✅ Create new fitness classes
+   - ✅ Edit existing classes
+   - ✅ Delete classes
+   - ✅ View all classes in table format
+   - ✅ Category-based organization
+   - ✅ Capacity management
+   - ✅ Instructor assignment
+   - ✅ Schedule management (day + time)
+   - ✅ Location tracking
+   - ✅ Status management (Active/Cancelled/Full)
+
+### Files Modified:
+
+1. **`src/app/services/database.ts`**
+   - ✅ Added Class interface with all properties
+   - ✅ Added ClassBooking interface
+   - ✅ Added class CRUD operations (create, read, update, delete)
+   - ✅ Added booking operations (create, cancel, get by class/user)
+   - ✅ Added demo class initialization (7 demo classes)
+   - ✅ Added classes and bookings to clearAllData
+
+2. **`src/app/components/manager-dashboard.tsx`**
+   - ✅ Added "Class Management" tab (second tab)
+   - ✅ Integrated ClassManagement component
+
+3. **`src/app/components/receptionist-dashboard.tsx`**
+   - ✅ Added "Class Management" tab (second tab)
+   - ✅ Integrated ClassManagement component
+
+### Features Implemented:
+
+**Class Properties**:
+```typescript
+{
+  id: string
+  name: string
+  description: string
+  category: 'Yoga' | 'HIIT' | 'Pilates' | 'Cycling' | 'Strength' | 'Cardio' | 'CrossFit' | 'Boxing' | 'Dance' | 'Other'
+  instructorId: string
+  instructorName: string
+  day: 'Monday' - 'Sunday'
+  time: string (HH:MM format)
+  duration: number (minutes)
+  capacity: number
+  enrolled: number (auto-calculated)
+  waitlist: number (auto-calculated)
+  status: 'Active' | 'Cancelled' | 'Full'
+  location: string (optional)
+}
+```
+
+**Create Class Flow**:
+- ✅ Class name (required)
+- ✅ Description (optional)
+- ✅ Category selection from 10 categories
+- ✅ Instructor name (required)
+- ✅ Day of week (required)
+- ✅ Time picker (HH:MM format)
+- ✅ Duration in minutes (required)
+- ✅ Maximum capacity (required)
+- ✅ Location/room (optional)
+- ✅ Validation on all required fields
+- ✅ Auto-sets enrolled=0, waitlist=0, status=Active
+
+**Edit Class Flow**:
+- ✅ Click edit button on class row
+- ✅ Pre-filled form with current values
+- ✅ Update any field
+- ✅ Validation on save
+- ✅ Updates timestamp
+
+**Delete Class Flow**:
+- ✅ Click delete button
+- ✅ Confirmation modal with class details
+- ✅ Warning about booking cancellations
+- ✅ Permanent deletion
+
+**Class Display**:
+- ✅ Table view with all classes
+- ✅ Category badges with color coding
+- ✅ Instructor name
+- ✅ Schedule (day + time + duration)
+- ✅ Capacity counter (enrolled/capacity)
+- ✅ Waitlist indicator
+- ✅ Status badge
+- ✅ Location display
+- ✅ Edit and delete actions
+
+**Empty State**:
+- ✅ Shows when no classes exist
+- ✅ Dumbbell icon
+- ✅ "Create Your First Class" button
+- ✅ Helpful message
+
+### Database Operations:
+
+**Class CRUD**:
+```typescript
+db.createClass(classData): Class
+db.getAllClasses(): Class[]
+db.findClassById(id): Class | null
+db.updateClass(id, updates): Class | null
+db.deleteClass(id): boolean
+```
+
+**Booking Operations** (for Step 8):
+```typescript
+db.createBooking(bookingData): ClassBooking
+db.getClassBookings(classId): ClassBooking[]
+db.getUserBookings(userId): ClassBooking[]
+db.cancelBooking(id): boolean
+```
+
+### Demo Classes Initialized:
+
+1. **Morning Yoga Flow** - Monday 09:00, 60 min, 20 capacity
+2. **HIIT Cardio Blast** - Monday 18:00, 45 min, 25 capacity
+3. **Pilates Core** - Wednesday 10:00, 50 min, 15 capacity
+4. **Cycling Power Hour** - Tuesday 19:00, 60 min, 30 capacity
+5. **Strength & Conditioning** - Thursday 17:00, 60 min, 20 capacity
+6. **Boxing Fundamentals** - Friday 18:30, 60 min, 18 capacity
+7. **Weekend Yoga** - Saturday 11:00, 75 min, 25 capacity
+
+### Category Color Coding:
+
+- **Yoga**: Purple badge
+- **HIIT**: Red badge
+- **Pilates**: Pink badge
+- **Cycling**: Blue badge
+- **Strength**: Orange badge
+- **Cardio**: Green badge
+- **CrossFit**: Yellow badge
+- **Boxing**: Gray badge
+- **Dance**: Indigo badge
+- **Other**: Gray badge
+
+### Status Color Coding:
+
+- **Active**: Green badge
+- **Cancelled**: Red badge
+- **Full**: Yellow badge
+
+### Access Control:
+
+- **Manager**: Full access to class management
+- **Secretary**: Full access to class management
+- **Trainer**: View only (future step)
+- **Member**: View and book only (next step)
+
+### Validation Rules:
+
+1. Class name is required
+2. Category is required
+3. Instructor name is required
+4. Day is required
+5. Time is required
+6. Duration must be > 0 minutes
+7. Capacity must be > 0
+
+### UI/UX Features:
+
+**Modals**:
+- Create modal with full form
+- Edit modal with pre-filled data
+- Delete confirmation modal with warning
+
+**Form Elements**:
+- Text inputs for name, description, instructor
+- Select dropdowns for category and day
+- Time picker for class time
+- Number inputs for duration and capacity
+- Textarea for description
+
+**Table Display**:
+- Sortable columns
+- Color-coded badges
+- Icon indicators (calendar, clock, users, map pin)
+- Inline actions (edit, delete)
+
+### Testing:
+
+To test class management:
+
+**Test 1: Create Class**
+1. Login as manager or secretary
+2. Go to "Class Management" tab
+3. Click "Create Class"
+4. Fill in all required fields
+5. Click "Create Class"
+
+**Expected Result**:
+- ✅ Class created successfully
+- ✅ Appears in table
+- ✅ Saved to localStorage
+- ✅ Modal closes
+
+**Test 2: Edit Class**
+1. Click edit button on any class
+2. Modify some fields
+3. Click "Update Class"
+
+**Expected Result**:
+- ✅ Class updated
+- ✅ Changes visible in table
+- ✅ Timestamp updated
+
+**Test 3: Delete Class**
+1. Click delete button
+2. Confirm deletion
+
+**Expected Result**:
+- ✅ Class removed from table
+- ✅ Deleted from localStorage
+
+**Test 4: Validation**
+1. Try to create class without required fields
+
+**Expected Result**:
+- ❌ Error messages displayed
+- ❌ Cannot submit
+
+### Check Data in Console:
+
+```javascript
+// View all classes
+JSON.parse(localStorage.getItem('fithub_classes'))
+
+// Should show array of classes with demo data
+```
+
+---
+
 ## 📋 Upcoming Steps:
 
-### STEP 7: Class Management (UC-2 Part 1)
-- Class creation interface
-- Class scheduling
-- Instructor assignment
-- Capacity management
+### STEP 8: Class Booking System (UC-2 Part 2)
+- Member class browsing
+- Book class functionality
+- Booking confirmation
+- View my bookings
 
 ### STEP 6: Member Dashboard (UC-2 Book Class)
 - Class browsing
@@ -947,11 +1188,11 @@ When login succeeds:
 | 4 | ✅ | UC-1 | Admin Approval Workflow (Secretary/Manager Dashboard) |
 | 5 | ✅ | All | Login System & Authentication |
 | 6 | ✅ | All | Protected Routes & Auth Guards |
-| 7 | 🔜 | UC-2 | Class Management (Creation & Scheduling) |
+| 7 | ✅ | UC-2 | Class Management (Creation & Scheduling) |
 | 8 | 🔜 | UC-2 | Class Booking System |
 | 9 | 🔜 | UC-2 | Waitlist Management |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 6 (24%)  
-**Steps Remaining**: 19
+**Steps Completed**: 7 (28%)  
+**Steps Remaining**: 18

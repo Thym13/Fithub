@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar as CalendarComponent } from './ui/calendar';
 import { PromotionAnalytics } from './promotion-analytics';
 import { PendingRegistrations } from './pending-registrations';
+import { ClassManagement } from './class-management';
 import {
   Users,
   Calendar,
@@ -39,9 +40,10 @@ import { cn } from './ui/utils';
 
 const managerTabs = [
   { id: 'registrations', label: 'Pending Registrations', path: '#registrations' },
+  { id: 'class-management', label: 'Class Management', path: '#class-management' },
   { id: 'members', label: 'Member Profiles', path: '#members' },
   { id: 'schedules', label: 'Employee Schedules', path: '#schedules' },
-  { id: 'classes', label: 'Class Management', path: '#classes' },
+  { id: 'classes', label: 'Class Schedule', path: '#classes' },
   { id: 'tasks', label: 'Task Assignment', path: '#tasks' },
   { id: 'applications', label: 'Trainer Applications', path: '#applications' },
   { id: 'contracts', label: 'Contract Creation', path: '#contracts' },
@@ -477,6 +479,10 @@ export function ManagerDashboard() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsContent value="registrations" className="space-y-6">
           <PendingRegistrations onRefresh={() => {}} />
+        </TabsContent>
+
+        <TabsContent value="class-management" className="space-y-6">
+          <ClassManagement onRefresh={() => {}} />
         </TabsContent>
 
         <TabsContent value="members" className="space-y-6">
