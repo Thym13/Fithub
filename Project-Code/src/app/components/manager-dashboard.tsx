@@ -16,6 +16,7 @@ import { PendingRegistrations } from './pending-registrations';
 import { ClassManagement } from './class-management';
 import { TaskAssignmentManagement } from './task-assignment-management';
 import { CampaignManagement } from './campaign-management';
+import { DiscountCodeManagement } from './discount-code-management';
 import { AnalyticsDashboard } from './analytics-dashboard';
 import {
   Users,
@@ -52,6 +53,7 @@ const managerTabs = [
   { id: 'applications', label: 'Trainer Applications', path: '#applications' },
   { id: 'contracts', label: 'Contract Creation', path: '#contracts' },
   { id: 'promotions', label: 'Promotions & Campaigns', path: '#promotions' },
+  { id: 'discounts', label: 'Discount Codes', path: '#discounts' },
   { id: 'settings', label: 'System Settings', path: '#settings' },
 ];
 
@@ -1266,6 +1268,10 @@ export function ManagerDashboard() {
 
         <TabsContent value="promotions" className="space-y-6">
           <CampaignManagement />
+        </TabsContent>
+
+        <TabsContent value="discounts" className="space-y-6">
+          <DiscountCodeManagement />
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-6">

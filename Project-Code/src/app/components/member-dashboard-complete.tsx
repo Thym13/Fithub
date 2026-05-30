@@ -5,6 +5,7 @@ import { GymEvaluation } from './gym-evaluation';
 import { CustomerSupport } from './customer-support';
 import { ClassBookingSystem } from './class-booking';
 import { ClientTrainingPrograms } from './client-training-programs';
+import { ApplyDiscountCode } from './apply-discount-code';
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from './dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -92,6 +93,7 @@ export function MemberDashboard() {
     { id: 'overview', label: 'Overview', path: '#overview' },
     { id: 'bookings', label: 'Book Classes', path: '#bookings' },
     { id: 'programs', label: 'Training Programs', path: '#programs' },
+    { id: 'discounts', label: 'Discounts & Offers', path: '#discounts' },
     { id: 'classes', label: 'Browse All Classes', path: '#classes' },
     { id: 'progress', label: 'My Progress', path: '#progress' },
     { id: 'schedule', label: 'My Schedule', path: '#schedule' },
@@ -508,6 +510,10 @@ export function MemberDashboard() {
 
         <TabsContent value="programs" className="space-y-6">
           <ClientTrainingPrograms />
+        </TabsContent>
+
+        <TabsContent value="discounts" className="space-y-6">
+          <ApplyDiscountCode />
         </TabsContent>
 
         <TabsContent value="classes" className="space-y-6">

@@ -2577,6 +2577,35 @@ This component integrates with:
 
 ---
 
+## ✅ STEP 14: Discount Code System (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: UC-7 Εφαρμογή Κωδικού Έκπτωσης (Discount Code Application)  
+**Reference**: Members apply discount codes to subscriptions, managers create and manage discount codes
+
+### Files Added:
+
+1. **`src/app/components/discount-code-management.tsx`** - Discount code management for managers
+2. **`src/app/components/apply-discount-code.tsx`** - Discount code application for members
+
+### Files Modified:
+
+1. **`src/app/services/database.ts`** - Added DiscountCode and DiscountCodeUsage interfaces, CRUD operations, validation logic
+2. **`src/app/components/manager-dashboard.tsx`** - Added "Discount Codes" tab
+3. **`src/app/components/member-dashboard-complete.tsx`** - Added "Discounts & Offers" tab
+
+### Features Implemented:
+
+- ✅ Create discount codes (Percentage or Fixed Amount)
+- ✅ Configure validity period and usage limits
+- ✅ Target specific membership types
+- ✅ Real-time code validation for members
+- ✅ Discount calculation with savings display
+- ✅ Usage tracking and analytics
+- ✅ 4 demo discount codes initialized
+
+---
+
 ## 📋 Upcoming Steps:
 
 ... and more!
@@ -2600,8 +2629,9 @@ This component integrates with:
 | 11 | ✅ | UC-4 | Task Assignment System |
 | 12 | ✅ | UC-5 | Campaign Management |
 | 13 | ✅ | UC-6 | Analytics Dashboard |
+| 14 | ✅ | UC-7 | Discount Code System |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 13 (52%)  
-**Steps Remaining**: 12
+**Steps Completed**: 14 (56%)  
+**Steps Remaining**: 11

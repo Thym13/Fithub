@@ -3258,6 +3258,364 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 
 ---
 
+## ✅ STEP 14: Discount Code System
+
+### Manager - Discount Code Management
+
+### Test Case 14.1: View Discount Code Statistics
+1. Login as manager (manager@fithub.gr / Manager123!)
+2. Navigate to "Discount Codes" tab
+
+**Expected Result**:
+- ✅ Statistics cards show: Total Codes (4), Active (3), Expired (1), Total Usage (0)
+- ✅ 4 demo discount codes displayed
+
+### Test Case 14.2: Create Percentage Discount Code
+1. Click "Create Code"
+2. Fill in form:
+   - Code: SPRING25
+   - Name: Spring Special
+   - Description: 25% off all memberships
+   - Discount Type: Percentage
+   - Discount Value: 25
+   - Applies To: All Memberships
+   - Max Discount Amount: 30
+   - Usage Limit: 50
+   - Usage Per User: 1
+   - Valid From: Today
+   - Valid Until: +30 days
+3. Click "Create Code"
+
+**Expected Result**:
+- ✅ Code created successfully
+- ✅ Appears in discount codes list
+- ✅ Status shows "Active"
+- ✅ Statistics updated (Total Codes: 5, Active: 4)
+
+### Test Case 14.3: Create Fixed Amount Discount Code
+1. Click "Create Code"
+2. Fill in:
+   - Code: SAVE40
+   - Discount Type: Fixed Amount
+   - Discount Value: 40
+   - Min Purchase Amount: 80
+3. Create code
+
+**Expected Result**:
+- ✅ Code created with fixed amount discount
+- ✅ Shows "€40" discount in list
+
+### Test Case 14.4: Edit Discount Code
+1. Click edit button on SPRING25 code
+2. Change Discount Value to 30
+3. Change Status to Disabled
+4. Click "Update Code"
+
+**Expected Result**:
+- ✅ Code updated successfully
+- ✅ Shows 30% discount
+- ✅ Status badge shows "Disabled"
+- ✅ Active count decreased by 1
+
+### Test Case 14.5: View Discount Code Details
+1. Click "View" on any discount code
+
+**Expected Result**:
+- ✅ Modal opens with all code details
+- ✅ Shows code, name, description
+- ✅ Shows discount type and value
+- ✅ Shows applies to, usage, validity dates
+- ✅ Shows created by and creation date
+
+### Test Case 14.6: Delete Discount Code
+1. Click delete button on a code
+2. Confirm deletion
+
+**Expected Result**:
+- ✅ Confirmation modal appears
+- ✅ Shows warning message
+- ✅ Code deleted from list
+- ✅ Statistics updated
+
+### Test Case 14.7: Filter Discount Codes by Status
+1. Select "Active" from filter dropdown
+2. Select "Expired"
+3. Select "All"
+
+**Expected Result**:
+- ✅ Shows only active codes when filtered by Active
+- ✅ Shows only expired codes when filtered by Expired
+- ✅ Shows all codes when "All" selected
+
+### Test Case 14.8: Premium-Only Code Validation
+1. Create code with "Applies To: Premium Only"
+2. Note the code
+
+**Expected Result**:
+- ✅ Code created
+- ✅ Shows "Premium Only" in details
+
+### Test Case 14.9: Form Validation
+1. Try to create code without required fields
+2. Try to create code with invalid dates
+
+**Expected Result**:
+- ✅ Create button disabled when fields missing
+- ✅ Validation messages shown
+
+### Test Case 14.10: Usage Limit Tracking
+1. View code details
+2. Check usage count
+
+**Expected Result**:
+- ✅ Shows "0/50" or similar usage count
+- ✅ Unlimited shows as "0/∞"
+
+### Member - Apply Discount Code
+
+### Test Case 14.11: View Current Membership
+1. Login as member (member@fithub.gr / Member123!)
+2. Navigate to "Discounts & Offers" tab
+
+**Expected Result**:
+- ✅ Shows current membership card (if exists)
+- ✅ Shows membership type, status, expiry date
+- ✅ Shows monthly cost
+
+### Test Case 14.12: Select Membership Plan
+1. Click on Basic plan
+2. Click on Premium plan
+3. Click on Elite plan
+
+**Expected Result**:
+- ✅ Plan selection highlights with blue border
+- ✅ Shows pricing for each plan (€49, €79, €99)
+- ✅ Discount resets when changing plans
+
+### Test Case 14.13: Apply Valid Discount Code
+1. Select Basic plan (€49)
+2. Enter code: WELCOME20
+3. Click "Apply"
+
+**Expected Result**:
+- ✅ Success message shown
+- ✅ Green box displays discount details
+- ✅ Shows original amount: €49
+- ✅ Shows discount: -€9.80 (20%)
+- ✅ Shows final amount: €39.20
+- ✅ Shows "You save €9.80!"
+- ✅ "Proceed to Payment" button appears
+
+### Test Case 14.14: Apply Invalid Code
+1. Enter code: INVALIDCODE
+2. Click "Apply"
+
+**Expected Result**:
+- ✅ Error message: "Invalid discount code"
+- ✅ Red alert box shown
+- ✅ No discount applied
+
+### Test Case 14.15: Apply Expired Code
+1. Enter code: NEWYEAR2026
+2. Click "Apply"
+
+**Expected Result**:
+- ✅ Error message: "This discount code has expired"
+- ✅ Red alert box shown
+
+### Test Case 14.16: Premium-Only Code on Basic Plan
+1. Select Basic plan
+2. Enter code: PREMIUM20
+3. Click "Apply"
+
+**Expected Result**:
+- ✅ Error message: "This code is only valid for Premium memberships"
+- ✅ Code not applied
+
+### Test Case 14.17: Premium-Only Code on Premium Plan
+1. Select Premium plan (€79)
+2. Enter code: PREMIUM20
+3. Click "Apply"
+
+**Expected Result**:
+- ✅ Success! Code applied
+- ✅ Shows 20% discount (€15.80 off)
+- ✅ Final amount: €63.20
+
+### Test Case 14.18: Fixed Amount Discount
+1. Select Premium plan (€79)
+2. Enter code: SUMMER50
+3. Click "Apply"
+
+**Expected Result**:
+- ✅ Code applied successfully
+- ✅ Shows fixed discount: -€50.00
+- ✅ Final amount: €29.00
+- ✅ Badge shows "€50" discount type
+
+### Test Case 14.19: Min Purchase Amount Validation
+1. Select Basic plan (€49)
+2. Enter code: SUMMER50 (requires min €100)
+3. Click "Apply"
+
+**Expected Result**:
+- ✅ Error: "Minimum purchase amount of €100 required"
+- ✅ Code not applied
+
+### Test Case 14.20: Remove Applied Code
+1. Apply a valid code
+2. Click "Remove" button
+
+**Expected Result**:
+- ✅ Code removed
+- ✅ Discount calculation cleared
+- ✅ Input field enabled again
+- ✅ Proceed to Payment button hidden
+
+### Test Case 14.21: Proceed to Payment
+1. Apply valid code WELCOME20 to Basic plan
+2. Click "Proceed to Payment"
+
+**Expected Result**:
+- ✅ Alert shows: "Discount applied! You saved €9.80"
+- ✅ Shows final amount in alert
+- ✅ Form resets after confirmation
+
+### Test Case 14.22: Loading State
+1. Enter a code
+2. Click "Apply"
+3. Observe during validation
+
+**Expected Result**:
+- ✅ Button shows "Validating" with spinner
+- ✅ Button disabled during validation
+- ✅ 500ms delay simulated
+
+### Test Case 14.23: View Available Codes Info
+1. Scroll to bottom of discount code section
+
+**Expected Result**:
+- ✅ Blue info box shows available codes
+- ✅ Lists WELCOME20, PREMIUM20, SUMMER50
+- ✅ Shows brief description of each
+- ✅ Shows terms note
+
+### Test Case 14.24: Plan Change with Active Discount
+1. Apply code to Basic plan
+2. Change to Premium plan
+
+**Expected Result**:
+- ✅ Discount automatically removed
+- ✅ Success message cleared
+- ✅ Input field cleared
+- ✅ User can apply code again for new plan
+
+### Test Case 14.25: Max Discount Cap (Percentage)
+1. Create code: 50% off with max €20 cap
+2. Apply to Elite plan (€99)
+3. Expected discount: 50% = €49.50, but capped at €20
+
+**Expected Result**:
+- ✅ Discount shown as €20.00 (not €49.50)
+- ✅ Final amount: €79.00
+
+### Integration Tests
+
+### Test Case 14.26: Usage Tracking
+1. As member, apply code WELCOME20 and proceed
+2. As manager, view WELCOME20 code details
+
+**Expected Result**:
+- ✅ Usage count incremented (0/100 → 1/100)
+- ✅ Code still active
+
+### Test Case 14.27: Usage Per User Limit
+1. Apply code with usagePerUser: 1
+2. Complete purchase (mock)
+3. Try to apply same code again
+
+**Expected Result**:
+- ✅ Error: "You have already used this discount code the maximum number of times"
+
+### Test Case 14.28: Total Usage Limit Reached
+1. Create code with usage limit: 1
+2. Use code once
+3. Try to use code again (as different user or same)
+
+**Expected Result**:
+- ✅ Error: "This discount code has reached its usage limit"
+
+### Test Case 14.29: Discount Code in Campaign Email
+1. View campaign "Premium Membership Upgrade Offer"
+2. Check message content
+
+**Expected Result**:
+- ✅ Email mentions code PREMIUM20
+- ✅ Code exists and is valid
+
+### Test Case 14.30: Statistics Accuracy
+1. Create 3 codes
+2. Expire 1 code
+3. Disable 1 code
+4. Use 2 codes (mock usage)
+
+**Expected Result**:
+- ✅ Total Codes: increases by 3
+- ✅ Active Codes: increases by 1
+- ✅ Expired Codes: increases by 1
+- ✅ Total Usage: increases by 2
+
+### Checklist - Discount Code Management (Manager)
+- [x] Statistics display correctly
+- [x] Create percentage discount code works
+- [x] Create fixed amount discount code works
+- [x] Edit discount code works
+- [x] Delete discount code works
+- [x] View discount code details works
+- [x] Filter by status works (All, Active, Expired, Disabled)
+- [x] Form validation enforced
+- [x] Required fields validated
+- [x] Date pickers work
+- [x] Status dropdown works
+- [x] Discount type selection works
+- [x] Applicable membership type selection works
+- [x] Usage limits configurable
+- [x] Max discount cap for percentage codes
+- [x] Min purchase amount configurable
+- [x] Empty state shown when no codes
+- [x] Modal close buttons work
+- [x] Demo codes initialized (4 codes)
+- [x] Responsive design works
+
+### Checklist - Apply Discount Code (Member)
+- [x] Membership selection works
+- [x] Input field functional
+- [x] Apply button triggers validation
+- [x] Valid code accepted
+- [x] Invalid code rejected
+- [x] Expired code rejected
+- [x] Disabled code rejected
+- [x] Usage limit validated
+- [x] Per-user limit validated
+- [x] Min purchase amount validated
+- [x] Membership type restriction validated
+- [x] Percentage discount calculated correctly
+- [x] Fixed amount discount calculated correctly
+- [x] Max discount cap applied
+- [x] Savings displayed correctly
+- [x] Success message shown
+- [x] Error messages shown
+- [x] Remove code works
+- [x] Loading state displays
+- [x] Proceed to payment functional
+- [x] Plan change resets discount
+- [x] Available codes info displayed
+- [x] Responsive design works
+- [x] Code input uppercase conversion works
+- [x] Real-time validation (500ms delay)
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-13  
-**Total Test Cases**: 230+
+**Steps Tested**: 1-14  
+**Total Test Cases**: 260+

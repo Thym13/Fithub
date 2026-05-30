@@ -159,6 +159,42 @@ export interface Campaign {
   };
 }
 
+export interface DiscountCode {
+  id: string;
+  code: string; // The actual discount code (e.g., "WELCOME20", "SUMMER50")
+  name: string; // Display name for the discount
+  description: string;
+  discountType: 'Percentage' | 'Fixed Amount'; // Percentage off or fixed amount off
+  discountValue: number; // Percentage (e.g., 20 for 20%) or fixed amount (e.g., 10 for €10 off)
+  applicableTo: 'All Memberships' | 'Premium Only' | 'Basic Only' | 'Specific Membership'; // What memberships can use this
+  specificMembership?: string; // If applicableTo is 'Specific Membership', which one
+  minPurchaseAmount?: number; // Minimum purchase amount required to use code
+  maxDiscountAmount?: number; // Maximum discount amount (for percentage discounts)
+  usageLimit?: number; // Total number of times this code can be used (null = unlimited)
+  usageCount: number; // Current number of times this code has been used
+  usagePerUser?: number; // Max number of times a single user can use this code
+  validFrom: string; // ISO date string - when code becomes active
+  validUntil: string; // ISO date string - when code expires
+  status: 'Active' | 'Expired' | 'Disabled';
+  createdBy: string; // User ID
+  createdByName: string;
+  createdAt: string; // ISO date string
+  updatedAt: string;
+}
+
+export interface DiscountCodeUsage {
+  id: string;
+  discountCodeId: string;
+  discountCode: string; // The code used
+  userId: string;
+  userName: string;
+  membershipId: string;
+  originalAmount: number;
+  discountAmount: number;
+  finalAmount: number;
+  usedAt: string; // ISO date string
+}
+
 export class MockDatabase {
   private static instance: MockDatabase;
 
@@ -171,6 +207,8 @@ export class MockDatabase {
   private PROGRAMS_KEY = 'fithub_programs';
   private TASKS_KEY = 'fithub_tasks';
   private CAMPAIGNS_KEY = 'fithub_campaigns';
+  private DISCOUNT_CODES_KEY = 'fithub_discount_codes';
+  private DISCOUNT_CODE_USAGE_KEY = 'fithub_discount_code_usage';
 
   static getInstance(): MockDatabase {
     if (!MockDatabase.instance) {
@@ -674,6 +712,219 @@ export class MockDatabase {
     });
   }
 
+  // Discount Code Operations
+
+  getAllDiscountCodes(): DiscountCode[] {
+    const codes = localStorage.getItem(this.DISCOUNT_CODES_KEY);
+    return codes ? JSON.parse(codes) : [];
+  }
+
+  saveDiscountCodes(codes: DiscountCode[]): void {
+    localStorage.setItem(this.DISCOUNT_CODES_KEY, JSON.stringify(codes));
+  }
+
+  createDiscountCode(codeData: Omit<DiscountCode, 'id' | 'createdAt' | 'updatedAt' | 'usageCount'>): DiscountCode {
+    const code: DiscountCode = {
+      ...codeData,
+      id: this.generateId(),
+      usageCount: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const codes = this.getAllDiscountCodes();
+    codes.push(code);
+    this.saveDiscountCodes(codes);
+
+    return code;
+  }
+
+  getDiscountCodeById(id: string): DiscountCode | null {
+    const codes = this.getAllDiscountCodes();
+    return codes.find(c => c.id === id) || null;
+  }
+
+  getDiscountCodeByCode(code: string): DiscountCode | null {
+    const codes = this.getAllDiscountCodes();
+    return codes.find(c => c.code.toUpperCase() === code.toUpperCase()) || null;
+  }
+
+  updateDiscountCode(id: string, updates: Partial<DiscountCode>): DiscountCode | null {
+    const codes = this.getAllDiscountCodes();
+    const index = codes.findIndex(c => c.id === id);
+
+    if (index === -1) {
+      return null;
+    }
+
+    codes[index] = {
+      ...codes[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    this.saveDiscountCodes(codes);
+    return codes[index];
+  }
+
+  deleteDiscountCode(id: string): boolean {
+    const codes = this.getAllDiscountCodes();
+    const filteredCodes = codes.filter(c => c.id !== id);
+
+    if (filteredCodes.length === codes.length) {
+      return false;
+    }
+
+    this.saveDiscountCodes(filteredCodes);
+    return true;
+  }
+
+  // Validate discount code
+  validateDiscountCode(code: string, userId: string, membershipType: string, amount: number): {
+    valid: boolean;
+    message: string;
+    discountCode?: DiscountCode;
+  } {
+    const discountCode = this.getDiscountCodeByCode(code);
+
+    if (!discountCode) {
+      return { valid: false, message: 'Invalid discount code' };
+    }
+
+    // Check if code is disabled
+    if (discountCode.status === 'Disabled') {
+      return { valid: false, message: 'This discount code has been disabled' };
+    }
+
+    // Check if code is expired
+    const now = new Date();
+    const validFrom = new Date(discountCode.validFrom);
+    const validUntil = new Date(discountCode.validUntil);
+
+    if (now < validFrom) {
+      return { valid: false, message: 'This discount code is not yet active' };
+    }
+
+    if (now > validUntil) {
+      return { valid: false, message: 'This discount code has expired' };
+    }
+
+    // Check usage limit
+    if (discountCode.usageLimit && discountCode.usageCount >= discountCode.usageLimit) {
+      return { valid: false, message: 'This discount code has reached its usage limit' };
+    }
+
+    // Check per-user usage limit
+    if (discountCode.usagePerUser) {
+      const usages = this.getDiscountCodeUsagesByUser(userId, discountCode.id);
+      if (usages.length >= discountCode.usagePerUser) {
+        return { valid: false, message: 'You have already used this discount code the maximum number of times' };
+      }
+    }
+
+    // Check minimum purchase amount
+    if (discountCode.minPurchaseAmount && amount < discountCode.minPurchaseAmount) {
+      return {
+        valid: false,
+        message: `Minimum purchase amount of €${discountCode.minPurchaseAmount} required`
+      };
+    }
+
+    // Check if applicable to membership type
+    if (discountCode.applicableTo !== 'All Memberships') {
+      if (discountCode.applicableTo === 'Premium Only' && membershipType !== 'Premium') {
+        return { valid: false, message: 'This code is only valid for Premium memberships' };
+      }
+      if (discountCode.applicableTo === 'Basic Only' && membershipType !== 'Basic') {
+        return { valid: false, message: 'This code is only valid for Basic memberships' };
+      }
+      if (discountCode.applicableTo === 'Specific Membership' && membershipType !== discountCode.specificMembership) {
+        return { valid: false, message: `This code is only valid for ${discountCode.specificMembership} memberships` };
+      }
+    }
+
+    return { valid: true, message: 'Valid code', discountCode };
+  }
+
+  // Calculate discount amount
+  calculateDiscount(discountCode: DiscountCode, amount: number): {
+    originalAmount: number;
+    discountAmount: number;
+    finalAmount: number;
+  } {
+    let discountAmount = 0;
+
+    if (discountCode.discountType === 'Percentage') {
+      discountAmount = (amount * discountCode.discountValue) / 100;
+
+      // Apply maximum discount cap if specified
+      if (discountCode.maxDiscountAmount && discountAmount > discountCode.maxDiscountAmount) {
+        discountAmount = discountCode.maxDiscountAmount;
+      }
+    } else {
+      // Fixed Amount
+      discountAmount = discountCode.discountValue;
+
+      // Can't discount more than the original amount
+      if (discountAmount > amount) {
+        discountAmount = amount;
+      }
+    }
+
+    const finalAmount = amount - discountAmount;
+
+    return {
+      originalAmount: amount,
+      discountAmount: Math.round(discountAmount * 100) / 100, // Round to 2 decimals
+      finalAmount: Math.round(finalAmount * 100) / 100
+    };
+  }
+
+  // Discount Code Usage Operations
+
+  getAllDiscountCodeUsages(): DiscountCodeUsage[] {
+    const usages = localStorage.getItem(this.DISCOUNT_CODE_USAGE_KEY);
+    return usages ? JSON.parse(usages) : [];
+  }
+
+  saveDiscountCodeUsages(usages: DiscountCodeUsage[]): void {
+    localStorage.setItem(this.DISCOUNT_CODE_USAGE_KEY, JSON.stringify(usages));
+  }
+
+  createDiscountCodeUsage(usageData: Omit<DiscountCodeUsage, 'id' | 'usedAt'>): DiscountCodeUsage {
+    const usage: DiscountCodeUsage = {
+      ...usageData,
+      id: this.generateId(),
+      usedAt: new Date().toISOString()
+    };
+
+    const usages = this.getAllDiscountCodeUsages();
+    usages.push(usage);
+    this.saveDiscountCodeUsages(usages);
+
+    // Increment usage count on discount code
+    const discountCode = this.getDiscountCodeById(usageData.discountCodeId);
+    if (discountCode) {
+      this.updateDiscountCode(discountCode.id, {
+        usageCount: discountCode.usageCount + 1
+      });
+    }
+
+    return usage;
+  }
+
+  getDiscountCodeUsagesByUser(userId: string, discountCodeId?: string): DiscountCodeUsage[] {
+    const usages = this.getAllDiscountCodeUsages();
+    if (discountCodeId) {
+      return usages.filter(u => u.userId === userId && u.discountCodeId === discountCodeId);
+    }
+    return usages.filter(u => u.userId === userId);
+  }
+
+  getDiscountCodeUsagesByCode(discountCodeId: string): DiscountCodeUsage[] {
+    const usages = this.getAllDiscountCodeUsages();
+    return usages.filter(u => u.discountCodeId === discountCodeId);
+  }
+
   // Utility Methods
 
   generateId(): string {
@@ -694,6 +945,8 @@ export class MockDatabase {
     localStorage.removeItem(this.PROGRAMS_KEY);
     localStorage.removeItem(this.TASKS_KEY);
     localStorage.removeItem(this.CAMPAIGNS_KEY);
+    localStorage.removeItem(this.DISCOUNT_CODES_KEY);
+    localStorage.removeItem(this.DISCOUNT_CODE_USAGE_KEY);
   }
 
   // Initialize demo data
@@ -1159,6 +1412,81 @@ export class MockDatabase {
         });
 
         console.log('✅ Demo campaigns initialized');
+      }
+    }
+
+    // Initialize demo discount codes
+    const discountCodes = this.getAllDiscountCodes();
+    if (discountCodes.length === 0) {
+      const manager = this.findUserByEmail('manager@fithub.gr');
+
+      if (manager) {
+        const demoDiscountCodes = [
+          {
+            code: 'WELCOME20',
+            name: 'Welcome Discount',
+            description: '20% off for new members',
+            discountType: 'Percentage' as const,
+            discountValue: 20,
+            applicableTo: 'All Memberships' as const,
+            maxDiscountAmount: 20, // Max €20 discount
+            usageLimit: 100, // Total usage limit
+            usagePerUser: 1, // One time per user
+            validFrom: '2026-01-01T00:00:00Z',
+            validUntil: '2026-12-31T23:59:59Z',
+            status: 'Active' as const,
+            createdBy: manager.id,
+            createdByName: manager.name
+          },
+          {
+            code: 'PREMIUM20',
+            name: 'Premium Upgrade',
+            description: '20% off Premium membership upgrade',
+            discountType: 'Percentage' as const,
+            discountValue: 20,
+            applicableTo: 'Premium Only' as const,
+            validFrom: '2026-05-01T00:00:00Z',
+            validUntil: '2026-06-30T23:59:59Z',
+            status: 'Active' as const,
+            createdBy: manager.id,
+            createdByName: manager.name
+          },
+          {
+            code: 'SUMMER50',
+            name: 'Summer Special',
+            description: '€50 off any membership',
+            discountType: 'Fixed Amount' as const,
+            discountValue: 50,
+            applicableTo: 'All Memberships' as const,
+            minPurchaseAmount: 100, // Minimum €100 purchase
+            usageLimit: 50,
+            validFrom: '2026-06-01T00:00:00Z',
+            validUntil: '2026-08-31T23:59:59Z',
+            status: 'Active' as const,
+            createdBy: manager.id,
+            createdByName: manager.name
+          },
+          {
+            code: 'NEWYEAR2026',
+            name: 'New Year Special',
+            description: '15% off all memberships - expired',
+            discountType: 'Percentage' as const,
+            discountValue: 15,
+            applicableTo: 'All Memberships' as const,
+            usageLimit: 200,
+            validFrom: '2026-01-01T00:00:00Z',
+            validUntil: '2026-01-31T23:59:59Z',
+            status: 'Expired' as const,
+            createdBy: manager.id,
+            createdByName: manager.name
+          }
+        ];
+
+        demoDiscountCodes.forEach(codeData => {
+          this.createDiscountCode(codeData);
+        });
+
+        console.log('✅ Demo discount codes initialized');
       }
     }
   }
