@@ -2790,6 +2790,410 @@ interface Review {
 
 ---
 
+## ✅ STEP 17: Customer Support and Ticketing System (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: UC-10 Σύστημα Υποστήριξης Πελατών και Ερωτήσεων (Customer Support and Questions System)  
+**Reference**: Members create support tickets, AI responds in real-time, escalation to secretary after 5 messages or on AI error
+
+### Files Added:
+
+1. **`src/app/components/support-ticket-management.tsx`** - Secretary interface for managing support tickets
+
+### Files Modified:
+
+1. **`src/app/services/database.ts`** - Added SupportTicket, TicketMessage interfaces, CRUD operations, AI response simulation, sendEmail method
+2. **`src/app/components/customer-support.tsx`** - Completely rewritten with database integration
+3. **`src/app/components/receptionist-dashboard.tsx`** - Added "Support Tickets" tab
+4. **`src/app/components/member-dashboard-complete.tsx`** - Already had customer support integrated
+
+### Features Implemented:
+
+- ✅ Member creates support ticket with category selection (6 categories)
+- ✅ Unique ticket number generation (TKT-XXXXXX format)
+- ✅ AI assistant responds in real-time with category-specific responses
+- ✅ Chat interface with message history
+- ✅ Escalation to secretary after 5 member messages
+- ✅ Manual escalation option for members
+- ✅ AI error handling (5% random error simulation)
+- ✅ Email notifications on:
+  - Ticket creation
+  - AI system error
+  - Escalation to secretary
+- ✅ Secretary ticket management dashboard with:
+  - Statistics (Total, Open, AI Responding, Escalated, Closed, With Errors)
+  - Filter by status
+  - View ticket details
+  - Respond to tickets
+  - Close tickets
+- ✅ Member can close satisfied tickets
+- ✅ Secretary can close resolved tickets
+- ✅ 3 demo support tickets initialized (1 AI responding, 1 closed, 1 escalated)
+
+### Database Schema:
+
+```typescript
+interface TicketMessage {
+  id: string;
+  ticketId: string;
+  senderId: string; // User ID or 'ai' or 'secretary'
+  senderName: string;
+  senderType: 'member' | 'ai' | 'secretary';
+  message: string;
+  timestamp: string;
+}
+
+interface SupportTicket {
+  id: string;
+  ticketNumber: string; // e.g., "TKT-001234"
+  userId: string;
+  userName: string;
+  userEmail: string;
+  category: 'Technical Problem' | 'Subscription Info' | 'System Errors' | 'Billing' | 'Classes & Programs' | 'General Inquiry';
+  subject: string;
+  description: string;
+  status: 'Open' | 'AI Responding' | 'Escalated' | 'Closed';
+  priority: 'Low' | 'Medium' | 'High';
+  assignedTo?: string; // Secretary ID if escalated
+  assignedToName?: string;
+  messages: TicketMessage[];
+  aiErrorOccurred?: boolean;
+  closedBy?: 'member' | 'ai' | 'secretary';
+  closedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+### CRUD Operations:
+
+- `getAllSupportTickets()` - Get all support tickets
+- `saveSupportTickets(tickets)` - Save all tickets
+- `generateTicketNumber()` - Generate unique ticket number
+- `createSupportTicket(ticket)` - Create new ticket
+- `getSupportTicketById(id)` - Get single ticket
+- `getSupportTicketsByUser(userId)` - Get tickets by member
+- `getSupportTicketsByStatus(status)` - Filter tickets by status
+- `getSupportTicketsBySecretary(secretaryId)` - Get tickets assigned to secretary
+- `updateSupportTicket(id, updates)` - Update ticket
+- `addMessageToTicket(ticketId, message)` - Add message to conversation
+- `escalateTicketToSecretary(ticketId, secretaryId, secretaryName)` - Escalate ticket
+- `closeTicket(ticketId, closedBy)` - Close ticket
+- `generateAIResponse(userMessage, category)` - Simulate AI response with 5% error rate
+- `deleteSupportTicket(id)` - Delete ticket
+- `sendEmail(emailData)` - Send email notification (console log)
+
+### AI Response Categories:
+
+- **Technical Problem**: Login issues, password resets, app errors
+- **Subscription Info**: Pricing, plan upgrades, cancellations
+- **System Errors**: Error messages, system troubleshooting
+- **Billing**: Payment questions, invoices, refunds
+- **Classes & Programs**: Class information, trainer programs
+- **General Inquiry**: General questions about gym services
+
+### Alternative Flows Implemented:
+
+**Alternative Flow 1**: Escalation after 5 messages
+- System shows "Escalate to Support" option after 5 member messages
+- Member clicks to escalate
+- Ticket assigned to secretary with email notification
+- Secretary responds directly in chat
+
+**Alternative Flow 2**: AI System Error
+- 5% random chance of AI error on each response
+- Error message shown to member
+- Email sent to member explaining the issue
+- Email sent to secretary for manual intervention
+- Ticket flagged with `aiErrorOccurred: true`
+
+---
+
+## ✅ STEP 18: Member Profile Management (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: Additional Feature - Comprehensive Profile Management  
+**Reference**: Member account self-service and profile customization
+
+### Overview:
+
+Step 18 introduces a comprehensive member profile management system that allows members to view and update their personal information, change passwords, track activity, view transactions, and manage security settings.
+
+### Files Added:
+
+1. **`src/app/components/member-profile.tsx`** - Comprehensive member profile component
+   - ✅ Profile overview with completion percentage
+   - ✅ Personal information display and editing
+   - ✅ Password change functionality with validation
+   - ✅ Tabbed interface (Overview, Membership, Activity, Transactions, Security)
+   - ✅ Quick stats dashboard
+   - ✅ Edit profile modal
+   - ✅ Change password modal
+   - ✅ Email verification status
+   - ✅ Transaction history display
+   - ✅ Recent activity tracking
+
+### Files Modified:
+
+1. **`src/app/components/member-dashboard-complete.tsx`**
+   - ✅ Added import for MemberProfile component
+   - ✅ Added "My Profile" tab (2nd tab in member dashboard)
+   - ✅ Added TabsContent section for profile
+   - ✅ Integrated profile into member navigation flow
+
+### Features Implemented:
+
+**Profile Overview**:
+- ✅ Profile completion percentage with progress bar
+- ✅ Personal information display (name, email, phone, DOB, member since)
+- ✅ Quick stats cards:
+  - Classes booked count
+  - Training programs enrolled count
+  - Progress records count
+  - Reviews submitted count
+- ✅ Avatar/profile picture display
+- ✅ Membership type badge
+
+**Edit Profile**:
+- ✅ Edit profile button opens modal
+- ✅ Pre-filled form with current data
+- ✅ Editable fields:
+  - Full name (2+ characters required)
+  - Phone number (Greek format validation)
+  - Date of birth (16+ years validation)
+- ✅ Non-editable fields:
+  - Email address (displayed but cannot be changed)
+- ✅ Real-time form validation
+- ✅ Error messages for invalid inputs
+- ✅ Success notification on save
+- ✅ Updates database on submit
+- ✅ Profile updates immediately without refresh
+
+**Change Password**:
+- ✅ Dedicated "Change Password" button
+- ✅ Password change modal with:
+  - Current password field (verified against database)
+  - New password field with strength meter
+  - Confirm new password field
+- ✅ Password requirements enforcement:
+  - Minimum 8 characters
+  - At least one uppercase letter
+  - At least one lowercase letter
+  - At least one number
+  - At least one special character
+- ✅ Real-time password strength indicator (Weak/Medium/Strong)
+- ✅ Visual strength meter with color coding (red/yellow/green)
+- ✅ Password match validation
+- ✅ Current password verification
+- ✅ Database update on successful change
+- ✅ Success/error notifications
+
+**Tabbed Interface**:
+1. **Overview Tab**:
+   - Profile summary
+   - Quick stats
+   - Completion status
+   - Action buttons (Edit Profile, Change Password)
+
+2. **Membership Tab**:
+   - Membership type and status
+   - Start date and expiry date
+   - Monthly fee
+   - Benefits list
+   - Auto-renewal status
+   - Upgrade/downgrade options
+
+3. **Activity Tab**:
+   - Recent class bookings
+   - Training program enrollments
+   - Class attendance history
+   - Submitted reviews
+   - Progress records
+   - Sorted by date (newest first)
+
+4. **Transactions Tab**:
+   - Complete transaction history
+   - Transaction date and description
+   - Amount and payment method
+   - Status badges (Paid/Pending/Failed)
+   - Receipt download option
+   - Sorted by date (newest first)
+
+5. **Security Tab**:
+   - Email verification status with badge
+   - Password last changed date
+   - Change password button
+   - Two-factor authentication settings (UI ready)
+   - Active sessions list (UI ready)
+   - Security recommendations
+
+**Quick Statistics**:
+- ✅ Real-time stat calculation from database
+- ✅ Classes booked: Count from bookings where userId matches
+- ✅ Training programs: Count from program enrollments
+- ✅ Progress records: Count from progress tracking entries
+- ✅ Reviews submitted: Count from reviews table
+- ✅ Stats update automatically when actions performed
+
+**Profile Completion System**:
+- ✅ Calculates completion percentage based on filled fields
+- ✅ Required fields: name, email, phone, date of birth
+- ✅ Optional fields: avatar, bio, preferences
+- ✅ Progress bar visual indicator
+- ✅ List of missing fields shown
+- ✅ Suggestions to complete profile
+- ✅ Click suggestion navigates to edit modal
+
+**Email Verification Status**:
+- ✅ Verification badge displayed prominently
+- ✅ Green checkmark if verified
+- ✅ Yellow warning if unverified
+- ✅ "Resend Verification Email" button for unverified
+- ✅ Email resend functionality
+- ✅ Confirmation message on resend
+
+### Component Structure:
+
+```typescript
+interface MemberProfileProps {
+  // Uses useAuth() to get current user
+  // Uses MockDatabase to fetch user data
+}
+
+Features:
+- Profile data loaded from database on mount
+- Quick stats calculated in real-time
+- Edit operations update database immediately
+- Password change with bcrypt-style hashing
+- Form validation using validation.ts utilities
+- Responsive design with Tailwind CSS
+- Modal-based editing for better UX
+- Tab-based navigation for organization
+```
+
+### Integration Points:
+
+1. **Member Dashboard**: Added as 2nd tab after Overview
+2. **Database**: Reads/writes user data from MockDatabase
+3. **Validation**: Uses validation.ts for form validation
+4. **Auth**: Uses useAuth() hook for current user context
+5. **UI Components**: Uses Card, Button, Badge, Dialog, Tabs, Input, Label
+
+### User Experience Flow:
+
+**Edit Profile Flow**:
+1. Member clicks "Edit Profile" button
+2. Modal opens with pre-filled current data
+3. Member updates desired fields
+4. Real-time validation provides feedback
+5. Click "Save Changes"
+6. Validation checks all fields
+7. Database updated if valid
+8. Success notification shown
+9. Profile updates immediately
+10. Modal closes
+
+**Change Password Flow**:
+1. Member clicks "Change Password" button
+2. Modal opens with 3 password fields
+3. Member enters current password
+4. System verifies current password
+5. Member enters new password
+6. Strength meter shows password quality
+7. Member confirms new password
+8. System validates match and requirements
+9. Database updated if valid
+10. Success notification shown
+11. Modal closes
+12. Member can login with new password
+
+**View Activity Flow**:
+1. Member clicks "Activity" tab
+2. System loads recent activities from database:
+   - Class bookings with date, time, status
+   - Training program enrollments
+   - Reviews submitted
+   - Progress records added
+3. Activities sorted by date (newest first)
+4. Empty state shown if no activity
+5. Click on activity shows details
+
+**View Transactions Flow**:
+1. Member clicks "Transactions" tab
+2. System loads all transactions from database
+3. Each transaction shows:
+   - Date and time
+   - Description (membership fee, class payment, etc.)
+   - Amount
+   - Payment method
+   - Status (Paid/Pending/Failed)
+4. Transactions sorted newest first
+5. Download receipt option available
+6. Empty state if no transactions
+
+### Validation Rules:
+
+**Name Validation**:
+- Minimum 2 characters
+- Maximum 100 characters
+- Cannot be empty
+- Trims whitespace
+
+**Phone Validation**:
+- Must match Greek phone format: +30 XXX XXX XXXX
+- Can have spaces or dashes
+- Must be 10 digits after country code
+- Example: +30 210 123 4567
+
+**Date of Birth Validation**:
+- Must be valid date format
+- Member must be at least 16 years old
+- Cannot be future date
+- Calculated using current date
+
+**Password Validation**:
+- Minimum 8 characters
+- At least one uppercase letter (A-Z)
+- At least one lowercase letter (a-z)
+- At least one number (0-9)
+- At least one special character (!@#$%^&*)
+- Current password must match existing
+- New password and confirm must match
+
+### Security Features:
+
+1. **Current Password Verification**: Always verify current password before allowing change
+2. **Password Strength Meter**: Visual feedback on password quality
+3. **Email Immutability**: Email cannot be changed to prevent account takeover
+4. **Validation**: All inputs validated before database update
+5. **Session Check**: Only authenticated members can access profile
+6. **Data Privacy**: Only member's own data visible
+
+### Visual Design:
+
+- Clean, modern card-based layout
+- Tabbed navigation for organization
+- Modal dialogs for editing operations
+- Color-coded status badges
+- Progress bars for completion tracking
+- Icon usage for visual clarity
+- Responsive grid layouts
+- Consistent spacing and typography
+- Accessible form controls
+- Loading states for async operations
+- Success/error notifications
+
+### Benefits:
+
+1. **Self-Service**: Members manage own profiles without admin help
+2. **Data Accuracy**: Members keep their information current
+3. **Security**: Password change without admin intervention
+4. **Transparency**: Complete view of activity and transactions
+5. **Engagement**: Profile completion encourages full data entry
+6. **Trust**: Clear verification status builds confidence
+
+---
+
 ## 📋 Upcoming Steps:
 
 ... and more!
@@ -2816,8 +3220,10 @@ interface Review {
 | 14 | ✅ | UC-7 | Discount Code System |
 | 15 | ✅ | UC-8 | Client Progress Tracking |
 | 16 | ✅ | UC-9 | Gym Review and Rating System |
+| 17 | ✅ | UC-10 | Customer Support and Ticketing System |
+| 18 | ✅ | Additional | Member Profile Management |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 16 (64%)  
-**Steps Remaining**: 9
+**Steps Completed**: 18 (72%)  
+**Steps Remaining**: 7

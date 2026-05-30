@@ -9,6 +9,7 @@ import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { PendingRegistrations } from './pending-registrations';
 import { ClassManagement } from './class-management';
+import { SupportTicketManagement } from './support-ticket-management';
 import {
   UserCheck,
   Calendar,
@@ -33,6 +34,7 @@ import { useEffect, useState } from 'react';
 const receptionistTabs = [
   { id: 'registrations', label: 'Pending Registrations', path: '#registrations' },
   { id: 'class-management', label: 'Class Management', path: '#class-management' },
+  { id: 'support', label: 'Support Tickets', path: '#support' },
   { id: 'checkin', label: 'Check-Ins', path: '#checkin' },
   { id: 'booking', label: 'Class Bookings', path: '#booking' },
   { id: 'payments', label: 'Payments', path: '#payments' },
@@ -146,6 +148,10 @@ export function ReceptionistDashboard() {
 
         <TabsContent value="class-management" className="space-y-6">
           <ClassManagement onRefresh={() => {}} />
+        </TabsContent>
+
+        <TabsContent value="support" className="space-y-6">
+          <SupportTicketManagement />
         </TabsContent>
 
         <TabsContent value="checkin" className="space-y-6">

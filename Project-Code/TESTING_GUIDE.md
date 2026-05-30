@@ -4361,6 +4361,688 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 
 ---
 
+## 🎫 STEP 17: Customer Support and Ticketing System (UC-10)
+
+### Test Case 17.1: Create Support Ticket - Basic Flow
+
+**Steps**:
+1. Login as member
+2. Navigate to Customer Support section
+3. Click "Create New Ticket"
+4. Fill in:
+   - Category: "Technical Problem"
+   - Subject: "Cannot reset password"
+   - Description: "Password reset link not working"
+5. Click "Submit Ticket"
+
+**Expected Result**:
+- ✅ Ticket created successfully
+- ✅ Unique ticket number generated (TKT-XXXXXX format)
+- ✅ Status: "AI Responding"
+- ✅ Priority auto-assigned
+- ✅ AI sends first response immediately
+- ✅ Email sent to member confirming ticket creation
+- ✅ Email sent to secretary notifying of new ticket
+
+### Test Case 17.2: AI Response - Category-Specific
+
+**Steps**:
+1. Create tickets with different categories:
+   - Technical Problem
+   - Subscription Info
+   - System Errors
+   - Billing
+   - Classes & Programs
+   - General Inquiry
+2. Check AI responses for each
+
+**Expected Result**:
+- ✅ AI responds with category-relevant message
+- ✅ Different response for each category
+- ✅ Response appears immediately after member message
+- ✅ AI sender type: "ai"
+- ✅ Message appears in purple chat bubble
+
+### Test Case 17.3: Chat Interface - Member Messages
+
+**Steps**:
+1. Open existing ticket
+2. Type message in textarea
+3. Click send button
+4. Send multiple messages
+
+**Expected Result**:
+- ✅ Message appears in blue chat bubble (right-aligned)
+- ✅ Sender name shown as member name
+- ✅ Timestamp displayed
+- ✅ Member icon shown
+- ✅ AI responds to each message
+- ✅ Chat scrollable if many messages
+- ✅ Message input clears after sending
+
+### Test Case 17.4: Escalation - After 5 Messages
+
+**Steps**:
+1. Create new support ticket
+2. Send 5 member messages (AI responds to each)
+3. Check for escalation option
+4. Send 6th message
+
+**Expected Result**:
+- ✅ "Escalate to Support" button appears after 5 member messages
+- ✅ AI continues responding
+- ✅ Counter shows member message count
+- ✅ Only member messages counted (not AI/secretary)
+
+### Test Case 17.5: Manual Escalation
+
+**Steps**:
+1. Open ticket with 5+ member messages
+2. Click "Escalate to Support Staff"
+3. Confirm escalation
+
+**Expected Result**:
+- ✅ Status changes to "Escalated"
+- ✅ Ticket assigned to secretary (assignedTo, assignedToName set)
+- ✅ Email sent to secretary with ticket details
+- ✅ Email sent to member confirming escalation
+- ✅ AI stops responding
+- ✅ Chat still accessible
+
+### Test Case 17.6: AI Error Simulation
+
+**Steps**:
+1. Create ticket and send messages until AI error occurs (5% chance per message)
+2. Check error handling
+
+**Expected Result**:
+- ✅ AI error message shown to member
+- ✅ Red error notice displayed: "AI System Error Occurred"
+- ✅ Error notice explains manual intervention needed
+- ✅ Email sent to member apologizing for error
+- ✅ Email sent to secretary for manual resolution
+- ✅ Ticket flagged with aiErrorOccurred: true
+- ✅ Red "AI Error" badge shown on ticket card
+- ✅ Status remains "AI Responding" or changes to "Escalated"
+
+### Test Case 17.7: Secretary Ticket Management - Statistics
+
+**Steps**:
+1. Login as secretary
+2. Navigate to "Support Tickets" tab
+3. View statistics cards
+
+**Expected Result**:
+- ✅ 5 statistic cards displayed:
+  - Total Tickets
+  - Open
+  - AI Responding
+  - Escalated
+  - With Errors
+- ✅ Counts accurate and update in real-time
+- ✅ Icons match categories
+- ✅ Color-coded appropriately
+
+### Test Case 17.8: Secretary View Ticket Details
+
+**Steps**:
+1. Login as secretary
+2. Click "View & Respond" on a ticket
+3. Check modal content
+
+**Expected Result**:
+- ✅ Ticket number displayed
+- ✅ Subject shown
+- ✅ Status badge visible
+- ✅ Ticket info section shows:
+  - Member name
+  - Member email
+  - Category
+  - Priority
+  - Description
+- ✅ Full chat history displayed
+- ✅ Messages color-coded by sender type
+- ✅ AI error notice shown if applicable
+
+### Test Case 17.9: Secretary Respond to Ticket
+
+**Steps**:
+1. Login as secretary
+2. Open escalated ticket
+3. Type response in textarea
+4. Click send
+5. Send multiple messages
+
+**Expected Result**:
+- ✅ Secretary message appears in green chat bubble
+- ✅ Message right-aligned (secretary side)
+- ✅ Secretary icon shown
+- ✅ Sender name shows secretary name
+- ✅ Timestamp displayed
+- ✅ Message persists after modal close
+- ✅ Member can see secretary response
+
+### Test Case 17.10: Secretary Close Ticket
+
+**Steps**:
+1. Login as secretary
+2. Open ticket
+3. Click "Close Ticket"
+4. Confirm
+
+**Expected Result**:
+- ✅ Status changes to "Closed"
+- ✅ closedBy set to "secretary"
+- ✅ closedAt timestamp recorded
+- ✅ Modal closes
+- ✅ Ticket list updates
+- ✅ Message input disabled for closed tickets
+- ✅ Cannot reopen from UI
+
+### Test Case 17.11: Member Close Ticket
+
+**Steps**:
+1. Login as member
+2. Open own support ticket
+3. Click "Close Ticket" or "Mark as Resolved"
+4. Confirm
+
+**Expected Result**:
+- ✅ Status changes to "Closed"
+- ✅ closedBy set to "member"
+- ✅ closedAt timestamp recorded
+- ✅ Cannot send more messages
+- ✅ Ticket shown in "My Tickets" with Closed status
+
+### Test Case 17.12: Filter Tickets by Status
+
+**Steps**:
+1. Login as secretary
+2. Use filter dropdown
+3. Select each status:
+   - All Tickets
+   - Open
+   - AI Responding
+   - Escalated
+   - Closed
+
+**Expected Result**:
+- ✅ Filter dropdown functional
+- ✅ "All Tickets" shows all
+- ✅ Each filter shows only matching tickets
+- ✅ Statistics update based on filter
+- ✅ Empty state shown if no tickets match
+- ✅ Filter persists during session
+
+### Test Case 17.13: Ticket Number Generation
+
+**Steps**:
+1. Create 5 support tickets
+2. Check ticket numbers
+
+**Expected Result**:
+- ✅ Format: TKT-XXXXXX (6 digits, zero-padded)
+- ✅ Sequential numbering (TKT-000001, TKT-000002, etc.)
+- ✅ Unique for each ticket
+- ✅ Numbers persist after refresh
+- ✅ Counter increments correctly
+
+### Test Case 17.14: Priority Assignment
+
+**Steps**:
+1. Create tickets with different categories
+2. Check auto-assigned priority
+
+**Expected Result**:
+- ✅ Priority badge displayed
+- ✅ High priority: red badge
+- ✅ Medium priority: yellow badge
+- ✅ Low priority: outline badge
+- ✅ Priority logic based on category/keywords
+- ✅ Can be manually updated by secretary
+
+### Test Case 17.15: Email Notifications - Ticket Creation
+
+**Steps**:
+1. Member creates ticket
+2. Check console for emails
+
+**Expected Result**:
+- ✅ Email to member confirming creation
+- ✅ Subject: mentions ticket number
+- ✅ Body includes ticket details
+- ✅ Email to secretary notifying new ticket
+- ✅ Secretary email includes category and priority
+
+### Test Case 17.16: Email Notifications - Escalation
+
+**Steps**:
+1. Escalate a ticket
+2. Check console for emails
+
+**Expected Result**:
+- ✅ Email to member confirming escalation
+- ✅ Email to secretary with assignment
+- ✅ Secretary email includes ticket details
+- ✅ Member email explains next steps
+
+### Test Case 17.17: Email Notifications - AI Error
+
+**Steps**:
+1. Trigger AI error (keep sending until error occurs)
+2. Check console for emails
+
+**Expected Result**:
+- ✅ Email to member apologizing for error
+- ✅ Email to secretary requesting manual intervention
+- ✅ Secretary email flagged as urgent
+- ✅ Member email reassuring and professional
+
+### Test Case 17.18: Demo Tickets Initialization
+
+**Steps**:
+1. Clear localStorage
+2. Refresh page
+3. Login as secretary
+4. View support tickets
+
+**Expected Result**:
+- ✅ 3 demo tickets created
+- ✅ Ticket 1: AI Responding status
+- ✅ Ticket 2: Closed status
+- ✅ Ticket 3: Escalated status
+- ✅ Demo tickets have realistic content
+- ✅ Each has multiple messages
+- ✅ Different categories represented
+
+### Test Case 17.19: Chat Message Persistence
+
+**Steps**:
+1. Member sends message
+2. AI responds
+3. Close modal
+4. Reopen ticket
+5. Refresh page
+6. Check messages
+
+**Expected Result**:
+- ✅ All messages persist
+- ✅ Message order preserved
+- ✅ Timestamps accurate
+- ✅ Sender info preserved
+- ✅ Data survives page refresh
+
+### Test Case 17.20: Ticket Sorting
+
+**Steps**:
+1. Create tickets at different times
+2. View ticket list
+
+**Expected Result**:
+- ✅ Tickets sorted by creation date
+- ✅ Newest tickets appear first
+- ✅ Sorting consistent across filters
+- ✅ Recently updated tickets don't resort (based on createdAt only)
+
+### Checklist - Customer Support (Member)
+
+- [x] Create ticket button visible
+- [x] Category dropdown functional (6 options)
+- [x] Subject field required
+- [x] Description textarea functional
+- [x] Form validation enforces required fields
+- [x] Ticket created with unique number
+- [x] AI responds immediately
+- [x] Chat interface displays messages
+- [x] Member messages appear right-aligned (blue)
+- [x] AI messages appear left-aligned (purple)
+- [x] Send message button functional
+- [x] Message input clears after send
+- [x] Timestamp shown on messages
+- [x] Escalation option appears after 5 messages
+- [x] Manual escalation button works
+- [x] Close ticket option available
+- [x] Ticket list shows own tickets
+- [x] Status badges color-coded
+- [x] Priority badges displayed
+- [x] AI error notice shown when error occurs
+- [x] Email notifications sent
+- [x] Responsive design works
+
+### Checklist - Support Ticket Management (Secretary)
+
+- [x] Statistics dashboard displays (5 cards)
+- [x] Total tickets count accurate
+- [x] Open tickets count accurate
+- [x] AI Responding count accurate
+- [x] Escalated count accurate
+- [x] With Errors count accurate
+- [x] Filter dropdown functional
+- [x] Filter by All works
+- [x] Filter by Open works
+- [x] Filter by AI Responding works
+- [x] Filter by Escalated works
+- [x] Filter by Closed works
+- [x] Ticket cards display all info
+- [x] Status badges color-coded
+- [x] Priority badges shown
+- [x] AI Error badge shown when applicable
+- [x] Ticket number displayed
+- [x] Category and user info shown
+- [x] Message count displayed
+- [x] Creation date shown
+- [x] View & Respond button opens modal
+- [x] Modal shows complete ticket details
+- [x] Chat history displayed
+- [x] Messages color-coded (member blue, AI purple, secretary green)
+- [x] Message textarea functional
+- [x] Send button works
+- [x] Secretary messages appear in green
+- [x] Close ticket button functional
+- [x] Closed tickets have disabled input
+- [x] AI error notice displayed in modal
+- [x] Ticket sorting works (newest first)
+- [x] Empty state shown when no tickets
+- [x] Responsive design works
+- [x] Demo tickets initialized (3 tickets)
+
+---
+
+## 👤 STEP 18: Member Profile Management
+
+### Test Case 18.1: View Profile Overview
+
+**Steps**:
+1. Login as member
+2. Navigate to "My Profile" tab
+3. View profile overview section
+
+**Expected Result**:
+- ✅ Profile completion percentage displayed
+- ✅ Personal information shown:
+  - Full name
+  - Email address
+  - Phone number
+  - Date of birth
+  - Member since date
+- ✅ Quick stats cards displayed:
+  - Classes booked
+  - Training programs enrolled
+  - Progress records
+  - Reviews submitted
+- ✅ Avatar/profile picture shown
+- ✅ Membership type badge visible
+
+### Test Case 18.2: Edit Profile - Basic Information
+
+**Steps**:
+1. Click "Edit Profile" button
+2. Edit modal opens
+3. Change name
+4. Change phone number
+5. Change date of birth
+6. Click "Save Changes"
+
+**Expected Result**:
+- ✅ Modal opens with pre-filled data
+- ✅ Name field editable
+- ✅ Phone field editable with validation
+- ✅ Date of birth editable
+- ✅ Email field disabled (cannot change)
+- ✅ Changes saved to database
+- ✅ Profile updates immediately
+- ✅ Success notification shown
+- ✅ Modal closes
+
+### Test Case 18.3: Edit Profile - Validation
+
+**Steps**:
+1. Open edit profile modal
+2. Try to save with:
+   - Empty name
+   - Invalid phone format
+   - Invalid date of birth (too young)
+
+**Expected Result**:
+- ✅ Validation prevents saving
+- ✅ Error messages displayed
+- ✅ Name must be at least 2 characters
+- ✅ Phone must be valid Greek format
+- ✅ Age must be 16+ years
+- ✅ Form highlights errors in red
+
+### Test Case 18.4: Change Password
+
+**Steps**:
+1. Click "Change Password" button
+2. Enter current password
+3. Enter new password
+4. Confirm new password
+5. Click "Change Password"
+
+**Expected Result**:
+- ✅ Password modal opens
+- ✅ Current password field shown
+- ✅ New password field with strength meter
+- ✅ Confirm password field shown
+- ✅ Validation enforces password requirements
+- ✅ Passwords must match
+- ✅ Password updated in database
+- ✅ Success message shown
+- ✅ Modal closes
+- ✅ Can login with new password
+
+### Test Case 18.5: Change Password - Validation
+
+**Steps**:
+1. Open change password modal
+2. Try various scenarios:
+   - Wrong current password
+   - Weak new password
+   - Passwords don't match
+   - Empty fields
+
+**Expected Result**:
+- ✅ Error: "Current password is incorrect"
+- ✅ Error: "Password too weak"
+- ✅ Error: "Passwords do not match"
+- ✅ Required field validation
+- ✅ Password strength indicator works
+- ✅ Visual feedback (red borders)
+
+### Test Case 18.6: Membership Tab
+
+**Steps**:
+1. Click on "Membership" tab
+2. View membership details
+
+**Expected Result**:
+- ✅ Membership type displayed
+- ✅ Start date shown
+- ✅ Expiry date shown
+- ✅ Status badge (Active/Expired)
+- ✅ Monthly fee displayed
+- ✅ Benefits list shown
+- ✅ Auto-renewal status shown
+- ✅ Upgrade/downgrade options available
+
+### Test Case 18.7: Activity Tab
+
+**Steps**:
+1. Click on "Activity" tab
+2. View recent activity
+
+**Expected Result**:
+- ✅ Recent bookings displayed
+- ✅ Training program enrollments shown
+- ✅ Class attendance history
+- ✅ Reviews submitted listed
+- ✅ Progress records shown
+- ✅ Activity sorted by date (newest first)
+- ✅ Empty state if no activity
+
+### Test Case 18.8: Transactions Tab
+
+**Steps**:
+1. Click on "Transactions" tab
+2. View transaction history
+
+**Expected Result**:
+- ✅ All transactions listed
+- ✅ Transaction date shown
+- ✅ Description displayed
+- ✅ Amount shown
+- ✅ Payment method indicated
+- ✅ Status badge (Paid/Pending/Failed)
+- ✅ Receipt download option
+- ✅ Sorted by date (newest first)
+
+### Test Case 18.9: Security Tab
+
+**Steps**:
+1. Click on "Security" tab
+2. View security settings
+
+**Expected Result**:
+- ✅ Email verification status shown
+- ✅ Password last changed date
+- ✅ "Change Password" button available
+- ✅ Two-factor authentication option (if implemented)
+- ✅ Active sessions list (if implemented)
+- ✅ Security recommendations shown
+
+### Test Case 18.10: Profile Completion Percentage
+
+**Steps**:
+1. View profile with missing information
+2. Add phone number
+3. Add date of birth
+4. Check completion percentage
+
+**Expected Result**:
+- ✅ Percentage starts low with minimal info
+- ✅ Percentage increases as fields filled
+- ✅ 100% when all fields complete
+- ✅ Progress bar visual indicator
+- ✅ List of missing fields shown
+- ✅ Click suggestion navigates to edit
+
+### Test Case 18.11: Quick Stats Accuracy
+
+**Steps**:
+1. Book a class
+2. Enroll in training program
+3. Submit a review
+4. Add progress record
+5. Check profile quick stats
+
+**Expected Result**:
+- ✅ Classes booked count increments
+- ✅ Training programs count increments
+- ✅ Reviews count increments
+- ✅ Progress records count increments
+- ✅ Stats update in real-time
+- ✅ Counts accurate
+
+### Test Case 18.12: Avatar/Profile Picture
+
+**Steps**:
+1. View profile
+2. Click on avatar/profile picture
+3. Upload new image (if implemented)
+
+**Expected Result**:
+- ✅ Current avatar displayed
+- ✅ Click opens upload modal (if implemented)
+- ✅ Image upload functional
+- ✅ Preview before saving
+- ✅ Image size validation
+- ✅ Supported formats: JPG, PNG
+- ✅ Avatar updates across app
+
+### Test Case 18.13: Email Verification Status
+
+**Steps**:
+1. Check email verification badge
+2. If unverified, click "Resend Verification"
+
+**Expected Result**:
+- ✅ Verification status shown clearly
+- ✅ Green checkmark if verified
+- ✅ Yellow warning if unverified
+- ✅ "Resend Verification" button available if unverified
+- ✅ Email resent successfully
+- ✅ Confirmation message shown
+
+### Test Case 18.14: Data Persistence
+
+**Steps**:
+1. Update profile information
+2. Change password
+3. Refresh page
+4. Check data still saved
+
+**Expected Result**:
+- ✅ All changes persist
+- ✅ Profile data saved to database
+- ✅ Password change saved
+- ✅ Stats remain accurate
+- ✅ Data survives page refresh
+
+### Test Case 18.15: Responsive Design
+
+**Steps**:
+1. View profile on desktop
+2. Resize to tablet view
+3. Resize to mobile view
+
+**Expected Result**:
+- ✅ Layout adapts to screen size
+- ✅ Tabs stack on mobile
+- ✅ Cards resize appropriately
+- ✅ Modals responsive
+- ✅ Touch-friendly buttons
+- ✅ No horizontal scroll
+- ✅ Readable text on all sizes
+
+### Checklist - Member Profile
+
+- [x] Profile tab accessible from member dashboard
+- [x] Profile overview displays all personal info
+- [x] Profile completion percentage shown
+- [x] Quick stats cards displayed (4 cards)
+- [x] Edit profile button functional
+- [x] Edit modal opens with pre-filled data
+- [x] Name field editable
+- [x] Phone field editable
+- [x] Date of birth editable
+- [x] Email field disabled (cannot edit)
+- [x] Form validation works
+- [x] Changes save successfully
+- [x] Profile updates in real-time
+- [x] Change password button functional
+- [x] Password modal opens
+- [x] Current password verification
+- [x] New password strength meter
+- [x] Password confirmation required
+- [x] Password requirements enforced
+- [x] Password change successful
+- [x] Membership tab functional
+- [x] Activity tab displays history
+- [x] Transactions tab shows payments
+- [x] Security tab displays settings
+- [x] All tabs navigate correctly
+- [x] Email verification status shown
+- [x] Avatar/profile picture displayed
+- [x] Quick stats accurate and real-time
+- [x] Data persistence across refreshes
+- [x] Responsive design works
+- [x] Success/error notifications shown
+- [x] Empty states for no data
+- [x] Loading states during operations
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-16  
-**Total Test Cases**: 300+
+**Steps Tested**: 1-18  
+**Total Test Cases**: 350+
