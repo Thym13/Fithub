@@ -4,6 +4,7 @@ import { DiscountCodeSectionImproved } from './discount-code-section-improved';
 import { GymEvaluation } from './gym-evaluation';
 import { CustomerSupport } from './customer-support';
 import { ClassBookingSystem } from './class-booking';
+import { ClientTrainingPrograms } from './client-training-programs';
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from './dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -45,7 +46,7 @@ export function MemberDashboard() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
-      if (hash && ['overview', 'bookings', 'classes', 'progress', 'schedule', 'membership'].includes(hash)) {
+      if (hash && ['overview', 'bookings', 'programs', 'classes', 'progress', 'schedule', 'membership'].includes(hash)) {
         setActiveTab(hash);
       }
     };
@@ -90,6 +91,7 @@ export function MemberDashboard() {
   const memberTabs = [
     { id: 'overview', label: 'Overview', path: '#overview' },
     { id: 'bookings', label: 'Book Classes', path: '#bookings' },
+    { id: 'programs', label: 'Training Programs', path: '#programs' },
     { id: 'classes', label: 'Browse All Classes', path: '#classes' },
     { id: 'progress', label: 'My Progress', path: '#progress' },
     { id: 'schedule', label: 'My Schedule', path: '#schedule' },
@@ -502,6 +504,10 @@ export function MemberDashboard() {
 
         <TabsContent value="bookings" className="space-y-6">
           <ClassBookingSystem />
+        </TabsContent>
+
+        <TabsContent value="programs" className="space-y-6">
+          <ClientTrainingPrograms />
         </TabsContent>
 
         <TabsContent value="classes" className="space-y-6">

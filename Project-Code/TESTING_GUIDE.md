@@ -2146,6 +2146,170 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 
 ---
 
+## ✅ STEP 10: Client View of Training Programs
+
+### Test Case 10.1: View Program List with Demo Data
+1. Login as member: `member@fithub.gr` / `Member123!`
+2. Navigate to "Training Programs" tab
+3. Observe the program list
+
+**Expected Result**:
+- ✅ See 2 demo training programs
+- ✅ "Strength & Muscle Building" program card displayed
+- ✅ "Cardio Endurance Program" card displayed
+- ✅ Each card shows:
+  - Program name and description
+  - Status badge (Active)
+  - Trainer name (Sarah Johnson)
+  - Goal, Duration, End Date
+  - Progress bar with percentage
+  - Exercise completion count (e.g., "2/6 exercises")
+  - "View Program" button
+
+### Test Case 10.2: Statistics Dashboard
+1. On Training Programs tab, check top statistics cards
+
+**Expected Result**:
+- ✅ Active Programs: 2
+- ✅ Total Exercises: 9 (6 from program 1 + 3 from program 2)
+- ✅ Completed: 3 (2 from program 1 + 1 from program 2)
+- ✅ Icons displayed correctly (Dumbbell, Activity, Award)
+
+### Test Case 10.3: View Program Details
+1. Click "View Program" on "Strength & Muscle Building"
+2. Examine the detail modal
+
+**Expected Result**:
+- ✅ Modal opens with program details
+- ✅ Header shows program name and Active status badge
+- ✅ Program info section shows Trainer, Goal, Duration, Progress
+- ✅ Trainer notes displayed in blue box
+- ✅ "Send Feedback" button visible
+- ✅ Exercises grouped by day (Monday, Wednesday, Friday)
+- ✅ Completed exercises have green background
+- ✅ Incomplete exercises have white background
+- ✅ Each exercise shows category and intensity badges
+
+### Test Case 10.4: Toggle Exercise Completion
+1. In program detail modal, find "Deadlifts" (incomplete)
+2. Click the checkbox next to "Deadlifts"
+
+**Expected Result**:
+- ✅ Checkbox changes from empty to checked
+- ✅ Exercise background turns green
+- ✅ Progress percentage updates
+- ✅ Change persists when closing and reopening modal
+
+### Test Case 10.5: Log Workout
+1. Find an incomplete exercise (e.g., "Pull-ups")
+2. Click "Log Workout" button
+3. Fill in: Sets: 3, Reps: 12, Weight: 0, Difficulty: Medium, Notes: "Great workout!"
+4. Click "Save & Mark Complete"
+
+**Expected Result**:
+- ✅ Log modal opens with exercise details
+- ✅ All form fields accept input
+- ✅ After saving: modal closes, exercise marked complete, progress updates
+
+### Test Case 10.6: Send Feedback to Trainer
+1. In program detail modal, click "Send Feedback"
+2. Type: "The program is great! Could we add more core exercises?"
+3. Click "Send Feedback"
+
+**Expected Result**:
+- ✅ Feedback modal opens with trainer info
+- ✅ Send button disabled when empty
+- ✅ Success alert after sending
+- ✅ Modal closes
+
+### Test Case 10.7: Empty State (New User)
+1. Login as a new member with no programs
+2. Go to Training Programs tab
+
+**Expected Result**:
+- ✅ Dumbbell icon displayed
+- ✅ Message: "No Training Programs Yet"
+- ✅ Statistics show all zeros
+
+### Test Case 10.8: Progress Calculation
+1. View a program with 2 out of 6 exercises completed
+
+**Expected Result**:
+- ✅ Progress bar shows 33%
+- ✅ Text shows "2/6 exercises"
+- ✅ Updates immediately when toggling completion
+
+### Test Case 10.9: Responsive Design
+1. Resize browser from desktop to mobile
+
+**Expected Result**:
+- ✅ Desktop: 2-column grid
+- ✅ Mobile: 1-column grid
+- ✅ Modals scrollable on small screens
+- ✅ All elements remain accessible
+
+### Test Case 10.10: Data Persistence
+1. Complete an exercise
+2. Navigate away and return
+
+**Expected Result**:
+- ✅ Completed exercise still marked complete
+- ✅ Progress unchanged
+- ✅ Data persists in localStorage
+
+---
+
+## 🔍 Final Testing Checklist (Step 10 Added)
+
+### Training Program Management (Trainer - Step 9)
+- [x] Trainer can access Training Programs tab
+- [x] Create program with all required fields
+- [x] Add multiple exercises to program
+- [x] Edit existing program
+- [x] Delete program with confirmation
+- [x] Client selection works
+- [x] Goal selection works (5 options)
+- [x] Exercise categories work (6 options)
+- [x] Intensity levels work (3 options)
+- [x] Day assignment works (7 days + Daily)
+- [x] Sets/Reps fields work
+- [x] Duration field works
+- [x] Instructions field (optional)
+- [x] Email notification sent to client
+- [x] Programs display in grid layout
+- [x] Status badges color-coded
+- [x] Empty state displays correctly
+- [x] Date calculations correct
+- [x] Program data persists in localStorage
+- [x] Remove exercise from program works
+- [x] Validation prevents empty programs
+- [x] Members cannot access trainer features
+
+### Client Training Program View (Member - Step 10)
+- [x] Member can access Training Programs tab
+- [x] Program list displays correctly
+- [x] Statistics cards show accurate counts
+- [x] Program cards show all details
+- [x] Progress bars display correct percentage
+- [x] "View Program" opens detail modal
+- [x] Program info section complete
+- [x] Trainer notes displayed
+- [x] Exercises grouped by day
+- [x] Exercise completion toggle works
+- [x] Completed exercises have green background
+- [x] "Log Workout" button appears
+- [x] Log workout modal works
+- [x] Difficulty selector works
+- [x] Send feedback modal works
+- [x] Empty state displays for new users
+- [x] Progress updates in real-time
+- [x] Multiple programs display correctly
+- [x] Data persists across navigation
+- [x] Responsive design works
+- [x] Demo data loads correctly
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-9  
-**Total Test Cases**: 140+
+**Steps Tested**: 1-10  
+**Total Test Cases**: 170+

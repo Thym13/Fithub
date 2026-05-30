@@ -604,6 +604,172 @@ class MockDatabase {
 
       console.log('✅ Demo classes initialized');
     }
+
+    // Initialize demo training programs
+    const programs = this.getAllPrograms();
+    if (programs.length === 0) {
+      // Create demo trainer
+      const trainer = this.createUser({
+        name: 'Sarah Johnson',
+        email: 'trainer@fithub.gr',
+        phone: '+30 698 000 0003',
+        dateOfBirth: '1988-03-12',
+        password: 'Trainer123!',
+        role: 'trainer',
+        accountStatus: 'Active',
+        emailVerified: true
+      });
+
+      // Create demo member
+      const member = this.createUser({
+        name: 'Alex Smith',
+        email: 'member@fithub.gr',
+        phone: '+30 698 000 0004',
+        dateOfBirth: '1995-06-18',
+        password: 'Member123!',
+        role: 'member',
+        accountStatus: 'Active',
+        emailVerified: true
+      });
+
+      // Create demo training programs
+      const demoPrograms = [
+        {
+          name: 'Strength & Muscle Building',
+          description: 'Progressive overload program designed to build muscle mass and increase overall strength',
+          trainerId: trainer.id,
+          trainerName: trainer.name,
+          clientId: member.id,
+          clientName: member.name,
+          goal: 'Build muscle and increase strength',
+          duration: 12,
+          startDate: '2026-05-01',
+          endDate: '2026-07-24',
+          status: 'Active' as const,
+          exercises: [
+            {
+              id: crypto.randomUUID(),
+              name: 'Barbell Squats',
+              category: 'Strength' as const,
+              sets: 4,
+              reps: '8-10',
+              intensity: 'High' as const,
+              instructions: 'Keep your back straight, chest up. Descend until thighs are parallel to ground.',
+              day: 'Monday',
+              completed: true
+            },
+            {
+              id: crypto.randomUUID(),
+              name: 'Bench Press',
+              category: 'Strength' as const,
+              sets: 4,
+              reps: '8-10',
+              intensity: 'High' as const,
+              instructions: 'Lower bar to chest, press explosively. Keep elbows at 45-degree angle.',
+              day: 'Monday',
+              completed: true
+            },
+            {
+              id: crypto.randomUUID(),
+              name: 'Deadlifts',
+              category: 'Strength' as const,
+              sets: 3,
+              reps: '6-8',
+              intensity: 'High' as const,
+              instructions: 'Keep bar close to body. Drive through heels, engage core throughout.',
+              day: 'Wednesday',
+              completed: false
+            },
+            {
+              id: crypto.randomUUID(),
+              name: 'Pull-ups',
+              category: 'Strength' as const,
+              sets: 3,
+              reps: '10-12',
+              intensity: 'Medium' as const,
+              instructions: 'Full range of motion. Control the descent.',
+              day: 'Wednesday',
+              completed: false
+            },
+            {
+              id: crypto.randomUUID(),
+              name: 'Overhead Press',
+              category: 'Strength' as const,
+              sets: 4,
+              reps: '8-10',
+              intensity: 'High' as const,
+              instructions: 'Press bar straight overhead. Keep core tight.',
+              day: 'Friday',
+              completed: false
+            },
+            {
+              id: crypto.randomUUID(),
+              name: 'Barbell Rows',
+              category: 'Strength' as const,
+              sets: 4,
+              reps: '8-10',
+              intensity: 'Medium' as const,
+              instructions: 'Pull bar to lower chest. Squeeze shoulder blades together.',
+              day: 'Friday',
+              completed: false
+            }
+          ],
+          notes: 'Focus on progressive overload. Increase weight by 2.5-5kg when you can complete all sets with good form.'
+        },
+        {
+          name: 'Cardio Endurance Program',
+          description: '8-week program to improve cardiovascular fitness and stamina',
+          trainerId: trainer.id,
+          trainerName: trainer.name,
+          clientId: member.id,
+          clientName: member.name,
+          goal: 'Improve cardiovascular endurance',
+          duration: 8,
+          startDate: '2026-05-01',
+          endDate: '2026-06-26',
+          status: 'Active' as const,
+          exercises: [
+            {
+              id: crypto.randomUUID(),
+              name: 'Treadmill Intervals',
+              category: 'Cardio' as const,
+              duration: '30 minutes',
+              intensity: 'High' as const,
+              instructions: '5 min warm-up, then 1 min sprint / 2 min jog intervals x 8, 5 min cool down',
+              day: 'Tuesday',
+              completed: true
+            },
+            {
+              id: crypto.randomUUID(),
+              name: 'Cycling Steady State',
+              category: 'Cardio' as const,
+              duration: '45 minutes',
+              intensity: 'Medium' as const,
+              instructions: 'Maintain steady pace at 70-75% max heart rate',
+              day: 'Thursday',
+              completed: false
+            },
+            {
+              id: crypto.randomUUID(),
+              name: 'Jump Rope',
+              category: 'Cardio' as const,
+              duration: '20 minutes',
+              intensity: 'High' as const,
+              instructions: '30 seconds on / 30 seconds rest. Focus on rhythm and footwork.',
+              day: 'Saturday',
+              completed: false
+            }
+          ],
+          notes: 'Monitor heart rate. Stay hydrated. If you feel dizzy, stop and rest.'
+        }
+      ];
+
+      demoPrograms.forEach(programData => {
+        this.createProgram(programData);
+      });
+
+      console.log('✅ Demo training programs initialized');
+    }
   }
 }
 

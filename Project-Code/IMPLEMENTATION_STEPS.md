@@ -1760,13 +1760,238 @@ JSON.parse(localStorage.getItem('fithub_sent_emails')).filter(e => e.subject.inc
 
 ---
 
-## 📋 Upcoming Steps:
+## ✅ STEP 10: Client View of Training Programs (COMPLETED)
 
-### STEP 10: Client View of Training Programs
-- View assigned programs
-- Exercise completion tracking
-- Progress logging
-- Trainer feedback
+**Date**: 2026-05-27  
+**Use Case**: UC-3 Δημιουργία Προγράμματος Εξάσκησης (Training Program Creation)  
+**Reference**: Client side of UC-3 - Viewing and tracking assigned programs
+
+### Files Added:
+
+1. **`src/app/components/client-training-programs.tsx`** - Client training program viewer
+   - ✅ View all assigned training programs
+   - ✅ Program list with progress cards
+   - ✅ Exercise completion tracking (checkbox toggles)
+   - ✅ Exercise logging modal with detailed metrics
+   - ✅ Trainer feedback system
+   - ✅ Progress statistics (active programs, total exercises, completed exercises)
+   - ✅ Program detail modal with exercises grouped by day
+   - ✅ Visual progress indicators and badges
+   - ✅ Real-time completion percentage calculation
+
+### Files Modified:
+
+1. **`src/app/components/member-dashboard-complete.tsx`**
+   - ✅ Imported ClientTrainingPrograms component
+   - ✅ Added "Training Programs" tab to navigation
+   - ✅ Added TabsContent for programs section
+   - ✅ Updated hash change handler to include 'programs'
+
+2. **`src/app/services/database.ts`**
+   - ✅ Added demo trainer user (Sarah Johnson)
+   - ✅ Added demo member user (Alex Smith)
+   - ✅ Created 2 demo training programs with exercises:
+     - Strength & Muscle Building (12 weeks, 6 exercises, 2 completed)
+     - Cardio Endurance Program (8 weeks, 3 exercises, 1 completed)
+
+### Features Implemented:
+
+**UC-3 Client View Features**:
+- 📋 View assigned programs with details
+- ✅ Exercise completion tracking with visual checkboxes
+- 📊 Progress tracking with percentage and counts
+- 💪 Exercise logging with metrics (sets, reps, weight, difficulty)
+- 💬 Trainer feedback system
+- 📅 Exercises grouped by day
+- 🎨 Color-coded badges (category, intensity, status)
+- 📈 Real-time progress updates
+
+### Components & Features:
+
+**Program List View**:
+- Grid layout of program cards (2 columns on desktop)
+- Progress bars showing completion percentage
+- Status badges (Active/Completed/Cancelled)
+- Quick stats: trainer, goal, duration, end date
+- Exercise completion count (e.g., "4/6 exercises")
+- "View Program" button for details
+
+**Program Detail Modal**:
+- Full program information header
+- Trainer notes display
+- Exercises grouped by day (Monday, Wednesday, Friday, etc.)
+- Exercise cards with:
+  - Completion checkbox (toggle on/off)
+  - Exercise name and category badge
+  - Intensity badge (Low/Medium/High)
+  - Sets, reps, duration details
+  - Instructions
+  - "Log Workout" button for incomplete exercises
+- "Send Feedback" button to message trainer
+
+**Exercise Logging Modal**:
+- Target sets/reps display
+- Actual sets/reps input fields
+- Weight (kg) input
+- Difficulty selector (Low/Medium/High)
+- Notes textarea for feedback
+- "Save & Mark Complete" action
+
+**Feedback Modal**:
+- Send messages to trainer about program
+- Program and trainer info display
+- Large textarea for detailed feedback
+
+**Statistics Dashboard**:
+- Active Programs count
+- Total Exercises count (across all programs)
+- Completed Exercises count
+
+### Data Flow:
+
+1. **Loading Programs**: Component loads programs for current user via `getProgramsByClient(userId)`
+2. **Viewing Details**: Clicking "View Program" opens detail modal with all exercises grouped by day
+3. **Completing Exercise**: Clicking checkbox toggles `completed` status and updates database
+4. **Logging Workout**: Opens modal to record actual performance, then marks exercise complete
+5. **Sending Feedback**: Messages trainer about program (logged to console in demo)
+6. **Progress Calculation**: Real-time calculation of `completed/total` exercises
+
+### Color System:
+
+**Category Colors**:
+- Cardio: Red (`bg-red-100 text-red-800`)
+- Strength: Blue (`bg-blue-100 text-blue-800`)
+- Flexibility: Green (`bg-green-100 text-green-800`)
+- Balance: Purple (`bg-purple-100 text-purple-800`)
+- HIIT: Orange (`bg-orange-100 text-orange-800`)
+- Other: Gray (`bg-gray-100 text-gray-800`)
+
+**Intensity Colors**:
+- Low: Green (`bg-green-100 text-green-800`)
+- Medium: Yellow (`bg-yellow-100 text-yellow-800`)
+- High: Red (`bg-red-100 text-red-800`)
+
+**Status Colors**:
+- Active: Green (`bg-green-100 text-green-800`)
+- Completed: Blue (`bg-blue-100 text-blue-800`)
+- Cancelled: Red (`bg-red-100 text-red-800`)
+
+**Completion State**:
+- Completed exercise: Green background (`bg-green-50 border-green-300`)
+- Incomplete exercise: White background with blue hover
+
+### Access Control:
+
+- **Client/Member**: Full access to view programs, track completion, log workouts, send feedback
+- **Trainer**: Can see programs they created (Step 9)
+- **Manager/Secretary**: No access yet (future step)
+
+### Testing:
+
+To test client training program view:
+
+**Test 1: View Programs (with demo data)**
+1. Login as member: `member@fithub.gr` / `Member123!`
+2. Navigate to "Training Programs" tab
+3. See 2 demo programs displayed
+
+**Expected Result**:
+- ✅ See "Strength & Muscle Building" program (2/6 exercises complete)
+- ✅ See "Cardio Endurance Program" (1/3 exercises complete)
+- ✅ Progress bars show correct percentages (33% and 33%)
+- ✅ Status badges show "Active"
+
+**Test 2: View Program Details**
+1. Click "View Program" on any program
+2. See program details modal
+
+**Expected Result**:
+- ✅ Program name, description, and status in header
+- ✅ Trainer info, goal, duration, progress displayed
+- ✅ Trainer notes shown (if any)
+- ✅ Exercises grouped by day (Monday, Wednesday, Friday)
+- ✅ Completed exercises have green background and checkmark
+- ✅ Incomplete exercises have white background and unchecked box
+
+**Test 3: Complete Exercise**
+1. In program detail modal, find an incomplete exercise
+2. Click the checkbox next to exercise name
+
+**Expected Result**:
+- ✅ Exercise background turns green
+- ✅ Checkmark appears in checkbox
+- ✅ Progress percentage updates immediately
+- ✅ Change persists after closing and reopening modal
+- ✅ Can toggle checkbox on/off
+
+**Test 4: Log Workout**
+1. Click "Log Workout" button on incomplete exercise
+2. Fill in workout log:
+   - Actual Sets: 4
+   - Actual Reps: 10
+   - Weight: 60
+   - Difficulty: High
+   - Notes: "Felt strong today!"
+3. Click "Save & Mark Complete"
+
+**Expected Result**:
+- ✅ Modal closes
+- ✅ Exercise marked as completed (green background, checkbox checked)
+- ✅ Progress updates
+- ✅ Log data saved (visible in console)
+
+**Test 5: Send Feedback**
+1. Click "Send Feedback to Trainer" button
+2. Type feedback message
+3. Click "Send Feedback"
+
+**Expected Result**:
+- ✅ Success alert shown
+- ✅ Modal closes
+- ✅ Feedback logged to console
+- ✅ Can send multiple feedback messages
+
+**Test 6: Empty State**
+1. Login as a user with no programs
+2. Go to Training Programs tab
+
+**Expected Result**:
+- ✅ See empty state with dumbbell icon
+- ✅ Message: "No Training Programs Yet"
+- ✅ Helpful text about trainer assignment
+
+**Test 7: Statistics Update**
+1. View initial stats (Active Programs, Total Exercises, Completed)
+2. Complete an exercise
+3. Check stats update
+
+**Expected Result**:
+- ✅ "Completed" count increases by 1
+- ✅ Stats update in real-time without page refresh
+
+### Integration:
+
+This component integrates with:
+- **Step 9** (Training Program Creation): Programs created by trainers are displayed here
+- **Database Service**: Uses `getProgramsByClient()`, `updateProgram()` methods
+- **Auth Service**: Gets current user ID to load their programs
+- **Member Dashboard**: New tab in member navigation
+
+### Future Enhancements:
+
+- 📋 Exercise history tracking over time
+- 📋 Charts showing progress (weight lifted, reps completed)
+- 📋 Streak tracking (consecutive days)
+- 📋 Achievement badges
+- 📋 Exercise instruction videos
+- 📋 Rest timer between sets
+- 📋 Workout reminders/notifications
+- 📋 Share progress with trainer in real-time
+- 📋 Photo uploads for form check
+
+---
+
+## 📋 Upcoming Steps:
 
 ### STEP 11: Task Assignment System
 - Create and assign tasks
@@ -1797,11 +2022,11 @@ JSON.parse(localStorage.getItem('fithub_sent_emails')).filter(e => e.subject.inc
 | 7 | ✅ | UC-2 | Class Management (Creation & Scheduling) |
 | 8 | ✅ | UC-2 | Class Booking System (Browse, Book, Cancel, Waitlist) |
 | 9 | ✅ | UC-3 | Training Program Creation |
-| 10 | 🔜 | UC-3 | Client View of Training Programs |
+| 10 | ✅ | UC-3 | Client View of Training Programs |
 | 11 | 🔜 | UC-4 | Task Assignment System |
 | 12 | 🔜 | UC-5 | Campaign Management |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 9 (36%)  
-**Steps Remaining**: 16
+**Steps Completed**: 10 (40%)  
+**Steps Remaining**: 15
