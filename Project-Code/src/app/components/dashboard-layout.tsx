@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { LogOut, Home, Menu, X, Bell } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from './ui/sheet';
+import { authService } from '../services/auth';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -19,7 +20,8 @@ export function DashboardLayout({ children, title, role, tabs, newTaskCount = 0 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
-    navigate('/');
+    authService.logout();
+    navigate('/login');
   };
 
   const handleTasksClick = () => {

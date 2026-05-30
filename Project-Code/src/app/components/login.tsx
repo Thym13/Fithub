@@ -5,70 +5,110 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Alert, AlertDescription } from './ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { authService } from '../services/auth';
+import { LogIn, Mail, Lock, AlertCircle, Loader2, Dumbbell } from 'lucide-react';
 
 export function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Demo Credentials for Testing:
-  // Admin: admin@test.com / 1234
-  // Manager: manager@test.com / 1234
-  // Secretary: secretary@test.com / 1234
-  // Trainer: trainer@test.com / 1234
-  // Member: member@test.com / 1234
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
-    // Check credentials
-    if (password !== '1234') {
-      setError('Invalid email or password');
-      return;
+    try {
+      const result = await authService.login(formData.email, formData.password);
+
+      if (result.success && result.user) {
+        // Redirect based on role
+        switch (result.user.role) {
+          case 'member':
+            navigate('/member');
+            break;
+          case 'trainer':
+            navigate('/trainer');
+            break;
+          case 'secretary':
+            navigate('/receptionist');
+            break;
+          case 'manager':
+            navigate('/manager');
+            break;
+          default:
+            navigate('/');
+        }
+      } else {
+        setError(result.error || 'Login failed. Please try again.');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    // Route based on email
-    switch (email.toLowerCase()) {
-      case 'admin@test.com':
-        navigate('/owner');
-        break;
-      case 'manager@test.com':
-        navigate('/manager');
-        break;
-      case 'secretary@test.com':
-        navigate('/receptionist');
-        break;
-      case 'trainer@test.com':
-        navigate('/trainer');
-        break;
-      case 'member@test.com':
-        navigate('/member');
-        break;
-      default:
-        setError('Invalid email or password');
+  const handleQuickLogin = async (email: string, password: string) => {
+    setError('');
+    setIsLoading(true);
+    setFormData({ email, password });
+
+    try {
+      const result = await authService.login(email, password);
+
+      if (result.success && result.user) {
+        switch (result.user.role) {
+          case 'member':
+            navigate('/member');
+            break;
+          case 'trainer':
+            navigate('/trainer');
+            break;
+          case 'secretary':
+            navigate('/receptionist');
+            break;
+          case 'manager':
+            navigate('/manager');
+            break;
+          default:
+            navigate('/');
+        }
+      } else {
+        setError(result.error || 'Login failed.');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-5xl mb-3">🏋️ FitHub</h1>
-          <p className="text-gray-600">Gym Management CRM System</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-6">
+        {/* Logo and Title */}
+        <div className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="p-4 bg-blue-600 rounded-full">
+              <Dumbbell className="size-12 text-white" />
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900">Welcome to FitHub</h1>
+          <p className="text-gray-600 mt-2">Sign in to your account</p>
         </div>
 
+        {/* Login Form */}
         <Card>
           <CardHeader>
-            <CardTitle>Login to Your Account</CardTitle>
-            <CardDescription>
-              Enter your credentials to access the system
-            </CardDescription>
+            <CardTitle className="text-center">Login</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="size-4" />
@@ -77,56 +117,107 @@ export function Login() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+                <Label htmlFor="email">Email Address</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your.email@example.com"
+                    className="pl-10"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    className="pl-10"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
               </div>
 
-              <Button type="submit" className="w-full">
-                Sign In
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="size-4 mr-2 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="size-4 mr-2" />
+                    Sign In
+                  </>
+                )}
               </Button>
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="text-sm text-gray-600">
                 Don't have an account?{' '}
-                <button 
+                <button
                   onClick={() => navigate('/register')}
-                  className="text-blue-600 hover:underline font-medium"
+                  className="text-blue-600 hover:text-blue-700 font-medium"
                 >
                   Register here
                 </button>
               </p>
             </div>
+          </CardContent>
+        </Card>
 
-            <div className="mt-6 pt-6 border-t">
-              <p className="text-xs text-gray-500 mb-2">Demo Credentials:</p>
-              <div className="space-y-1 text-xs text-gray-600">
-                <div><strong>Admin:</strong> admin@test.com / 1234</div>
-                <div><strong>Manager:</strong> manager@test.com / 1234</div>
-                <div><strong>Secretary:</strong> secretary@test.com / 1234</div>
-                <div><strong>Trainer:</strong> trainer@test.com / 1234</div>
-                <div><strong>Member:</strong> member@test.com / 1234</div>
-              </div>
+        {/* Demo Accounts */}
+        <Card className="bg-yellow-50 border-yellow-200">
+          <CardHeader>
+            <CardTitle className="text-sm">Demo Accounts (For Testing)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-1 gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleQuickLogin('manager@fithub.gr', 'Manager123!')}
+                disabled={isLoading}
+                className="justify-start"
+              >
+                <span className="mr-2">👔</span>
+                <span className="text-left flex-1">Manager</span>
+                <span className="text-xs text-gray-500">manager@fithub.gr</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleQuickLogin('secretary@fithub.gr', 'Admin123!')}
+                disabled={isLoading}
+                className="justify-start"
+              >
+                <span className="mr-2">📋</span>
+                <span className="text-left flex-1">Secretary</span>
+                <span className="text-xs text-gray-500">secretary@fithub.gr</span>
+              </Button>
             </div>
+
+            <p className="text-xs text-gray-600 text-center mt-3">
+              Click to auto-login with demo accounts
+            </p>
           </CardContent>
         </Card>
       </div>

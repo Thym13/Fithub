@@ -494,13 +494,247 @@ Pending → Cancelled (on rejection)
 
 ---
 
+## ✅ STEP 5: Login System & Authentication (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: UC-1 Εγγραφή και Οδηγός Ενεργοποίησης + All Use Cases (Login required)  
+**Reference**: Login is prerequisite for all dashboard access
+
+### Files Added:
+
+1. **`src/app/services/auth.ts`** - Authentication service
+   - ✅ Login with email and password
+   - ✅ Session management (localStorage-based)
+   - ✅ 24-hour session duration
+   - ✅ Auto-expiration checking
+   - ✅ Logout functionality
+   - ✅ Get current user
+   - ✅ Check authentication status
+   - ✅ Role-based authorization (hasRole, hasAnyRole)
+   - ✅ Session refresh
+   - ✅ Token generation
+
+### Files Modified:
+
+1. **`src/app/components/login.tsx`**
+   - ✅ Complete redesign with authService integration
+   - ✅ Email and password input fields with icons
+   - ✅ Form validation
+   - ✅ Error message display
+   - ✅ Loading states with spinner
+   - ✅ Role-based routing after login
+   - ✅ Quick login buttons for demo accounts
+   - ✅ Link to registration page
+   - ✅ Modern UI with gradient background
+
+2. **`src/app/components/dashboard-layout.tsx`**
+   - ✅ Integrated authService for logout
+   - ✅ Logout button properly clears session
+   - ✅ Redirects to /login after logout
+
+3. **`src/app/routes.tsx`**
+   - ✅ Added explicit /login route
+   - ✅ Default path (/) points to login
+
+### Features Implemented:
+
+**Login Validation**:
+- ✅ Email format validation
+- ✅ Password verification
+- ✅ Email verification check (must be verified)
+- ✅ Account status check (must be Active)
+- ✅ User-friendly error messages
+
+**Session Management**:
+- ✅ 24-hour session duration
+- ✅ Session stored in localStorage
+- ✅ Auto-expiration on timeout
+- ✅ Session token generation
+- ✅ Session refresh capability
+
+**Role-Based Routing**:
+- ✅ Member → /member
+- ✅ Trainer → /trainer
+- ✅ Secretary → /receptionist
+- ✅ Manager → /manager
+
+**Account Status Checks**:
+- ❌ Pending → "Your account is pending approval"
+- ❌ Rejected → "Your account registration was not approved"
+- ❌ Suspended → "Your account has been suspended"
+- ❌ Email not verified → "Please verify your email address"
+
+**Logout Flow**:
+- ✅ Logout button in all dashboards
+- ✅ Clears session data
+- ✅ Redirects to /login
+
+### Authentication Service API:
+
+```typescript
+// Login
+authService.login(email: string, password: string): Promise<LoginResult>
+
+// Logout
+authService.logout(): void
+
+// Session Management
+authService.getSession(): AuthSession | null
+authService.getCurrentUser(): User | null
+authService.isAuthenticated(): boolean
+
+// Authorization
+authService.hasRole(role: 'member' | 'trainer' | 'secretary' | 'manager'): boolean
+authService.hasAnyRole(roles: Array<...>): boolean
+
+// Refresh
+authService.refreshSession(): void
+```
+
+### Session Storage Structure:
+
+```typescript
+AuthSession {
+  user: User
+  token: string (random generated)
+  expiresAt: string (ISO date)
+}
+```
+
+Stored in: `localStorage.getItem('fithub_session')`
+
+### UI/UX Features:
+
+**Login Page**:
+- Modern gradient background (blue-indigo)
+- FitHub logo with dumbbell icon
+- Email input with mail icon
+- Password input with lock icon
+- Loading spinner during authentication
+- Error alerts with detailed messages
+- "Register here" link
+- Demo account quick-login buttons
+
+**Demo Accounts Section**:
+- Yellow card with demo credentials
+- Click-to-login buttons for manager and secretary
+- Shows email addresses for reference
+
+**Error Messages**:
+- Invalid credentials: "Invalid email or password"
+- Email not verified: "Please verify your email address before logging in"
+- Pending approval: "Your account is pending approval. You will receive an email once approved"
+- Rejected: "Your account registration was not approved. Contact support"
+- Suspended: "Your account has been suspended. Contact support"
+
+### Testing:
+
+To test login system:
+
+**Test 1: Login with Manager**
+1. Navigate to http://localhost:5173 or http://localhost:5173/login
+2. Enter: manager@fithub.gr / Manager123!
+3. Click "Sign In" or use quick login button
+
+**Expected Result**:
+- ✅ Login successful
+- ✅ Session created in localStorage
+- ✅ Redirected to /manager dashboard
+- ✅ Can access all manager features
+
+**Test 2: Login with Secretary**
+1. Use: secretary@fithub.gr / Admin123!
+
+**Expected Result**:
+- ✅ Redirected to /receptionist dashboard
+
+**Test 3: Login with New Registered User (Pending)**
+1. Register a new member
+2. Verify email
+3. Try to login before admin approval
+
+**Expected Result**:
+- ❌ Error: "Your account is pending approval"
+- ❌ Cannot access dashboard
+
+**Test 4: Login with Approved User**
+1. Register and complete payment
+2. Admin approves registration
+3. Login with credentials
+
+**Expected Result**:
+- ✅ Login successful
+- ✅ Redirected to appropriate dashboard based on role
+
+**Test 5: Login with Unverified Email**
+1. Register user but don't verify email
+2. Try to login
+
+**Expected Result**:
+- ❌ Error: "Please verify your email address before logging in"
+
+**Test 6: Invalid Credentials**
+1. Enter wrong email or password
+
+**Expected Result**:
+- ❌ Error: "Invalid email or password"
+
+**Test 7: Session Persistence**
+1. Login successfully
+2. Refresh page
+3. Navigate to dashboard URL directly
+
+**Expected Result**:
+- ✅ Session persists
+- ✅ User stays logged in
+- ✅ Dashboard loads without redirect to login
+
+**Test 8: Logout**
+1. Click logout button in dashboard
+2. Check localStorage
+
+**Expected Result**:
+- ✅ Session cleared from localStorage
+- ✅ Redirected to /login
+- ✅ Cannot access dashboard URLs anymore
+
+**Test 9: Session Expiration (Manual)**
+1. Login successfully
+2. Open DevTools → Application → Local Storage
+3. Modify `fithub_session` expiresAt to past date
+4. Refresh page
+
+**Expected Result**:
+- ✅ Session auto-expires
+- ✅ Redirected to login
+
+### Check Session in Console:
+
+```javascript
+// View current session
+JSON.parse(localStorage.getItem('fithub_session'))
+
+// Check if authenticated
+// (open browser console after logging in)
+```
+
+### Security Features:
+
+- 🔒 Password not stored in session (only in user database)
+- 🔒 Session tokens are randomly generated
+- ⏰ 24-hour auto-expiration
+- ✅ Account status validation
+- ✅ Email verification requirement
+- 🔐 Role-based access control
+
+---
+
 ## 📋 Upcoming Steps:
 
-### STEP 5: Login System & Authentication
-- Login page creation
-- Authentication flow
-- Role-based routing
-- Session management
+### STEP 6: Protected Routes & Auth Guards
+- Route protection middleware
+- Automatic redirect to login for unauthenticated users
+- Role-based route restrictions
 
 ### STEP 6: Member Dashboard (UC-2 Book Class)
 - Class browsing
@@ -520,12 +754,13 @@ Pending → Cancelled (on rejection)
 | 2 | ✅ | UC-1 | Email Verification & Duplicate Check |
 | 3 | ✅ | UC-1 | Payment Integration & Transaction Management |
 | 4 | ✅ | UC-1 | Admin Approval Workflow (Secretary/Manager Dashboard) |
-| 5 | 🔜 | UC-1 | Login System & Authentication |
-| 6 | 🔜 | UC-2 | Class Browsing & Filtering |
-| 7 | 🔜 | UC-2 | Class Booking System |
-| 8 | 🔜 | UC-2 | Waitlist Management |
+| 5 | ✅ | All | Login System & Authentication |
+| 6 | 🔜 | All | Protected Routes & Auth Guards |
+| 7 | 🔜 | UC-2 | Class Browsing & Filtering |
+| 8 | 🔜 | UC-2 | Class Booking System |
+| 9 | 🔜 | UC-2 | Waitlist Management |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 4 (16%)  
-**Steps Remaining**: 21
+**Steps Completed**: 5 (20%)  
+**Steps Remaining**: 20

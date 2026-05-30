@@ -561,6 +561,282 @@ JSON.parse(localStorage.getItem('fithub_sent_emails'))
 
 ---
 
+## ✅ STEP 5: Login System & Authentication
+
+### Test Case: Access Login Page
+1. Navigate to http://localhost:5173 or http://localhost:5173/login
+2. Login page should display
+
+**Expected Result**: 
+- ✅ Shows FitHub logo with dumbbell icon
+- ✅ "Welcome to FitHub" heading
+- ✅ Email and password input fields
+- ✅ "Sign In" button
+- ✅ "Register here" link
+- ✅ Demo accounts section with quick-login buttons
+
+### Test Case: Login with Manager Account
+1. Navigate to login page
+2. Click "Manager" quick-login button (or enter manually):
+   - Email: manager@fithub.gr
+   - Password: Manager123!
+3. Click "Sign In"
+
+**Expected Result**:
+- ✅ Shows loading spinner "Signing in..."
+- ✅ Login successful (500ms delay)
+- ✅ Redirected to /manager dashboard
+- ✅ Dashboard loads with "Pending Registrations" tab
+- ✅ Session saved in localStorage
+
+**Check localStorage**:
+```javascript
+JSON.parse(localStorage.getItem('fithub_session'))
+// Should show: { user: {...}, token: "...", expiresAt: "..." }
+```
+
+### Test Case: Login with Secretary Account
+1. Click "Secretary" quick-login button
+   - Email: secretary@fithub.gr
+   - Password: Admin123!
+
+**Expected Result**:
+- ✅ Login successful
+- ✅ Redirected to /receptionist dashboard
+- ✅ Can access pending registrations
+
+### Test Case: Login with New Registered User (Pending Status)
+1. Register a new member (complete full flow)
+2. Verify email
+3. Do NOT get admin approval yet
+4. Go to /login
+5. Enter your registered email and password
+6. Click "Sign In"
+
+**Expected Result**:
+- ❌ Error message: "Your account is pending approval. You will receive an email once your account is approved."
+- ❌ Not redirected to dashboard
+- ❌ No session created
+
+### Test Case: Login with Approved User
+1. Register a new member
+2. Verify email
+3. Login as manager and approve the registration
+4. Go to /login
+5. Login with the member credentials
+
+**Expected Result**:
+- ✅ Login successful
+- ✅ Redirected to /member dashboard
+- ✅ Session created
+
+### Test Case: Login with Rejected User
+1. Register a new member
+2. Verify email
+3. Login as manager and reject the registration
+4. Try to login with rejected user credentials
+
+**Expected Result**:
+- ❌ Error: "Your account registration was not approved. Please contact support for more information."
+- ❌ Cannot login
+
+### Test Case: Login with Unverified Email
+1. Register a new user
+2. Do NOT verify email
+3. Try to login
+
+**Expected Result**:
+- ❌ Error: "Please verify your email address before logging in. Check your inbox for the verification link."
+- ❌ Cannot access dashboard
+
+### Test Case: Invalid Email
+1. Enter email: "notexist@example.com"
+2. Enter password: "anything"
+3. Click "Sign In"
+
+**Expected Result**:
+- ❌ Error: "Invalid email or password"
+- ❌ Form stays on login page
+
+### Test Case: Wrong Password
+1. Enter email: "manager@fithub.gr"
+2. Enter password: "wrongpassword"
+3. Click "Sign In"
+
+**Expected Result**:
+- ❌ Error: "Invalid email or password"
+- ❌ Cannot login
+
+### Test Case: Empty Fields
+1. Leave email or password empty
+2. Try to submit
+
+**Expected Result**:
+- ❌ Browser validation: "Please fill out this field"
+- ❌ Cannot submit form
+
+### Test Case: Session Persistence
+1. Login successfully as manager
+2. Navigate to /manager
+3. Refresh the page (F5)
+4. Close browser and reopen
+5. Navigate to /manager again
+
+**Expected Result**:
+- ✅ Session persists across page refreshes
+- ✅ User stays logged in
+- ✅ Dashboard loads without redirect to login
+- ✅ Session lasts 24 hours
+
+### Test Case: Logout
+1. Login as manager
+2. Dashboard loads
+3. Click "Logout" button in top-right header
+4. Check localStorage
+
+**Expected Result**:
+- ✅ Redirected to /login
+- ✅ Session cleared: `localStorage.getItem('fithub_session')` returns null
+- ✅ Cannot access /manager without logging in again
+
+### Test Case: Session Expiration (Manual Test)
+1. Login successfully
+2. Open DevTools → Application → Local Storage
+3. Find `fithub_session`
+4. Edit the JSON, change `expiresAt` to a past date (e.g., "2020-01-01T00:00:00.000Z")
+5. Refresh the page
+
+**Expected Result**:
+- ✅ Session auto-expires
+- ✅ Session cleared from localStorage
+- ✅ User treated as logged out
+
+### Test Case: Role-Based Routing
+1. Register 4 different users (member, trainer, secretary role if possible)
+2. Get all approved
+3. Login with each account
+
+**Expected Result**:
+- Member → Redirected to /member
+- Trainer → Redirected to /trainer
+- Secretary → Redirected to /receptionist
+- Manager → Redirected to /manager
+
+### Test Case: Quick Login Buttons
+1. Go to login page
+2. Click "Manager" demo account button
+3. Should auto-fill and login
+
+**Expected Result**:
+- ✅ Email and password auto-filled
+- ✅ Login happens automatically
+- ✅ Redirected to manager dashboard
+
+### Test Case: Register Link
+1. On login page
+2. Click "Register here" link
+
+**Expected Result**:
+- ✅ Redirected to /register
+- ✅ Registration form loads
+
+---
+
+## 🔍 Testing Checklist (Updated)
+
+### Authentication & Authorization (NEW)
+- [ ] Login page loads correctly
+- [ ] Login with valid credentials works
+- [ ] Login with invalid credentials fails
+- [ ] Email verification required for login
+- [ ] Pending users cannot login
+- [ ] Rejected users cannot login
+- [ ] Approved users can login
+- [ ] Role-based routing works
+- [ ] Session persists across page refresh
+- [ ] Logout clears session
+- [ ] Session expires after 24 hours
+- [ ] Quick-login buttons work
+- [ ] Error messages display correctly
+
+### Registration Flow (Member)
+- [x] Form validation works
+- [x] Password strength indicator appears
+- [x] Email verification sent
+- [x] Duplicate email blocked
+- [x] Subscription selection works
+- [x] Payment processing works
+- [x] Transaction recorded
+- [x] Membership activated
+- [x] Emails sent (verification, payment confirmation)
+
+### Admin Approval Workflow
+- [x] Pending registrations displayed
+- [x] User details shown correctly
+- [x] Payment status visible
+- [x] Approve functionality works
+- [x] Reject functionality requires reason
+- [x] Welcome email sent on approval
+- [x] Rejection email sent with reason
+- [x] User status updated to Active/Rejected
+- [x] Membership status updated
+- [x] Notifications created
+- [x] List refreshes after action
+- [x] Both manager and secretary can approve/reject
+
+### Payment Features
+- [x] Card auto-formatting works
+- [x] Card type detected
+- [x] CVV masked (password field)
+- [x] Expiry auto-formatted (MM/YY)
+- [x] Luhn validation works
+- [x] Payment success flow
+- [x] Payment declined flow
+- [x] Transaction summary displayed
+
+### Data Persistence
+- [x] User saved in localStorage
+- [x] Membership saved
+- [x] Transaction saved
+- [x] Emails logged
+- [x] Data persists after page reload
+- [x] Notifications saved
+- [x] Sessions saved and validated
+
+---
+
+## 🐛 Common Issues (Updated)
+
+### Issue: Can't login even with correct credentials
+**Solution**: 
+- Check account status: `JSON.parse(localStorage.getItem('fithub_users'))`
+- User must have `emailVerified: true`
+- User must have `accountStatus: 'Active'`
+- If pending, get admin to approve first
+
+### Issue: Session not persisting
+**Solution**: 
+- Check browser localStorage is enabled
+- Check `fithub_session` exists in localStorage
+- Verify `expiresAt` is in the future
+- Clear localStorage and login again
+
+### Issue: Redirected to login after refresh
+**Solution**: 
+- Session may have expired (24 hour limit)
+- Check localStorage for `fithub_session`
+- Login again to create new session
+
+### Issue: Quick-login buttons not working
+**Solution**: 
+- Verify demo accounts exist in localStorage
+- Check that manager@fithub.gr and secretary@fithub.gr have:
+  - `emailVerified: true`
+  - `accountStatus: 'Active'`
+  - Correct passwords (Manager123!, Admin123!)
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-4  
-**Total Test Cases**: 40+
+**Steps Tested**: 1-5  
+**Total Test Cases**: 55+
