@@ -1931,6 +1931,16 @@ export class MockDatabase {
         emailVerified: true
       });
 
+      // Create demo membership for the member
+      this.createMembership({
+        userId: member.id,
+        type: 'Premium',
+        monthlyCost: 79,
+        status: 'Active',
+        startDate: '2026-01-01',
+        endDate: '2027-01-01',
+      });
+
       // Create demo training programs
       const demoPrograms = [
         {
