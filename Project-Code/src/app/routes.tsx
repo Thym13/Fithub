@@ -8,6 +8,7 @@ import { ReceptionistDashboard } from './components/receptionist-dashboard';
 import { TrainerDashboard } from './components/trainer-dashboard';
 import { MemberDashboard } from './components/member-dashboard';
 import { ClientDetail } from './components/client-detail';
+import { ProtectedRoute } from './components/protected-route';
 
 export const router = createBrowserRouter([
   {
@@ -28,26 +29,50 @@ export const router = createBrowserRouter([
   },
   {
     path: '/owner',
-    element: <OwnerDashboard />
+    element: (
+      <ProtectedRoute allowedRoles={['manager']}>
+        <OwnerDashboard />
+      </ProtectedRoute>
+    )
   },
   {
     path: '/manager',
-    element: <ManagerDashboard />
+    element: (
+      <ProtectedRoute allowedRoles={['manager']}>
+        <ManagerDashboard />
+      </ProtectedRoute>
+    )
   },
   {
     path: '/receptionist',
-    element: <ReceptionistDashboard />
+    element: (
+      <ProtectedRoute allowedRoles={['secretary', 'manager']}>
+        <ReceptionistDashboard />
+      </ProtectedRoute>
+    )
   },
   {
     path: '/trainer',
-    element: <TrainerDashboard />
+    element: (
+      <ProtectedRoute allowedRoles={['trainer']}>
+        <TrainerDashboard />
+      </ProtectedRoute>
+    )
   },
   {
     path: '/trainer/client/:clientId',
-    element: <ClientDetail />
+    element: (
+      <ProtectedRoute allowedRoles={['trainer']}>
+        <ClientDetail />
+      </ProtectedRoute>
+    )
   },
   {
     path: '/member',
-    element: <MemberDashboard />
+    element: (
+      <ProtectedRoute allowedRoles={['member']}>
+        <MemberDashboard />
+      </ProtectedRoute>
+    )
   }
 ]);

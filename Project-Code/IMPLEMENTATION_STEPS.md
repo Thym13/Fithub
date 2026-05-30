@@ -729,12 +729,203 @@ JSON.parse(localStorage.getItem('fithub_session'))
 
 ---
 
+## ✅ STEP 6: Protected Routes & Auth Guards (COMPLETED)
+
+**Date**: 2026-05-27  
+**Use Case**: All Use Cases (Security Foundation)  
+**Reference**: Security requirement for all authenticated features
+
+### Files Added:
+
+1. **`src/app/hooks/useAuth.ts`** - Authentication hook
+   - ✅ Access to current user state
+   - ✅ Authentication status
+   - ✅ Loading state management
+   - ✅ Role checking helpers (hasRole, hasAnyRole)
+   - ✅ Logout helper
+   - ✅ Refresh authentication state
+
+2. **`src/app/components/protected-route.tsx`** - Route protection component
+   - ✅ Authentication checking
+   - ✅ Role-based authorization
+   - ✅ Automatic redirect to login
+   - ✅ Replace navigation (prevents back button issues)
+   - ✅ Console logging for debugging
+
+### Files Modified:
+
+1. **`src/app/routes.tsx`**
+   - ✅ Wrapped all dashboard routes with ProtectedRoute
+   - ✅ Role-based access control:
+     - `/manager` → Manager only
+     - `/owner` → Manager only
+     - `/receptionist` → Secretary or Manager
+     - `/trainer` → Trainer only
+     - `/trainer/client/:clientId` → Trainer only
+     - `/member` → Member only
+   - ✅ Public routes remain accessible (login, register, verify-email)
+
+2. **`src/app/components/login.tsx`**
+   - ✅ Added useEffect to check if user is already logged in
+   - ✅ Auto-redirects authenticated users to their dashboard
+   - ✅ Prevents authenticated users from seeing login page
+
+### Features Implemented:
+
+**Route Protection**:
+- 🔒 All dashboard routes require authentication
+- 🔒 Unauthenticated users redirected to /login
+- 🔒 Role-based access control enforced
+- 🔒 Replace navigation (cleaner browser history)
+
+**Authentication Checks**:
+- ✅ On route access attempt
+- ✅ Before rendering protected components
+- ✅ Console logging for debugging
+
+**Role-Based Authorization**:
+```typescript
+// Manager-only routes
+allowedRoles: ['manager']
+
+// Secretary or Manager
+allowedRoles: ['secretary', 'manager']
+
+// Trainer-only routes
+allowedRoles: ['trainer']
+
+// Member-only routes
+allowedRoles: ['member']
+```
+
+**Auto-Redirect Logic**:
+- Already logged in + visit /login → Redirect to dashboard
+- Not logged in + visit /manager → Redirect to /login
+- Logged in as Member + visit /trainer → Redirect to /login
+- Logged in as Trainer + visit /member → Redirect to /login
+
+### useAuth Hook API:
+
+```typescript
+const {
+  user,              // Current user object or null
+  isAuthenticated,   // Boolean: is user logged in?
+  isLoading,         // Boolean: is auth check in progress?
+  hasRole,           // Function: check single role
+  hasAnyRole,        // Function: check multiple roles
+  logout,            // Function: logout and clear state
+  refresh            // Function: refresh auth state
+} = useAuth();
+```
+
+### ProtectedRoute Component API:
+
+```typescript
+<ProtectedRoute
+  allowedRoles={['manager', 'secretary']}  // Optional
+  redirectTo="/login"                       // Optional (defaults to /login)
+>
+  <YourComponent />
+</ProtectedRoute>
+```
+
+### Security Features:
+
+**Authentication Protection**:
+- 🔒 No access to dashboards without valid session
+- 🔒 Session checked on every protected route
+- 🔒 Expired sessions auto-redirect to login
+
+**Authorization Protection**:
+- 🔒 Users can only access routes for their role
+- 🔒 Role mismatch redirects to login
+- 🔒 Prevents privilege escalation
+
+**Navigation Protection**:
+- 🔒 Uses `replace: true` to prevent back-button bypass
+- 🔒 Authenticated users can't access login page
+- 🔒 Clean browser history (no login/redirect loops)
+
+**Developer Experience**:
+- 📝 Console logging for debugging
+- 📝 Clear route definitions
+- 📝 Reusable ProtectedRoute component
+- 📝 Easy-to-use useAuth hook
+
+### Protected Routes Summary:
+
+| Route | Allowed Roles | Description |
+|-------|--------------|-------------|
+| `/login` | Public | Login page (auto-redirects if logged in) |
+| `/register` | Public | Registration page |
+| `/verify-email` | Public | Email verification |
+| `/manager` | Manager | Manager dashboard |
+| `/owner` | Manager | Owner dashboard |
+| `/receptionist` | Secretary, Manager | Secretary dashboard |
+| `/trainer` | Trainer | Trainer dashboard |
+| `/trainer/client/:id` | Trainer | Client detail page |
+| `/member` | Member | Member dashboard |
+
+### Testing:
+
+To test route protection:
+
+**Test 1: Access Protected Route (Not Logged In)**
+1. Clear localStorage: `localStorage.clear()`
+2. Navigate to http://localhost:5173/manager
+3. Observe redirect to /login
+
+**Test 2: Login Page (Already Logged In)**
+1. Login as manager
+2. Navigate to http://localhost:5173/login
+3. Observe auto-redirect to /manager
+
+**Test 3: Wrong Role Access**
+1. Login as member
+2. Try to access http://localhost:5173/manager
+3. Observe redirect to /login
+
+**Test 4: Correct Role Access**
+1. Login as manager
+2. Access http://localhost:5173/manager
+3. Dashboard loads successfully
+
+**Test 5: Session Expiration**
+1. Login successfully
+2. Modify session in localStorage to expired date
+3. Try to access any protected route
+4. Observe redirect to /login
+
+### Browser Console Logs:
+
+When protection triggers:
+```
+🚫 Not authenticated, redirecting to login
+🚫 Insufficient permissions, redirecting to login
+```
+
+When login succeeds:
+```
+✅ Login successful: manager@fithub.gr Role: manager
+```
+
+### Security Benefits:
+
+1. **No Unauthorized Access**: Users must be authenticated and have correct role
+2. **Session Validation**: Every route checks session validity
+3. **Clean UX**: No access to login page when already logged in
+4. **Developer Friendly**: Easy to add new protected routes
+5. **Debuggable**: Console logs show protection events
+
+---
+
 ## 📋 Upcoming Steps:
 
-### STEP 6: Protected Routes & Auth Guards
-- Route protection middleware
-- Automatic redirect to login for unauthenticated users
-- Role-based route restrictions
+### STEP 7: Class Management (UC-2 Part 1)
+- Class creation interface
+- Class scheduling
+- Instructor assignment
+- Capacity management
 
 ### STEP 6: Member Dashboard (UC-2 Book Class)
 - Class browsing
@@ -755,12 +946,12 @@ JSON.parse(localStorage.getItem('fithub_session'))
 | 3 | ✅ | UC-1 | Payment Integration & Transaction Management |
 | 4 | ✅ | UC-1 | Admin Approval Workflow (Secretary/Manager Dashboard) |
 | 5 | ✅ | All | Login System & Authentication |
-| 6 | 🔜 | All | Protected Routes & Auth Guards |
-| 7 | 🔜 | UC-2 | Class Browsing & Filtering |
+| 6 | ✅ | All | Protected Routes & Auth Guards |
+| 7 | 🔜 | UC-2 | Class Management (Creation & Scheduling) |
 | 8 | 🔜 | UC-2 | Class Booking System |
 | 9 | 🔜 | UC-2 | Waitlist Management |
 | ... | 🔜 | ... | More features to come |
 
 **Total Steps Planned**: 25  
-**Steps Completed**: 5 (20%)  
-**Steps Remaining**: 20
+**Steps Completed**: 6 (24%)  
+**Steps Remaining**: 19

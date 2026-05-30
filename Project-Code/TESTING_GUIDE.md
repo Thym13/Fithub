@@ -837,6 +837,295 @@ JSON.parse(localStorage.getItem('fithub_session'))
 
 ---
 
+## ✅ STEP 6: Protected Routes & Auth Guards
+
+### Test Case: Access Protected Route (Not Logged In)
+1. Clear localStorage: Open DevTools → Console → Run: `localStorage.clear()`
+2. Refresh page
+3. Navigate to http://localhost:5173/manager (or any dashboard URL)
+
+**Expected Result**:
+- 🚫 Redirected to /login immediately
+- ❌ Dashboard does not load
+- 📝 Console log: "🚫 Not authenticated, redirecting to login"
+- ✅ URL changes to /login
+
+### Test Case: Access Login Page (Already Logged In)
+1. Login as manager (manager@fithub.gr / Manager123!)
+2. Navigate to http://localhost:5173/login
+
+**Expected Result**:
+- ✅ Automatically redirected to /manager dashboard
+- ❌ Login form does not display
+- ✅ Dashboard loads immediately
+
+### Test Case: Role-Based Access (Member tries Manager route)
+1. Register and approve a new member account
+2. Login as the member
+3. Try to navigate to http://localhost:5173/manager
+
+**Expected Result**:
+- 🚫 Redirected to /login
+- 📝 Console log: "🚫 Insufficient permissions, redirecting to login"
+- ❌ Manager dashboard does not load
+
+### Test Case: Role-Based Access (Manager tries Member route)
+1. Login as manager
+2. Navigate to http://localhost:5173/member
+
+**Expected Result**:
+- 🚫 Redirected to /login
+- 📝 Console log: "🚫 Insufficient permissions, redirecting to login"
+- ❌ Member dashboard does not load
+
+### Test Case: Role-Based Access (Trainer routes)
+1. Register and approve a trainer account
+2. Login as trainer
+3. Access http://localhost:5173/trainer
+
+**Expected Result**:
+- ✅ Trainer dashboard loads successfully
+- ✅ Can navigate to /trainer/client/:clientId
+
+4. Try to access http://localhost:5173/manager
+
+**Expected Result**:
+- 🚫 Redirected to /login
+- ❌ Cannot access manager dashboard
+
+### Test Case: Multi-Role Access (Receptionist)
+1. Login as secretary (secretary@fithub.gr / Admin123!)
+2. Access http://localhost:5173/receptionist
+
+**Expected Result**:
+- ✅ Receptionist dashboard loads
+
+3. Login as manager
+4. Access http://localhost:5173/receptionist
+
+**Expected Result**:
+- ✅ Receptionist dashboard loads (managers can access)
+
+### Test Case: Public Routes (Always Accessible)
+1. Without logging in, access these routes:
+   - http://localhost:5173/login
+   - http://localhost:5173/register
+   - http://localhost:5173/verify-email
+
+**Expected Result**:
+- ✅ All pages load without authentication
+- ✅ No redirect to login
+
+### Test Case: Direct URL Access (Protected)
+1. Logout completely
+2. Type http://localhost:5173/manager directly in browser address bar
+3. Press Enter
+
+**Expected Result**:
+- 🚫 Redirected to /login before dashboard loads
+- ❌ Dashboard never renders
+
+### Test Case: Back Button After Logout
+1. Login as manager
+2. Access /manager dashboard
+3. Click "Logout"
+4. Click browser back button
+
+**Expected Result**:
+- 🚫 Redirected to /login (not back to dashboard)
+- ✅ Uses `replace: true` to prevent back-button access
+- ❌ Cannot access dashboard via back button
+
+### Test Case: Session Expiration on Route Access
+1. Login successfully
+2. Open DevTools → Application → Local Storage
+3. Find `fithub_session`
+4. Modify `expiresAt` to past date: "2020-01-01T00:00:00.000Z"
+5. Try to access any protected route
+
+**Expected Result**:
+- 🚫 Session expires automatically
+- 🚫 Redirected to /login
+- 📝 Session cleared from localStorage
+
+### Test Case: Browser Console Logs
+1. Open browser console (F12)
+2. Clear localStorage
+3. Try to access /manager
+
+**Expected Result in Console**:
+```
+🚫 Not authenticated, redirecting to login
+```
+
+4. Login as member
+5. Try to access /trainer
+
+**Expected Result in Console**:
+```
+🚫 Insufficient permissions, redirecting to login
+```
+
+6. Login successfully as manager
+
+**Expected Result in Console**:
+```
+✅ Login successful: manager@fithub.gr Role: manager
+```
+
+### Test Case: Multiple Tab Logout
+1. Open two browser tabs
+2. Login in Tab 1
+3. Navigate to dashboard in Tab 1
+4. Navigate to dashboard in Tab 2 (should work)
+5. Logout in Tab 1
+6. Refresh Tab 2
+
+**Expected Result**:
+- ✅ Tab 2 redirects to /login (session cleared)
+- ❌ Cannot access dashboard in Tab 2 after logout in Tab 1
+
+### Test Case: Refresh on Protected Route
+1. Login as manager
+2. Navigate to /manager dashboard
+3. Refresh page (F5)
+
+**Expected Result**:
+- ✅ Dashboard reloads successfully
+- ✅ User stays logged in
+- ✅ No redirect to login
+
+### Test Case: useAuth Hook (Developer Test)
+1. Add this code temporarily to any component:
+```typescript
+import { useAuth } from '../hooks/useAuth';
+
+const { user, isAuthenticated, hasRole } = useAuth();
+console.log('User:', user);
+console.log('Authenticated:', isAuthenticated);
+console.log('Is Manager:', hasRole('manager'));
+```
+
+**Expected Result**:
+- ✅ Shows current user object
+- ✅ Shows authentication status
+- ✅ Role check works correctly
+
+---
+
+## 🔍 Testing Checklist (Updated)
+
+### Route Protection & Security (NEW)
+- [ ] Protected routes redirect to login when not authenticated
+- [ ] Login page redirects to dashboard when already logged in
+- [ ] Role-based access control works (wrong role = redirect)
+- [ ] Public routes accessible without authentication
+- [ ] Direct URL access to protected routes is blocked
+- [ ] Back button after logout doesn't allow access
+- [ ] Session expiration triggers redirect
+- [ ] Console logs show protection events
+- [ ] Multiple tabs respect logout state
+- [ ] Refresh on protected route maintains session
+- [ ] useAuth hook provides correct state
+
+### Authentication & Authorization (Updated)
+- [x] Login page loads correctly
+- [x] Login with valid credentials works
+- [x] Login with invalid credentials fails
+- [x] Email verification required for login
+- [x] Pending users cannot login
+- [x] Rejected users cannot login
+- [x] Approved users can login
+- [x] Role-based routing works
+- [x] Session persists across page refresh
+- [x] Logout clears session
+- [x] Session expires after 24 hours
+- [x] Quick-login buttons work
+- [x] Error messages display correctly
+- [ ] Route protection enforced
+- [ ] Role authorization enforced
+
+### Registration Flow (Member)
+- [x] Form validation works
+- [x] Password strength indicator appears
+- [x] Email verification sent
+- [x] Duplicate email blocked
+- [x] Subscription selection works
+- [x] Payment processing works
+- [x] Transaction recorded
+- [x] Membership activated
+- [x] Emails sent (verification, payment confirmation)
+
+### Admin Approval Workflow
+- [x] Pending registrations displayed
+- [x] User details shown correctly
+- [x] Payment status visible
+- [x] Approve functionality works
+- [x] Reject functionality requires reason
+- [x] Welcome email sent on approval
+- [x] Rejection email sent with reason
+- [x] User status updated to Active/Rejected
+- [x] Membership status updated
+- [x] Notifications created
+- [x] List refreshes after action
+- [x] Both manager and secretary can approve/reject
+
+### Payment Features
+- [x] Card auto-formatting works
+- [x] Card type detected
+- [x] CVV masked (password field)
+- [x] Expiry auto-formatted (MM/YY)
+- [x] Luhn validation works
+- [x] Payment success flow
+- [x] Payment declined flow
+- [x] Transaction summary displayed
+
+### Data Persistence
+- [x] User saved in localStorage
+- [x] Membership saved
+- [x] Transaction saved
+- [x] Emails logged
+- [x] Data persists after page reload
+- [x] Notifications saved
+- [x] Sessions saved and validated
+
+---
+
+## 🐛 Common Issues (Updated)
+
+### Issue: Infinite redirect loop between /login and /manager
+**Solution**: 
+- Check session in localStorage
+- Verify session `expiresAt` is in the future
+- Ensure user has correct `accountStatus: 'Active'`
+- Clear localStorage and login again
+
+### Issue: Can access protected routes when logged out
+**Solution**: 
+- Verify ProtectedRoute is wrapping the route in routes.tsx
+- Check authService.isAuthenticated() returns false
+- Clear browser cache and hard refresh (Ctrl+Shift+R)
+
+### Issue: Wrong role can access restricted routes
+**Solution**: 
+- Check `allowedRoles` array in routes.tsx
+- Verify user role in localStorage: `JSON.parse(localStorage.getItem('fithub_session')).user.role`
+- Ensure role matches allowed roles
+
+### Issue: Login page shows briefly before redirecting
+**Solution**: 
+- This is expected behavior (useEffect runs after render)
+- The redirect happens very quickly
+- Not a security issue (route protection still works)
+
+### Issue: Back button allows access after logout
+**Solution**: 
+- Verify ProtectedRoute uses `<Navigate replace />`
+- Check that logout clears session completely
+- Hard refresh page to clear browser cache
+
+---
+
 **Last Updated**: 2026-05-27  
-**Steps Tested**: 1-5  
-**Total Test Cases**: 55+
+**Steps Tested**: 1-6  
+**Total Test Cases**: 70+

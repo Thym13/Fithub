@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -16,6 +16,28 @@ export function Login() {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    const currentUser = authService.getCurrentUser();
+    if (currentUser) {
+      // User is already logged in, redirect to their dashboard
+      switch (currentUser.role) {
+        case 'member':
+          navigate('/member', { replace: true });
+          break;
+        case 'trainer':
+          navigate('/trainer', { replace: true });
+          break;
+        case 'secretary':
+          navigate('/receptionist', { replace: true });
+          break;
+        case 'manager':
+          navigate('/manager', { replace: true });
+          break;
+      }
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
