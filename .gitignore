@@ -7,3 +7,6 @@ dist/
 *.log
 .vite/
 draft notes/
+
+# Local-only diagrams inside Project-Code (keep on disk, exclude from GitHub)
+Project-Code/diagrams/
